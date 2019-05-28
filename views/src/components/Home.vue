@@ -4,7 +4,7 @@
       <el-header>
         <img style="margin:0;padding:0;" src="/src/assets/pd_name.png" width="200" height="100">
       </el-header>
-      <el-menu default-active="0" class="el-menu-demo" mode="horizontal" @select="selectMode" background-color="#545c64" text-color="#fff" active-text-color="#fff">
+      <el-menu :default-active="select_mode" class="el-menu-demo" mode="horizontal" @select="selectMode" background-color="#545c64" text-color="#fff" active-text-color="#fff">
         <el-menu-item index="1"><i class="el-icon-folder-opened"></i>打开项目</el-menu-item>
         <el-menu-item index="2"><i class="el-icon-folder-add"></i>新建项目</el-menu-item>
         <el-menu-item index="3"><i class="el-icon-edit-outline"></i>编辑用例</el-menu-item>
@@ -17,7 +17,9 @@
         <p style="margin:6px 0px 0px 20px;color:#ffd04b">当前选择项目 : {{ currentProject }}</p>
       </div>
       <div>
-        <TestView/>
+        <ul v-if="select_mode=='3'"><EditCasesView/></ul>
+        <ul v-if="select_mode=='4'"><TestView/></ul>
+        <ul v-if="select_mode=='5'"><ReportView/></ul>
       </div>
       <div>
         <OpenPrj/>
@@ -33,14 +35,19 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 import OpenPrj from "./OpenPrj.vue";
 import NewPrj from "./NewPrj.vue";
 import TestView from "./TestView.vue";
+import EditCasesView from "./EditCasesView.vue";
+import ReportView from "./ReportView.vue";
 @Component({
   components: {
     OpenPrj,
     NewPrj,
-    TestView
+    TestView,
+    EditCasesView,
+    ReportView
   }
 })
 export default class Home extends Vue {
+    private select_mode:any="3";
     get currentProject(){
         if(this.$store.state.project_info.current_prj.length){
             return this.$store.state.project_info.current_prj;
@@ -49,15 +56,18 @@ export default class Home extends Vue {
     }
     private selectMode(key:any){
         this.$store.state.home_info.select_mode=key;
+        
+        // console.log(this.select_mode);
         switch(key){
             case "1":
                 this.$store.state.project_info.openflag=true;
                 break;
             case "2":
                 this.$store.state.project_info.newflag=true;
-                console.log(this.$store.state.project_info.current_prj);
                 break;
-            default:break;
+            default:
+                this.select_mode=key;
+                break;
         }
     }
 }

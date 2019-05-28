@@ -8,6 +8,7 @@
             <i class="el-icon-folder-opened"></i>
             <span>新建项目...</span>
         </p>
+        <el-input placeholder="请输入项目名称..."></el-input>
         <span slot="footer">
             <el-button type="info" @click="cancel">取消</el-button>
             <el-button type="primary" @click="cancel">创建</el-button>
