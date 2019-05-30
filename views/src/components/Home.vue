@@ -2,7 +2,7 @@
   <div>
     <el-container>
       <el-header>
-        <img style="margin:0;padding:0;" src="/src/assets/pd_name.png" width="200" height="100">
+        <img style="margin:0;padding:0;" src="/src/assets/pd_name.png" width="200" height="80">
       </el-header>
       <el-menu :default-active="select_mode" class="el-menu-demo" mode="horizontal" @select="selectMode" background-color="#545c64" text-color="#fff" active-text-color="#fff">
         <el-menu-item index="1"><i class="el-icon-folder-opened"></i>打开项目</el-menu-item>
@@ -20,6 +20,7 @@
         <ul v-if="select_mode=='3'"><EditCasesView/></ul>
         <ul v-if="select_mode=='4'"><TestView/></ul>
         <ul v-if="select_mode=='5'"><ReportView/></ul>
+        <ul v-if="select_mode=='6'"><SettingView/></ul>
       </div>
       <div>
         <OpenPrj/>
@@ -37,17 +38,19 @@ import NewPrj from "./NewPrj.vue";
 import TestView from "./TestView.vue";
 import EditCasesView from "./EditCasesView.vue";
 import ReportView from "./ReportView.vue";
+import SettingView from "./SettingView.vue";
 @Component({
   components: {
     OpenPrj,
     NewPrj,
     TestView,
     EditCasesView,
-    ReportView
+    ReportView,
+    SettingView
   }
 })
 export default class Home extends Vue {
-    private select_mode:any="3";
+    private select_mode:any="4";
     get currentProject(){
         if(this.$store.state.project_info.current_prj.length){
             return this.$store.state.project_info.current_prj;
@@ -55,9 +58,6 @@ export default class Home extends Vue {
         return "无";
     }
     private selectMode(key:any){
-        this.$store.state.home_info.select_mode=key;
-        
-        // console.log(this.select_mode);
         switch(key){
             case "1":
                 this.$store.state.project_info.openflag=true;

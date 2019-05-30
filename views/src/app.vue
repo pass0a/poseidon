@@ -1,14 +1,35 @@
 <template>
   <div id="app">
-    <!-- <p> -->
-      <!-- 使用 router-link 组件来导航. -->
-      <!-- 通过传入 `to` 属性指定链接. -->
-      <!-- <router-link> 默认会被渲染成一个 `<a>` 标签 -->
-      <!-- <router-link to="/">Go to Foo</router-link>
-      <router-link to="/about">Go to Bar</router-link> -->
-    <!-- </p> -->
-    <!-- 路由出口 -->
-    <!-- 路由匹配到的组件将渲染在这里 -->
     <router-view></router-view>
   </div>
 </template>
+<script lang="ts">
+let pack = require("./ext/pack/index.js");
+let pis = new pack.inputStream();
+let pos = new pack.outputStream();
+
+import { Component, Prop, Vue } from "vue-property-decorator";
+@Component
+export default class App extends Vue {
+    private ws: any = null;
+    private count:any=0;
+    private created() {
+        pis.on("data", (data: any) => {
+            this.ws.send(data);
+        });
+        pos.on("data", (data: any) => {
+            console.log(data.type);
+        });
+        this.ws = new WebSocket("ws://127.0.0.1:6001");
+        this.ws.onopen = () => {
+            this.ws.binaryType = "arraybuffer";
+        };
+        this.ws.onmessage = (frm: any) => {
+            pos.push(frm.data);
+        };
+        this.ws.onclose = () => {
+            console.log("close websocket!!!");
+        };
+    }
+}
+</script>

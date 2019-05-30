@@ -17,13 +17,13 @@
                 <el-checkbox label="用例名称"></el-checkbox>
                 <el-checkbox label="优先级"></el-checkbox>
             </el-checkbox-group>
-            <el-table style="width: 100%" height="370" size="mini" stripe border ref="table">
+            <el-table style="width: 100%" height="370" size="mini" stripe border ref="CasesTable">
                 <el-table-column type="index" label="No." width="50"></el-table-column>
-                <el-table-column label="需求编号" resizable show-overflow-tooltip="ture"></el-table-column>
-                <el-table-column label="需求名称" resizable show-overflow-tooltip="ture"></el-table-column>
-                <el-table-column label="用例ID" resizable show-overflow-tooltip="ture"></el-table-column>
-                <el-table-column label="用例名称" resizable show-overflow-tooltip="ture"></el-table-column>
-                <el-table-column label="优先级" resizable show-overflow-tooltip="ture"></el-table-column>
+                <el-table-column label="需求编号" resizable></el-table-column>
+                <el-table-column label="需求名称" resizable></el-table-column>
+                <el-table-column label="用例ID" resizable></el-table-column>
+                <el-table-column label="用例名称" resizable></el-table-column>
+                <el-table-column label="优先级" resizable></el-table-column>
             </el-table>
         </el-tabs>
     </div>

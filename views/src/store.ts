@@ -6,7 +6,6 @@ Vue.use(Vuex);
 export default new Vuex.Store({
 	state:{
 		home_info: {
-			select_mode : "0"
 		},
 		project_info:{
 			openflag:false,
@@ -14,7 +13,7 @@ export default new Vuex.Store({
 			current_prj:"",
 			prjlist:[
 				{
-					name:"SU2"
+					name:"Test"
 				}
 			]
 		}
