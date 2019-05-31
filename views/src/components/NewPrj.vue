@@ -32,18 +32,3 @@ export default class OpenPrj extends Vue {
     }
 }
 </script>
-<style>
-.button {
-		background-color: #008CBA;
-		border: none;
-		border-radius: 4px;
-		color: white;
-		padding: 3px 12px;
-		text-align: center;
-		text-decoration: none;
-		display: inline-block;
-		font-size: 12px;
-		margin: 4px 2px;
-		cursor: pointer;
-	}
-</style>

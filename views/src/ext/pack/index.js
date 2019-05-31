@@ -1,4 +1,4 @@
-var Stream=require("stream");
+var Stream=require("./stream.js");
 var mp=require("./msgpack.js");
 function checkCrc(data){
     return ((data[3]+data[4]+data[5]+data[6]+data[7])&0xFF)==data[8];

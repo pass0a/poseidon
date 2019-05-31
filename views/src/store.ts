@@ -5,8 +5,7 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
 	state:{
-		home_info: {
-		},
+		home_info: {},
 		project_info:{
 			openflag:false,
 			newflag:false,
@@ -16,7 +15,12 @@ export default new Vuex.Store({
 					name:"Test"
 				}
 			]
-		}
+		},
+		login_info:{
+			showflag:false
+		},
+		setting_info:{},
+		port_info:{}
 	},
 	mutations:{}
 });
