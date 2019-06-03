@@ -1,5 +1,6 @@
 <template>
   <div id="app">
+    <el-link v-model="sendRequest"></el-link>
     <router-view></router-view>
   </div>
 </template>
@@ -37,11 +38,30 @@ export default class App extends Vue {
         console.log(data.type);
         switch(data.type){
             case "readConfig":
-                this.$store.state.setting_info=data.info;
+                this.$store.state.setting_info.info=data.info;
+                break;
+            case "saveConfig":
+                this.$store.state.alert_info.showflag=false;
+                this.$notify({title: '系统配置信息保存成功',message: '', type: 'success',duration:1500});
                 break;
             default:
                 break;
         }
+    }
+    get sendRequest(){
+        if(this.$store.state.app_info.reqCount > this.count){
+            let reqType = this.$store.state.app_info.type;
+            switch(reqType){
+                case "readConfig":
+                    pis.push({type:reqType});
+                    break;
+                case "saveConfig":
+                    pis.push({type:reqType,info:this.$store.state.setting_info.info});
+                    break;
+            }
+            this.count++;
+        }
+        return this.$store.state.app_info.reqCount;
     }
 }
 </script>

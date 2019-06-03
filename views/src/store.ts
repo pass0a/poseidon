@@ -5,6 +5,10 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
 	state:{
+		app_info:{
+			reqCount:0,
+			type:""
+		},
 		home_info: {},
 		project_info:{
 			openflag:false,
@@ -19,8 +23,14 @@ export default new Vuex.Store({
 		login_info:{
 			showflag:false
 		},
-		setting_info:{},
-		port_info:{}
+		setting_info:{
+			info:{},
+			select_serial:""
+		},
+		alert_info:{
+			showflag:false,
+			type: 0
+		}
 	},
 	mutations:{}
 });

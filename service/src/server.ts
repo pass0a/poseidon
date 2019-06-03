@@ -55,6 +55,10 @@ export class Server{
                 let config=JSON.parse(x);
                 this.pis.push({type:data.type,info:config});
                 break;
+            case "saveConfig":
+                fs.writeFileSync(this.configPath,JSON.stringify(data.info));
+                this.pis.push({type:data.type,state:true});
+                break;
             default:
                 break;
         }

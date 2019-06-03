@@ -58,16 +58,23 @@ export default class Home extends Vue {
         return "无";
     }
     private selectMode(key:any){
-        switch(key){
+        if(this.select_mode!=key){
+          switch(key){
             case "1":
                 this.$store.state.project_info.openflag=true;
                 break;
             case "2":
                 this.$store.state.project_info.newflag=true;
                 break;
+            case "6":
+                this.$store.state.app_info.reqCount++;
+                this.$store.state.app_info.type="readConfig";
+                this.select_mode=key;
+                break;
             default:
                 this.select_mode=key;
                 break;
+          }
         }
     }
 }
