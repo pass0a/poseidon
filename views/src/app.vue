@@ -5,7 +5,7 @@
   </div>
 </template>
 <script lang="ts">
-let pack = require("./ext/pack/index.js");
+import * as pack from "./ext/pack/index";
 let pis = new pack.inputStream();
 let pos = new pack.outputStream();
 
