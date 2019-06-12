@@ -40,6 +40,11 @@ export default class AlertView extends Vue {
                 this.alertInfo.content="是否保存当前配置?";
                 this.alertInfo.btn="保存";
                 break;
+            case 1:
+                this.alertInfo.title="新建项目";
+                this.alertInfo.content="是否确定新建项目 : " +this.$store.state.alert_info.info +" ?";
+                this.alertInfo.btn="确定";
+                break;
             default:
                 break;
         }
@@ -51,6 +56,12 @@ export default class AlertView extends Vue {
         switch(this.$store.state.alert_info.type){
             case 0:
                 this.$store.state.app_info.type="saveConfig";
+                this.$store.state.app_info.reqCount++;
+                break;
+            case 1:
+                this.$store.state.app_info.type="toDB";
+                this.$store.state.app_info.route="projects";
+                this.$store.state.app_info.job="add";
                 this.$store.state.app_info.reqCount++;
                 break;
         }

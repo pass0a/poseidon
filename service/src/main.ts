@@ -1,17 +1,27 @@
 import { Server } from "./server";
 import { ToLink } from "./toLink";
+import { ToDB } from "./toDB";
 
 export class App {
     private server = new Server();
     private tolink = new ToLink();
-    start(){
-      this.server.run(6001,()=>{
-        console.log(123);;
+    private todb = new ToDB();
+    async start(){
+      // this.server.run(6001,()=>{
+      //   console.log(123);;
+      // });
+      // await this.tolink.connect();
+      // this.tolink.send({type:123});
+      // console.log("1111");
+      
+      await this.todb.connect(this.server);
+      this.server.run(6001,this.todb,()=>{
+          console.log(123);
       });
-      // this.tolink.run();
     }
+
     static create() {
-		new App().start();
-	}
+        new App().start();
+    }
 }
 App.create();

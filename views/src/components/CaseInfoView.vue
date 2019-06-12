@@ -1,0 +1,107 @@
+<template>
+    <Modal
+        v-model="showflag"
+        width="650"
+        :closable="false"
+		:mask-closable="false">
+        <p slot="header">
+            <i class="el-icon-warning"></i>
+            <span>{{ title }}</span>
+        </p>
+        <el-form :inline="true" label-position="right" ref="caseform" :model="case_info" :rules="caseValidate" label-width="80px" style="margin:0px 0px 0px 30px;" size="small">
+            <el-form-item label="用例ID" prop="case_id">
+                <el-input style="width:180px" placeholder="请输入" v-model="case_info.case_id" :disabled="title=='修改用例'"></el-input>
+            </el-form-item>
+            <el-form-item label="用例名称">
+                <el-input style="width:180px" placeholder="请输入" v-model="case_info.case_name"></el-input>
+            </el-form-item>
+            <el-form-item label="所属模块" prop="case_module">
+                <el-select style="width:180px" v-model="case_info.case_module" :disabled="title=='修改用例'">
+                    <el-option v-for="val in case_module_list.keys()" :label="case_module_list.get(val)" :value="val" :key="val"></el-option>
+                </el-select>
+            </el-form-item>
+            <el-form-item label="测试模式">
+                <el-select style="width:100px" v-model="case_mode_alive" @change="selectMode()">
+                    <el-option v-for="val in case_mode_list.keys()" :label="case_mode_list.get(val)" :value="val" :key="val"></el-option>
+                </el-select>
+                <el-input-number style="width:105px" v-model="case_info.case_mode" controls-position="right" :min="2" :max="100000" v-if="case_mode_alive=='2'"></el-input-number>
+            </el-form-item>
+            <el-form-item label="需求名称" v-if="expand">
+                <el-input style="width:180px" placeholder="请输入" v-model="case_info.case_dam"></el-input>
+            </el-form-item>
+            <el-form-item label="需求编号" v-if="expand">
+                <el-input style="width:180px" placeholder="请输入" v-model="case_info.case_num"></el-input>
+            </el-form-item>
+            <el-form-item label="前提条件" v-if="expand">
+                <el-input type="textarea" style="width:454px" autosize placeholder="请输入" v-model="case_info.case_pre"></el-input>
+            </el-form-item>
+            <el-form-item label="操作步骤" v-if="expand">
+                <el-input type="textarea" style="width:454px" autosize placeholder="请输入" v-model="case_info.case_op"></el-input>
+            </el-form-item>
+            <el-form-item label="预期结果" v-if="expand">
+                <el-input type="textarea" style="width:454px" autosize placeholder="请输入" v-model="case_info.case_exp"></el-input>
+            </el-form-item>
+            <el-form-item label="备注" v-if="expand">
+                <el-input type="textarea" style="width:454px" autosize placeholder="请输入" v-model="case_info.case_note"></el-input>
+            </el-form-item>
+            <el-form-item label="优先级" v-if="expand">
+                <el-select style="width:100px" v-model="case_info.case_level">
+                    <el-option v-for="val in case_level_list.keys()" :label="case_level_list.get(val)" :value="val" :key="val"></el-option>
+                </el-select>
+            </el-form-item>
+        </el-form>
+        <el-button type="text" :icon="expand?'el-icon-caret-top':'el-icon-caret-bottom'" style="margin:0px 0px 0px 500px;" @click="clickExpand()">{{expand?"收起部分":"展开更多"}}</el-button>
+        <span slot="footer">
+            <el-button type="info" @click="cancel">取消</el-button>
+            <el-button type="primary" @click="ok">确定</el-button>
+        </span>
+    </Modal>
+</template>
+<script lang="ts">
+import { Component, Prop, Vue } from "vue-property-decorator";
+@Component
+export default class CaseInfoView extends Vue {
+    private title:any="";
+    private case_module_list:any=this.$store.state.case_module;
+    private case_mode_list:any=new Map([["1","单次测试"],["2","循环测试"]]);
+    private case_level_list:any=new Map([["1","低"],["2","中"],["3","高"]]);
+    private case_mode_alive:any="1";
+    private expand:Boolean=false;
+    private caseValidate:any={case_id:[{ required: true, message: '用例ID不能为空', trigger: 'blur' }],case_module:[{ required: true, message: '所属模块不能为空', trigger: 'change' }]}
+    private case_info:any={case_module:""};
+    get showflag(){
+        if(this.$store.state.case_info.showflag){
+            this.title=this.$store.state.case_info.type?"修改用例":"新建用例";
+            this.case_info=this.$store.state.case_info.type?JSON.parse(JSON.stringify(this.$store.state.case_info.data)):this.initCaseData();
+        }else{
+            if((this as any).$refs.caseform)(this as any).$refs.caseform.resetFields();
+        }
+        return this.$store.state.case_info.showflag;
+    }
+    private initCaseData(){
+        this.case_mode_alive="1";
+        return {case_id:"",case_name:"",case_dam:"",case_num:"",case_module:"",case_mode:1,case_pre:"",case_op:"",case_exp:"",case_note:"",case_level:"",case_steps:[]};
+    }
+    private cancel(){
+        (this as any).$refs.caseform.resetFields();
+        this.$store.state.case_info.showflag=false;
+    }
+    private ok(){
+        (this as any).$refs.caseform.validate((valid:any) => {
+            if(valid){
+                this.$store.state.case_info.data=this.case_info;
+                this.$store.state.app_info.type="toDB";
+                this.$store.state.app_info.route="cases";
+                this.$store.state.app_info.job=this.$store.state.case_info.type?"modify":"add";
+                this.$store.state.app_info.reqCount++;
+            }
+        });
+    }
+    private selectMode(){
+        this.case_info.case_mode=this.case_mode_alive=="1"?1:2;
+    }
+    private clickExpand(){
+        this.expand=!this.expand;
+    }
+}
+</script>

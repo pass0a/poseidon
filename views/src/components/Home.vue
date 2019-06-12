@@ -17,10 +17,10 @@
         <p style="margin:6px 0px 0px 20px;color:#ffd04b">当前选择项目 : {{ currentProject }}</p>
       </div>
       <div>
-        <ul v-if="select_mode=='3'"><EditCasesView/></ul>
-        <ul v-if="select_mode=='4'"><TestView/></ul>
-        <ul v-if="select_mode=='5'"><ReportView/></ul>
-        <ul v-if="select_mode=='6'"><SettingView/></ul>
+        <ul v-show="select_mode=='3'"><EditCasesView/></ul>
+        <ul v-show="select_mode=='4'"><TestView/></ul>
+        <ul v-show="select_mode=='5'"><ReportView/></ul>
+        <ul v-show="select_mode=='6'"><SettingView/></ul>
       </div>
       <div>
         <OpenPrj/>
@@ -53,6 +53,7 @@ export default class Home extends Vue {
     private select_mode:any="4";
     get currentProject(){
         if(this.$store.state.project_info.current_prj.length){
+            this.select_mode="4";
             return this.$store.state.project_info.current_prj;
         }
         return "无";
@@ -61,14 +62,31 @@ export default class Home extends Vue {
         if(this.select_mode!=key){
           switch(key){
             case "1":
-                this.$store.state.project_info.openflag=true;
+                this.setReq("toDB","projects","list");
                 break;
             case "2":
                 this.$store.state.project_info.newflag=true;
                 break;
+            case "3":
+                if(this.$store.state.project_info.current_prj.length){
+                    if(this.$store.state.editcase_info.refresh_data){
+                      this.setReq("toDB","cases","list");
+                    }
+                    this.select_mode=key;
+                }else{
+                    this.$notify({title: '当前无项目,请选择项目',message: '', type: 'warning',duration:1500});
+                }
+                break;
+            case "5":
+                if(this.$store.state.project_info.current_prj.length){
+                    this.setReq("readReport");
+                    this.select_mode=key;
+                }else{
+                    this.$notify({title: '当前无项目,请选择项目',message: '', type: 'warning',duration:1500});
+                }
+                break;
             case "6":
-                this.$store.state.app_info.reqCount++;
-                this.$store.state.app_info.type="readConfig";
+                this.setReq("readConfig");
                 this.select_mode=key;
                 break;
             default:
@@ -76,6 +94,12 @@ export default class Home extends Vue {
                 break;
           }
         }
+    }
+    private setReq(type:any,route?:any,job?:any){
+      this.$store.state.app_info.reqCount++;
+      this.$store.state.app_info.type=type;
+      this.$store.state.app_info.route=route;
+      this.$store.state.app_info.job=job;
     }
 }
 </script>

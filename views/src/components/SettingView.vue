@@ -67,14 +67,13 @@ export default class SettingView extends Vue {
     private uarts:any=["relay","da_mcu","da_arm"];
     private created() {
         this.$store.state.setting_info.select_serial = this.uarts[this.select_uart];
-        this.select_server=this.$store.state.setting_info.info.db_server.type;
     }
     get dbserverInfo(){
-        this.db_server_info=this.$store.state.setting_info.info.db_server;
+        if(this.$store.state.setting_info.info.db_server!=undefined)this.db_server_info=this.$store.state.setting_info.info.db_server;
         return this.db_server_info;
     }
     get daserverInfo(){
-        this.da_server_info=this.$store.state.setting_info.info.da_server;
+        if(this.$store.state.setting_info.info.da_server!=undefined)this.da_server_info=this.$store.state.setting_info.info.da_server;
         return this.da_server_info;
     }
     private selectUart(){

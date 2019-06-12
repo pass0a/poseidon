@@ -13,17 +13,24 @@ export class ToLink{
             this.handle(data);
         });
     }
-    run(){
-        let that:any=this;
-        that.inst=net.connect(6000,"127.0.0.1",function(){
-            console.info("web_server connect!!!");
-            that.inst.on("data",function(data:any){
-                that.pos.push(data);
+    connect(){
+        return new Promise(resolve=>{
+            let that:any=this;
+            that.inst=net.connect(6001,"127.0.0.1",function(){
+                console.info("web_server connect!!!");
+                that.inst.on("data",function(data:any){
+                    that.pos.push(data);
+                });
+                that.inst.on("close",function(){
+                    console.info("close web_server!!!");
+                });
+                resolve(true);
             });
-            that.inst.on("close",function(){
-                console.info("close web_server!!!");
-            });
+            that.inst.on("error",()=>{resolve(false);});
         });
+    }
+    send(obj:any):void{
+        this.pis.push(obj);
     }
     private handle(data:any){
         console.log(data);
