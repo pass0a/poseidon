@@ -1,9 +1,17 @@
-const mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost:27017/test', { useNewUrlParser: true });
+'use strict';
 
-const Cat = mongoose.model('Cat', { name: String });
+var mongoose = require('mongoose');
 
-const kitty = new Cat({ name: 'Zildjian' });
-kitty.save().then(() => {
+mongoose.connect('mongodb://localhost:27017/test', {
+	useNewUrlParser: true,
+	ssl: false
+});
+var Cat = mongoose.model('Cat', {
+	name: String
+});
+var kitty = new Cat({
+	name: 'Zildjian'
+});
+kitty.save().then(function() {
 	console.log('meow');
 });
