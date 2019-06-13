@@ -72,6 +72,8 @@ export default class App extends Vue {
     private revToDB_users(data:any){
         switch(data.job){
             case "find":
+                console.log(data.info);
+                // console.log(JSON.parse(data.info));
                 this.$store.state.login_info._id=data.info;
                 break;
         }
