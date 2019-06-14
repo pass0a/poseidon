@@ -37,6 +37,8 @@ export default class OpenPrj extends Vue {
     private openPrj(prjname:any){
         this.$store.state.project_info.current_prj=prjname;
         this.$store.state.project_info.openflag=false;
+        //
+        this.$store.state.editcase_info.refresh_data=true;
     }
 }
 </script>
@@ -50,7 +52,7 @@ export default class OpenPrj extends Vue {
 		text-align: center;
 		text-decoration: none;
 		display: inline-block;
-		font-size: 12px;
+		font-size: 8px;
 		margin: 4px 2px;
 		cursor: pointer;
 	}

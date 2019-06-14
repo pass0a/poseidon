@@ -1,6 +1,6 @@
 <template>
     <div>
-        <el-form :inline="true" label-position="left" ref="form" :model="editInfo" label-width="100px">
+        <el-form :inline="true" label-position="left" ref="portform" :model="editInfo" label-width="100px">
             <el-form-item label="Prot">
                 <span>COM</span>
                 <el-input-number style="width:90px" v-model="initInfo.port" controls-position="right" :min="0" :max="100" size="small"></el-input-number>
@@ -43,6 +43,9 @@ export default class SetPort extends Vue {
 	private parity=[{name:"None",num:0},{name:"Odd",num:1},{name:"Even",num:2},{name:"Mark",num:3},{name:"Space",num:4}];
     private flow=[{name:"None",num:0},{name:"RTS/CTS",num:1},{name:"XON/XOFF",num:2}];
     get editInfo(){
+        if(this.$store.state.setting_info.info.uarts!=undefined){
+            this.initInfo = this.$store.state.setting_info.info.uarts[this.$store.state.setting_info.select_serial];
+        }
         return this.initInfo;
     }
     private formTit(flag:Number){
