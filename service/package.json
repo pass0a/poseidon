@@ -4,10 +4,11 @@
 	"description": "",
 	"main": "main.js",
 	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1",
-		"bprod": "cross-env NODE_ENV=prod babel packages/db --out-dir dist/db --copy-files",
-		"tsc": "tsc",
-		"dev": "passoa dist/db/index.js"
+		"js": "babel packages/js --out-dir dist/js",
+		"dep": "babel packages/node_modules --out-dir dist/node_modules --copy-files",
+		"ts": "tsc",
+		"build": "npm run js && npm run dep && npm run ts",
+		"dev": "passoa dist/index.js"
 	},
 	"author": "",
 	"license": "ISC",
