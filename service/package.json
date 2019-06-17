@@ -8,7 +8,7 @@
 		"dep": "babel packages/node_modules --out-dir dist/node_modules --copy-files",
 		"ts": "tsc",
 		"build": "npm run js && npm run dep && npm run ts",
-		"dev": "passoa dist/index.js"
+		"dev": "passoa dist/logic/main.js"
 	},
 	"author": "",
 	"license": "ISC",
@@ -19,5 +19,8 @@
 		"@types/mongoose": "^5.5.6",
 		"cross-env": "^5.2.0",
 		"typescript": "^3.5.1"
+	},
+	"dependencies": {
+		"@passoa/pack": "^1.0.3"
 	}
 }

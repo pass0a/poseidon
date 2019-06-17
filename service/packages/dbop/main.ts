@@ -1,5 +1,5 @@
 import * as mongoose from 'mongoose';
-import * as pack from 'pack';
+import * as pack from '@passoa/pack';
 import * as net from 'net';
 import users from './users/index';
 import cases from './cases/index';
