@@ -4,6 +4,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as util from 'util';
 import { Server } from './server';
+import { config } from './config';
 
 export class ToDB {
 	private prjdir: any = path.dirname(path.dirname(process.execPath)) + 'data_warehouse/projects/';
@@ -20,6 +21,7 @@ export class ToDB {
 		});
 	}
 	connect(ser: Server) {
+		console.log('debug:', config.start);
 		return new Promise((resolve) => {
 			this.ser = ser;
 			let config = this.readConfig();
