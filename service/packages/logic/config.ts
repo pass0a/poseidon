@@ -1,4 +1,4 @@
 class Config {
-	start = 'hello world';
+	path = __dirname+"/config.json";
 }
 export const config = new Config();

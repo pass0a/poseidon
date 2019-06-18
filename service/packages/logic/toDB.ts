@@ -21,7 +21,6 @@ export class ToDB {
 		});
 	}
 	connect(ser: Server) {
-		console.log('debug:', config.start);
 		return new Promise((resolve) => {
 			this.ser = ser;
 			let config = this.readConfig();
@@ -54,13 +53,20 @@ export class ToDB {
 	}
 	private handle(data: any) {
 		console.log('toDB_rev:', data);
+		console.log(typeof data.info.id);
+		console.log(data.info.id.toString("HEX"));
+		console.log(data.info.id.length);
+		let str:any="";
+		for(let i=0;i<data.info.id.length;i++){
+			str+=data.info.id[i].toString(16);
+		}
+		console.log("str : ",str);
 		this.specialHandle(data);
 		this.ser.send(data);
 	}
 	private readConfig() {
-		let configPath = path.dirname(process.execPath) + '/config.json';
-		let cj = new util.TextDecoder().decode(fs.readFileSync(configPath));
-		let config = JSON.parse(cj); // 暂不处理远程服务器
+		let cj = new util.TextDecoder().decode(fs.readFileSync(config.path));
+		// 暂不处理远程服务器
 		return { ip: '127.0.0.1', port: 6002 };
 	}
 	private specialHandle(data: any) {

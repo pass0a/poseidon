@@ -1,10 +1,17 @@
 var Model = require("./model");
+var mongoose = require('mongoose');
+var mongodb = require('mongodb');
+console.log("123");
+let idi:string="5cf87972aad15515ec0cbddf";
+console.log(typeof idi);
+console.log(idi.length);
+console.log(mongodb.ObjectId.createFromHexString(idi));
 
 function addproject(data:any,pis:any){
     console.log(data.info.uid.id._buf);
     var model=new Model({
 		name:data.info.name,
-        uid:data.info.uid
+        uid: data.info.uid
 	});
 	model.save(function (err:any,info:any){
 		if(!err){
