@@ -42,7 +42,17 @@ export default class AlertView extends Vue {
                 break;
             case 1:
                 this.alertInfo.title="新建项目";
-                this.alertInfo.content="是否确定新建项目 : " +this.$store.state.alert_info.info +" ?";
+                this.alertInfo.content="是否确定新建项目 : " + this.$store.state.alert_info.info +" ?";
+                this.alertInfo.btn="确定";
+                break;
+            case 2:
+                this.alertInfo.title="删除用例";
+                this.alertInfo.content="是否确定删除用例 : " + this.$store.state.alert_info.info +" ?";
+                this.alertInfo.btn="确定";
+                break;
+            case 3:
+                this.alertInfo.title="下载用例";
+                this.alertInfo.content="是否确定下载已开启的测试用例 ?";
                 this.alertInfo.btn="确定";
                 break;
             default:
@@ -62,6 +72,16 @@ export default class AlertView extends Vue {
                 this.$store.state.app_info.type="toDB";
                 this.$store.state.app_info.route="projects";
                 this.$store.state.app_info.job="add";
+                this.$store.state.app_info.reqCount++;
+                break;
+            case 2:
+                this.$store.state.app_info.type="toDB";
+                this.$store.state.app_info.route="cases";
+                this.$store.state.app_info.job="delete";
+                this.$store.state.app_info.reqCount++;
+                break;
+            case 3:
+                this.$store.state.app_info.type="downCases";
                 this.$store.state.app_info.reqCount++;
                 break;
         }

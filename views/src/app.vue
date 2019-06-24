@@ -11,6 +11,7 @@ let pos = new pack.outputStream();
 
 import { Component, Prop, Vue } from "vue-property-decorator";
 import { defaultCoreCipherList, defaultCipherList } from 'constants';
+import { resolve } from 'dns';
 @Component
 export default class App extends Vue {
     private ws: any = null;
@@ -36,7 +37,6 @@ export default class App extends Vue {
         };
     }
     private revHandle(data:any){
-        console.log(data.type);
         switch(data.type){
             case "readConfig":
                 this.$store.state.setting_info.info=data.info;
@@ -47,6 +47,11 @@ export default class App extends Vue {
                 break;
             case "readReport":
                 this.$store.state.report_info.data=data.info;
+                break;
+            case "downCases":
+                this.$store.state.alert_info.showflag=false;
+                this.$store.state.home_info.count++;
+                this.$notify({title: '用例下载成功,请进行测试',message: '', type: 'success',duration:1500});
                 break;
             case "toDB":
                 console.log("revDB:",data);
@@ -67,14 +72,23 @@ export default class App extends Vue {
             case "cases":
                 this.revToDB_cases(data);
                 break;
+            case "res":
+                this.revToDB_res(data);
+                break;
+            case "rule":
+                this.revToDB_rule(data);
+                break;
         }
     }
     private revToDB_users(data:any){
         switch(data.job){
             case "find":
-                console.log(data.info.id);
-                // console.log(JSON.parse(data.info));
-                this.$store.state.login_info._id=data.info;
+                var _id = "";
+                for(var i=0;i<data.info.id.length;i++){
+                    if(data.info.id[i]<16)_id+="0";
+                    _id+=data.info.id[i].toString(16);
+                }
+                this.$store.state.login_info._id=_id;
                 break;
         }
     }
@@ -102,12 +116,14 @@ export default class App extends Vue {
             case "list":
                 this.$store.state.editcase_info.data=JSON.parse(data.info);
                 this.$store.state.editcase_info.refresh_data=false;
+                pis.push({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                pis.push({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
                 break;
             case "add":
                 if(data.info){
                     this.$store.state.case_info.showflag=false;
-                    this.$store.state.editcase_info.update_count++;
-                    this.$notify({title: '项目创建成功!',message: '', type: 'success',duration:1500});
+                    this.$store.state.editcase_info.update_op=true;
+                    this.$notify({title: '用例创建成功!',message: '', type: 'success',duration:1500});
                 }else{
                     this.$notify({title: '用例ID已存在',message: '', type: 'error',duration:1500});
                 }
@@ -115,9 +131,44 @@ export default class App extends Vue {
             case "modify":
                 if(data.info){
                     this.$store.state.case_info.showflag=false;
-                    this.$store.state.editcase_info.update_count++;
-                    this.$notify({title: '项目修改成功!',message: '', type: 'success',duration:1500});
+                    this.$store.state.editcase_info.update_op=true;
+                    this.$notify({title: '用例修改成功!',message: '', type: 'success',duration:1500});
                 }
+                break;
+            case "delete":
+                if(data.info){
+                    this.$store.state.alert_info.showflag=false;
+                    this.$store.state.editcase_info.update_op=true;
+                    this.$notify({title: '用例删除成功!',message: '', type: 'success',duration:1500});
+                }
+                break;
+        }
+    }
+    private revToDB_res(data:any){
+        switch(data.job){
+            case "list":
+                let list=JSON.parse(data.info);
+                let reslist:any={};
+                for(let i=0;i<list.length;i++){
+                    let id=list[i].id;
+                    let name=list[i].name;
+                    reslist[id]=name;
+                }
+                this.$store.state.steps_info.reslist=reslist;
+                break;
+        }
+    }
+    private revToDB_rule(data:any){
+        switch(data.job){
+            case "list":
+                let list=JSON.parse(data.info);
+                let rulelist:any={};
+                for(let i=0;i<list.length;i++){
+                    let id=list[i].id;
+                    let content=list[i].content;
+                    if(content!=null)rulelist[id]=content;
+                }
+                this.$store.state.steps_info.rulelist=rulelist;
                 break;
         }
     }
@@ -132,6 +183,12 @@ export default class App extends Vue {
                     pis.push({type:reqType,info:this.$store.state.setting_info.info});
                     break;
                 case "readReport":
+                    pis.push({type:reqType,prjname:this.$store.state.project_info.current_prj});
+                    break;
+                case "downCases":
+                    pis.push({type:reqType,prjname:this.$store.state.project_info.current_prj,info:this.$store.state.editcase_info.downCases});
+                    break;
+                case "startTest":
                     pis.push({type:reqType,prjname:this.$store.state.project_info.current_prj});
                     break;
                 case "toDB":
@@ -187,6 +244,9 @@ export default class App extends Vue {
                 break;
             case "modify":
                 info={prjname:this.$store.state.project_info.current_prj,casedata:this.$store.state.case_info.data};
+                break;
+            case "delete":
+                info={prjname:this.$store.state.project_info.current_prj,case_id:this.$store.state.alert_info.info};
                 break;
         }
         return info;

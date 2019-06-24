@@ -1,5 +1,6 @@
 <template>
   <div>
+    <el-link v-model="enterTestView" v-show="false"></el-link>
     <el-container>
       <el-header>
         <img style="margin:0;padding:0;" src="/src/assets/pd_name.png" width="200" height="80">
@@ -57,6 +58,12 @@ export default class Home extends Vue {
             return this.$store.state.project_info.current_prj;
         }
         return "无";
+    }
+    get enterTestView(){
+        if(this.$store.state.home_info.count){
+            this.select_mode="4";
+        }
+        return;
     }
     private selectMode(key:any){
         if(this.select_mode!=key){

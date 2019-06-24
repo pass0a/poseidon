@@ -11,7 +11,9 @@ export default new Vuex.Store({
 			route:"",
 			job:""
 		},
-		home_info: {},
+		home_info: {
+			count:0
+		},
 		project_info:{
 			openflag:false,
 			newflag:false,
@@ -38,13 +40,19 @@ export default new Vuex.Store({
 		},
 		editcase_info:{
 			refresh_data:false,
-			update_count:0,
-			data:{}
+			update_op:false,
+			data:{},
+			downCases:[]
 		},
 		case_info:{
 			showflag:false,
 			type:0,
 			data:{}
+		},
+		steps_info:{
+			reslist:{},
+			rulelist:{},
+			steplist:[]
 		},
 		case_prop:new Map([
 			["case_num","需求编号"],

@@ -23,9 +23,9 @@ export class ToDB {
 	connect(ser: Server) {
 		return new Promise((resolve) => {
 			this.ser = ser;
-			let config = this.readConfig();
+			let config_info = this.readConfig();
 			let that: any = this;
-			that.inst = net.connect(config.port, config.ip, function() {
+			that.inst = net.connect(config_info.port, config_info.ip, function() {
 				that.inst.on('data', function(data: any) {
 					that.pos.push(data);
 				});
@@ -53,14 +53,6 @@ export class ToDB {
 	}
 	private handle(data: any) {
 		console.log('toDB_rev:', data);
-		console.log(typeof data.info.id);
-		console.log(data.info.id.toString("HEX"));
-		console.log(data.info.id.length);
-		let str:any="";
-		for(let i=0;i<data.info.id.length;i++){
-			str+=data.info.id[i].toString(16);
-		}
-		console.log("str : ",str);
 		this.specialHandle(data);
 		this.ser.send(data);
 	}

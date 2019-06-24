@@ -79,19 +79,19 @@ function deleteCase(data:any,pis:any,CaseModel:any){
 }
 
 function disposeData(data:any,pis:any){
-    var CaseModel = Model.getModel(data.info.prjname+"_cases");
+    var RuleModel = Model.getModel(data.info.prjname+"_rule");
     switch(data.job){
         case "list":
-            getList(data,pis,CaseModel);
+            getList(data,pis,RuleModel);
             break;
         case "add":
-            checkIDAndAdd(data,pis,CaseModel);
+            checkIDAndAdd(data,pis,RuleModel);
             break;
         case "modify":
-            modifyCase(data,pis,CaseModel);
+            modifyCase(data,pis,RuleModel);
             break;
         case "delete":
-            deleteCase(data,pis,CaseModel);
+            deleteCase(data,pis,RuleModel);
             break;
         default:
             break;

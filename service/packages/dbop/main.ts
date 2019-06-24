@@ -4,6 +4,8 @@ import * as net from 'net';
 import users from './users/index';
 import cases from './cases/index';
 import projects from './projects/index';
+import res from './res/index';
+import rule from './rule';
 
 //config.logmode('rotating', 'passoa', __dirname + '/passoa.log', 1024 * 1024 * 5, 1);
 
@@ -51,6 +53,12 @@ function handle(data: any) {
 			break;
 		case 'cases':
 			cases.disposeData(data, pis);
+			break;
+		case 'res':
+			res.disposeData(data, pis);
+			break;
+		case 'rule':
+			rule.disposeData(data, pis);
 			break;
 		default:
 			break;

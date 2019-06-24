@@ -8,10 +8,9 @@ export class App {
 	private todb = new ToDB();
 
 	async start() {
-		// await this.tolink.connect();
-		// this.tolink.send({type:123});
+		await this.tolink.connect(this.server);
 		await this.todb.connect(this.server);
-		this.server.run(6001, this.todb, () => {});
+		this.server.run(6001, this.tolink, this.todb, () => {});
 	}
 
 	static create() {

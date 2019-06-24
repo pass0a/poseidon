@@ -1,17 +1,10 @@
 var Model = require("./model");
-var mongoose = require('mongoose');
 var mongodb = require('mongodb');
-console.log("123");
-let idi:string="5cf87972aad15515ec0cbddf";
-console.log(typeof idi);
-console.log(idi.length);
-console.log(mongodb.ObjectId.createFromHexString(idi));
 
 function addproject(data:any,pis:any){
-    console.log(data.info.uid.id._buf);
     var model=new Model({
 		name:data.info.name,
-        uid: data.info.uid
+        uid: createObjectID(data.info.uid)
 	});
 	model.save(function (err:any,info:any){
 		if(!err){
@@ -23,7 +16,7 @@ function addproject(data:any,pis:any){
 }
 
 function existInList(data:any,pis:any){
-    Model.findOne({name:data.info.name},function(err:any,info:any){
+    Model.findOne({name:data.info.name},{__v:0,_id:0},function(err:any,info:any){
         if(info){
             data.info.state=false;
             pis.push(data);
@@ -34,17 +27,20 @@ function existInList(data:any,pis:any){
 }
 
 function getList(data:any,pis:any){
-    Model.find({},function(err:any, info:any){
+    Model.find({},{__v:0},function(err:any, info:any){
         var list=[];
         for(var i=0;i<info.length;i++){
             var obj:any={};
             obj["name"]=info[i].name;
-            obj["_id"]=info[i]._id.toHexString();
             list.push(obj);
         }
         data.info=list;
         pis.push(data);
 	});
+}
+
+function createObjectID(id:string){
+    return mongodb.ObjectId.createFromHexString(id);
 }
 
 function disposeData(data:any,pis:any){
