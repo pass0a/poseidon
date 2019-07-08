@@ -1,10 +1,13 @@
 import * as net from 'net';
 import * as pack from '@passoa/pack';
+import { Server } from './server';
 
 export class ToLink {
 	private pis = new pack.inputStream();
 	private pos = new pack.outputStream();
 	private inst: any;
+	private proCall:any;
+	private ser: any;
 	constructor() {
 		this.pis.on('data', (data: any) => {
 			this.inst.write(data);
@@ -13,10 +16,11 @@ export class ToLink {
 			this.handle(data);
 		});
 	}
-	connect() {
+	connect(ser: Server) {
 		return new Promise((resolve) => {
+			this.ser = ser;
 			let that: any = this;
-			that.inst = net.connect(6001, '127.0.0.1', function() {
+			that.inst = net.connect(6000, '127.0.0.1', function() {
 				console.info('web_server connect!!!');
 				that.inst.on('data', function(data: any) {
 					that.pos.push(data);
@@ -24,7 +28,7 @@ export class ToLink {
 				that.inst.on('close', function() {
 					console.info('close web_server!!!');
 				});
-				resolve(true);
+				that.proCall=resolve;
 			});
 			that.inst.on('error', () => {
 				resolve(false);
@@ -35,6 +39,17 @@ export class ToLink {
 		this.pis.push(obj);
 	}
 	private handle(data: any) {
+		switch(data.type){
+			case "init":
+				this.send({type:"info",class:"web",name:"web"});
+				break;
+			case "auth":
+				this.proCall(data.state=="ok");
+				break;
+			default:
+				this.ser.send(data);
+				break;
+		}
 		console.log(data);
 	}
 }

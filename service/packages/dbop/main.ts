@@ -4,6 +4,8 @@ import * as net from 'net';
 import users from './users/index';
 import cases from './cases/index';
 import projects from './projects/index';
+import res from './res/index';
+import rule from './rule';
 
 //config.logmode('rotating', 'passoa', __dirname + '/passoa.log', 1024 * 1024 * 5, 1);
 
@@ -27,20 +29,18 @@ function createServer(port: number) {
 	pos.on('data', (data: any) => {
 		handle(data);
 	});
-	net
-		.createServer(function(c) {
-			sv = c;
-			sv.on('data', function(data: any) {
-				pos.push(data);
-			});
-			sv.on('end', function(data: any) {
-				console.log('server end');
-			});
-			sv.on('error', function(data: any) {
-				console.log('server error');
-			});
-		})
-		.listen(port);
+	net.createServer(function(c) {
+		sv = c;
+		sv.on('data', function(data: any) {
+			pos.push(data);
+		});
+		sv.on('end', function(data: any) {
+			console.log('server end');
+		});
+		sv.on('error', function(data: any) {
+			console.log('server error');
+		});
+	}).listen(port);
 }
 
 function handle(data: any) {
@@ -53,6 +53,12 @@ function handle(data: any) {
 			break;
 		case 'cases':
 			cases.disposeData(data, pis);
+			break;
+		case 'res':
+			res.disposeData(data, pis);
+			break;
+		case 'rule':
+			rule.disposeData(data, pis);
 			break;
 		default:
 			break;

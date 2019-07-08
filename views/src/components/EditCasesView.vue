@@ -2,10 +2,10 @@
     <div>
         <el-link v-model="updateTableData" v-show="false"></el-link>
         <el-link v-model="updateCaselist" v-show="false"></el-link>
+        <el-link v-model="testStatus" v-show="false"></el-link>
         <el-button-group style="margin:5px 0px 0px 10px;">
-            <el-button plain icon="el-icon-download" size="small">保存用例</el-button>
+            <el-button plain icon="el-icon-download" size="small" @click="saveCase">下载用例</el-button>
             <el-button plain icon="el-icon-plus" size="small" @click="addCase">新建用例</el-button>
-            <el-button plain icon="el-icon-s-fold" size="small">管理步骤</el-button>
         </el-button-group>
         <el-tabs type="border-card" tab-position="bottom" style="margin:5px 10px 10px 10px;" v-model="current_case_module" @tab-click="select_module">
             <el-tab-pane v-for="it of case_module.keys()" :label="case_module.get(it)" :key="it" :name="it"></el-tab-pane>
@@ -48,6 +48,8 @@ export default class EditCasesView extends Vue {
     private current_case_module:any="";
     private updateflag:any=0;
     private caselist:any=[];
+    private current_editIdx:any=0;
+    private test_status:any=false;
     get isShowRow(){
         let rows:any=[];
         for(let item of this.case_prop.keys()){
@@ -70,38 +72,88 @@ export default class EditCasesView extends Vue {
             }
             this.current_case_module=firstModule;
             this.current_data=this.caselist[firstModule];
+        }else{
+            this.caselist={};
+            this.current_data=[];
         }
         return;
     }
     get updateCaselist(){
-        if(this.$store.state.editcase_info.update_count>0){
+        if(this.$store.state.editcase_info.update_op){
+            let module_op = this.$store.state.case_info.data.case_module;
             switch(this.$store.state.case_info.type){
                 case 0:
-                    let module = this.$store.state.case_info.data.case_module;
+                    if(this.caselist[module_op]==undefined)this.caselist[module_op]=[];
+                    this.caselist[module_op].push(JSON.parse(JSON.stringify(this.$store.state.case_info.data)));
                     break;
                 case 1:
+                    let data_op=JSON.parse(JSON.stringify(this.$store.state.case_info.data));
+                    let data_edit=this.caselist[module_op][this.current_editIdx]
+                    for(let prop in data_edit){
+                        data_edit[prop]=data_op[prop];
+                    }
+                    break;
+                case 2:
+                    let data_delete:any=this.caselist[module_op];
+                    data_delete.splice(this.current_editIdx,1);
                     break;
             }
+            this.$store.state.editcase_info.update_op=false;
         }
+        return;
+    }
+    get testStatus(){
+        this.test_status = this.$store.state.test_info.testing;
         return;
     }
     private select_module(){
         this.current_data=this.caselist[this.current_case_module];
+    }
+    private saveCase(){
+        if(this.test_status){
+            this.$notify({title: '测试进行中!!!无法进行操作',message: '', type: 'warning',duration:1500});
+        }else{
+            if(this.getCasesOfStatusTrue()){
+            this.$store.state.alert_info.showflag = true;
+            this.$store.state.alert_info.type = 3;
+            }else{
+                this.$notify({title: '当前无开启的用例',message: '', type: 'error',duration:1500});
+            }
+        }
     }
     private addCase(){
         this.$store.state.case_info.type=0;
         this.$store.state.case_info.showflag=true;
     }
     private editCase(idx:any){
-        this.$store.state.case_info.type=1;
-        this.$store.state.case_info.data=this.current_data[idx];
+        this.current_editIdx=idx;
+        this.$store.state.case_info.type = 1;
+        this.$store.state.case_info.data = this.current_data[idx];
         this.$store.state.case_info.showflag=true;
     }
-    private deleteCase(){
-
+    private deleteCase(idx:any){
+        this.current_editIdx=idx;
+        this.$store.state.alert_info.showflag = true;
+        this.$store.state.alert_info.type = 2;
+        this.$store.state.case_info.type  = 2;
+        this.$store.state.case_info.data = this.current_data[idx];
+        this.$store.state.alert_info.info = this.current_data[idx].case_id;
     }
     private changeCaseStatus(idx:any){
         this.current_data[idx].case_status=!this.current_data[idx].case_status;
+    }
+    private getCasesOfStatusTrue(){
+        let downCases:any=[];
+        for(let prop in this.caselist){
+            for(let i=0;i<this.caselist[prop].length;i++){
+                if(this.caselist[prop][i].case_status)downCases.push(this.caselist[prop][i]);
+            }
+        }
+        if(downCases.length){
+            this.$store.state.editcase_info.downCases=downCases;
+            return true;        
+        }
+        return false;
     }
 }
 </script>

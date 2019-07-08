@@ -35,7 +35,6 @@ export default class OpenPrj extends Vue {
     }
     private cancel(){
         this.$store.state.project_info.newflag=false;
-        
     }
     private ok(){
         if(this.newprj_name.length){

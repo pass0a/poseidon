@@ -3,10 +3,11 @@ import * as pack from '@passoa/pack';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as util from 'util';
+import * as os from 'os';
 import { Server } from './server';
 
 export class ToDB {
-	private prjdir: any = path.dirname(path.dirname(process.execPath)) + 'data_warehouse/projects/';
+	private prjdir: any = path.dirname(path.dirname(process.execPath)) + 'data_store/projects/';
 	private pis = new pack.inputStream();
 	private pos = new pack.outputStream();
 	private inst: any;
@@ -22,9 +23,9 @@ export class ToDB {
 	connect(ser: Server) {
 		return new Promise((resolve) => {
 			this.ser = ser;
-			let config = this.readConfig();
+			let config_info = this.readConfig();
 			let that: any = this;
-			that.inst = net.connect(config.port, config.ip, function() {
+			that.inst = net.connect(config_info.port, config_info.ip, function() {
 				that.inst.on('data', function(data: any) {
 					that.pos.push(data);
 				});
@@ -56,9 +57,8 @@ export class ToDB {
 		this.ser.send(data);
 	}
 	private readConfig() {
-		let configPath = path.dirname(process.execPath) + '/config.json';
-		let cj = new util.TextDecoder().decode(fs.readFileSync(configPath));
-		let config = JSON.parse(cj); // 暂不处理远程服务器
+		// let cj = new util.TextDecoder().decode(fs.readFileSync(os.homedir()+"/data_store/config.json"));
+		// 暂不处理远程服务器
 		return { ip: '127.0.0.1', port: 6002 };
 	}
 	private specialHandle(data: any) {

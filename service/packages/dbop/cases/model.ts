@@ -16,7 +16,7 @@ var propSchema=new Schema({
 	case_note:String,
 	case_steps:Array
 });
-function getModel(modelName:any){
+function getCaseModel(modelName:any){
 	return mongoose.model(modelName, propSchema, modelName);
 }
-exports.getModel=getModel;
+exports.getModel=getCaseModel;

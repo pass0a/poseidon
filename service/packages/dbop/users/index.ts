@@ -1,21 +1,22 @@
 let Model = require("./model");
 
 function finduser(data:any, pis:any){
-    Model.findOne({name:data.info.name,psw:data.info.psw},function(err:any,info:any){
-        data.info=info?info._id:"";
-        // console.log(info._id);
-        // console.log(info._id);
-        // console.log(info._id.toHexString());
+    Model.findOne({name:data.info.name,psw:data.info.psw},{__v:0},function(err:any,info:any){
         if(info){
-            console.log(typeof info._id);
-            console.log(info._id);
-            console.log(info._id.toString(16));
-            console.log(info._id.toHexString());
-            console.log(data);
-            console.log(data.info);
+            data.info=info._id;
+            pis.push(data);
+        }else{
+            let model=new Model({
+                name: "admin",
+                psw: "123"
+            });
+            model.save(function (err:any,mg:any){
+                if(!err){
+                    data.info =mg._id;
+                    pis.push(data);
+                }
+            });
         }
-        // data.info=info?info._id:"";
-        pis.push(data);
 	});
 }
 

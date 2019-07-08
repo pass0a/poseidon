@@ -1,23 +1,32 @@
-import { Server } from "./server";
-import { ToLink } from "./toLink";
-import { ToDB } from "./toDB";
+import { Server } from './server';
+import { ToLink } from './toLink';
+import { ToDB } from './toDB';
+import * as fs from 'fs';
+import * as os from 'os';
 
 export class App {
-    private server = new Server();
-    private tolink = new ToLink();
-    private todb = new ToDB();
-    
-    async start(){
-      // await this.tolink.connect();
-      // this.tolink.send({type:123});
-      // console.log("1111");
-      await this.todb.connect(this.server);
-      this.server.run(6001,this.todb,()=>{
-      });
-    }
+	private server = new Server();
+	private tolink = new ToLink();
+	private todb = new ToDB();
 
-    static create() {
-        new App().start();
-    }
+	async start() {
+		this.findConfig();
+		await this.tolink.connect(this.server);
+		await this.todb.connect(this.server);
+		this.server.run(6001, this.tolink, this.todb, () => {});
+	}
+
+	private findConfig() {
+		let path = os.homedir()+"/data_store";
+		let flag=fs.existsSync(path);
+		if(!flag){
+			fs.mkdirSync(path);
+			fs.copyFileSync(__dirname+"/config.json",path+"/config.json");
+		}
+	}
+
+	static create() {
+		new App().start();
+	}
 }
 App.create();

@@ -51,6 +51,10 @@
             </el-form-item>
         </el-form>
         <el-button type="text" :icon="expand?'el-icon-caret-top':'el-icon-caret-bottom'" style="margin:0px 0px 0px 500px;" @click="clickExpand()">{{expand?"收起部分":"展开更多"}}</el-button>
+        <div>
+            <span><font size="2"><strong>自动化测试步骤</strong></font></span>
+            <StepsView/>
+        </div>
         <span slot="footer">
             <el-button type="info" @click="cancel">取消</el-button>
             <el-button type="primary" @click="ok">确定</el-button>
@@ -59,7 +63,12 @@
 </template>
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
-@Component
+import StepsView from "./StepsView.vue";
+@Component({
+  components: {
+      StepsView
+  }
+})
 export default class CaseInfoView extends Vue {
     private title:any="";
     private case_module_list:any=this.$store.state.case_module;
@@ -73,6 +82,7 @@ export default class CaseInfoView extends Vue {
         if(this.$store.state.case_info.showflag){
             this.title=this.$store.state.case_info.type?"修改用例":"新建用例";
             this.case_info=this.$store.state.case_info.type?JSON.parse(JSON.stringify(this.$store.state.case_info.data)):this.initCaseData();
+            this.$store.state.steps_info.steplist=JSON.parse(JSON.stringify(this.case_info.case_steps));
         }else{
             if((this as any).$refs.caseform)(this as any).$refs.caseform.resetFields();
         }
@@ -89,6 +99,7 @@ export default class CaseInfoView extends Vue {
     private ok(){
         (this as any).$refs.caseform.validate((valid:any) => {
             if(valid){
+                this.case_info.case_steps=this.$store.state.steps_info.steplist;
                 this.$store.state.case_info.data=this.case_info;
                 this.$store.state.app_info.type="toDB";
                 this.$store.state.app_info.route="cases";

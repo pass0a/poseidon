@@ -1,13 +1,9 @@
 var Model = require("./model");
 
 function getList(data:any,pis:any,CaseModel:any){
-    CaseModel.find({}).sort({case_id:1}).exec(function(err:any,msg:any){
+    CaseModel.find({},{__v:0,_id:0}).sort({case_id:1}).exec(function(err:any,msg:any){
         if(!err){
-            console.log(typeof msg);
-            console.log(msg.length);
-            console.log(msg);
             data.info=JSON.stringify(msg);
-            console.log(data);
             pis.push(data);
         }
     });
@@ -31,7 +27,7 @@ function addCases(data:any, pis:any, CaseModel:any){
 		case_mode:info.case_mode,
 		case_steps:info.case_steps
 	});
-	model.save(function (err:any,msg:any){
+	model.save(function (err:any){
 		if(!err){
             data.info=true;
             pis.push(data);
@@ -41,7 +37,7 @@ function addCases(data:any, pis:any, CaseModel:any){
 
 function checkIDAndAdd(data:any,pis:any,CaseModel:any){
     var info = data.info.casedata;
-    CaseModel.findOne({case_id:info.case_id},function(err:any,msg:any){
+    CaseModel.findOne({case_id:info.case_id},{__v:0,_id:0},function(err:any,msg:any){
 		if(msg){
             data.info=false;
             pis.push(data);
@@ -53,7 +49,7 @@ function checkIDAndAdd(data:any,pis:any,CaseModel:any){
 
 function modifyCase(data:any,pis:any,CaseModel:any){
     var info = data.info.casedata;
-    CaseModel.update({_id:info._id},{$set: {
+    CaseModel.updateOne({case_id:info.case_id},{$set: {
 		case_num:info.case_num,
 		case_dam:info.dam_name,
 		case_name:info.case_name,
@@ -73,6 +69,15 @@ function modifyCase(data:any,pis:any,CaseModel:any){
 	});
 }
 
+function deleteCase(data:any,pis:any,CaseModel:any){
+    CaseModel.deleteOne({case_id:data.info.case_id},function(err:any){
+        if(!err){
+            data.info=true;
+            pis.push(data);
+        }
+    });
+}
+
 function disposeData(data:any,pis:any){
     var CaseModel = Model.getModel(data.info.prjname+"_cases");
     switch(data.job){
@@ -84,6 +89,9 @@ function disposeData(data:any,pis:any){
             break;
         case "modify":
             modifyCase(data,pis,CaseModel);
+            break;
+        case "delete":
+            deleteCase(data,pis,CaseModel);
             break;
         default:
             break;
