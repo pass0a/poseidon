@@ -4,13 +4,15 @@
 	"description": "",
 	"main": "main.js",
 	"scripts": {
-		"js": "babel packages/testjs --out-dir dist/testjs",
+		"jst": "babel packages/testop --out-dir dist/testop",
+		"jsh": "babel packages/httpop --out-dir dist/httpop",
 		"dep": "babel packages/node_modules --out-dir dist/node_modules --copy-files",
 		"ts": "tsc",
 		"build": "npm run js && npm run dep && npm run ts",
 		"dev": "passoa dist/logic/main.js",
 		"dop": "passoa dist/dbop/main.js",
-		"dlp": "passoa dist/testjs/index.js"
+		"dlp": "passoa dist/testop/main.js",
+		"dhp": "passoa dist/httpop/main.js"
 	},
 	"author": "",
 	"license": "ISC",

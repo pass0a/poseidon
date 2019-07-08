@@ -26,6 +26,12 @@ export default new Vuex.Store({
 			_id:"",
 			showflag:false
 		},
+		test_info:{
+			info : {},
+			count : 0,
+			testing : false,
+			stopflag : false 
+		},
 		setting_info:{
 			info:{},
 			select_serial:""
@@ -36,7 +42,9 @@ export default new Vuex.Store({
 			info:""
 		},
 		report_info:{
-			data:""
+			data:"",
+			showflag:false,
+			case_data:{}
 		},
 		editcase_info:{
 			refresh_data:false,
@@ -53,6 +61,18 @@ export default new Vuex.Store({
 			reslist:{},
 			rulelist:{},
 			steplist:[]
+		},
+		screen_info:{
+			count:0,
+			running:false,
+			status:false,
+			path:"",
+			cut_info:{},
+			save_count:0
+		},
+		id_info:{
+			info:{},
+			count:0
 		},
 		case_prop:new Map([
 			["case_num","需求编号"],

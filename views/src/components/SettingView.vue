@@ -1,12 +1,13 @@
 <template>
     <div>
+        <el-link v-model="testStatus" v-show="false"></el-link>
         <el-card class="box-card" shadow="never" style="margin:5px 10px 5px 10px">
             <el-tabs type="border-card" tab-position="left" style="height:300px" height="300">
                 <el-tab-pane label="串口配置">
                     <el-radio-group v-model="select_uart" @change="selectUart()">
                         <el-radio :label="0">继电器</el-radio>
-                        <el-radio :label="1">车机ARM</el-radio>
-                        <el-radio :label="2">车机MCU</el-radio>
+                        <el-radio :label="1">车机MCU</el-radio>
+                        <el-radio :label="2">车机ARM</el-radio>
                     </el-radio-group>
                     <el-divider></el-divider>
                     <SetPort/>
@@ -64,6 +65,7 @@ export default class SettingView extends Vue {
     private select_server:any=0;
     private db_server_info:any={};
     private da_server_info:any={};
+    private test_status:any=false;
     private uarts:any=["relay","da_mcu","da_arm"];
     private created() {
         this.$store.state.setting_info.select_serial = this.uarts[this.select_uart];
@@ -76,6 +78,10 @@ export default class SettingView extends Vue {
         if(this.$store.state.setting_info.info.da_server!=undefined)this.da_server_info=this.$store.state.setting_info.info.da_server;
         return this.da_server_info;
     }
+    get testStatus(){
+        this.test_status = this.$store.state.test_info.testing;
+        return;
+    }
     private selectUart(){
         this.$store.state.setting_info.select_serial = this.uarts[this.select_uart];
     }
@@ -86,8 +92,12 @@ export default class SettingView extends Vue {
         this.$store.state.login_info.showflag = true;
     }
     private save(){
-        this.$store.state.alert_info.showflag = true;
-        this.$store.state.alert_info.type = 0;
+        if(this.test_status){
+            this.$notify({title: '测试进行中!!!无法进行操作',message: '', type: 'warning',duration:1500});
+        }else{
+            this.$store.state.alert_info.showflag = true;
+            this.$store.state.alert_info.type = 0;
+        }
     }
 }
 </script>

@@ -12,11 +12,12 @@
                 <el-select placeholder="请选择" filterable size="small" style="width:140px" v-model="s_module" v-show="s_action!=waitType" @change="changeSel(1)">
                     <el-option v-for="val in Module" :key="val" :label="getResName(val)" :value="val"></el-option>
                 </el-select>
-                <el-select placeholder="请选择" filterable clearable  size="small" style="width:155px" v-model="s_clid" v-show="s_action!=waitType" @change="changeSel(2,1)">
+                <el-select placeholder="请选择" filterable clearable  size="small" style="width:155px" v-model="s_clid" v-show="s_action!=waitType" @change="changeSel(2)">
                     <el-option v-for="val in Clid" :key="val" :label="getResName(val)" :value="val"></el-option>
                 </el-select>
                 <el-input-number v-model="s_wait" controls-position="right" :min="0" size="small" v-show="s_action==waitType"></el-input-number>
                 <button class="steps_button" @click="onSetWait" v-show="s_action==waitType">确定</button>
+                <el-button plain size="small" @click="onHome">回到主界面</el-button>
                 <button class="steps_button" style="background-color:#606266"  @click="initOp">取消</button>
             </div>
             <div v-show="idx!=s_idx||s_op==1||s_op==3">
@@ -39,11 +40,12 @@
             <el-select placeholder="请选择" filterable size="small" style="width:140px" v-model="s_module" v-show="s_action!=waitType" @change="changeSel(1)">
                 <el-option v-for="val in Module" :key="val" :label="getResName(val)" :value="val"></el-option>
             </el-select>
-            <el-select placeholder="请选择" filterable clearable  size="small" style="width:155px" v-model="s_clid" v-show="s_action!=waitType" @change="changeSel(2,0)">
+            <el-select placeholder="请选择" filterable clearable  size="small" style="width:155px" v-model="s_clid" v-show="s_action!=waitType" @change="changeSel(2)">
                 <el-option v-for="val in Clid" :key="val" :label="getResName(val)" :value="val"></el-option>
             </el-select>
             <el-input-number v-model="s_wait" controls-position="right" :min="0" size="small" v-show="s_action==waitType"></el-input-number>
             <button class="steps_button" @click="onSetWait" v-show="s_action==waitType">确定</button>
+            <el-button plain size="small" @click="onHome">回到主界面</el-button>
         </div>
     </div>
 </template>
@@ -78,7 +80,6 @@ export default class StepsView extends Vue {
         return;
     }
     get StepList(){
-        console.log(this.$store.state.steps_info.steplist);
         this.steplist=this.$store.state.steps_info.steplist;
         return;
     }
@@ -91,7 +92,7 @@ export default class StepsView extends Vue {
     private getResName(id:any){
         return this.reslist[id];
     }
-    private changeSel(flag:Number,type?:any){
+    private changeSel(flag:Number){
         switch(flag){
             case 0:
                 this.s_module="";
@@ -110,11 +111,17 @@ export default class StepsView extends Vue {
                 }
                 break;
         }
-        
     }
     private onSetWait(){
         if(this.s_wait==undefined)this.s_wait=100;
         let obj = {action:"wait",time:this.s_wait};
+        if(this.s_op==0)this.steplist.push(obj);
+        else if(this.s_op==2)this.steplist[this.s_idx]=obj;
+        else if(this.s_op==3)this.steplist.splice(this.s_idx,0,obj);
+        this.initOp();
+    }
+    private onHome(){
+        let obj = {action:"home"};
         if(this.s_op==0)this.steplist.push(obj);
         else if(this.s_op==2)this.steplist[this.s_idx]=obj;
         else if(this.s_op==3)this.steplist.splice(this.s_idx,0,obj);
@@ -129,8 +136,9 @@ export default class StepsView extends Vue {
         this.s_wait=100;
     }
     private showStep(it:any){
-        var action=this.getResName(it.action);
-        var content=it.time!=undefined?it.time+"毫秒":" ["+this.getResName(it.module)+"] "+this.getResName(it.id);
+        let action=this.getResName(it.action);
+        if(it.action == "home")return action;
+        let content=it.time!=undefined?it.time+"毫秒":" ["+this.getResName(it.module)+"] "+this.getResName(it.id);
         return action+" ==> "+content;
     }
     private showEditBtn(flag:number,idx:number){
@@ -147,6 +155,10 @@ export default class StepsView extends Vue {
             case 0:
                 this.s_op=2;
                 this.s_idx=idx;
+                if(item.action == "home"){
+                    this.s_action="";
+                    break;
+                }
                 this.s_action=item.action;
                 if(this.s_action==this.waitType){
                     this.s_wait=item.time;

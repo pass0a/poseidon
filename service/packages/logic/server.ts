@@ -6,7 +6,6 @@ import * as util from 'util';
 import * as path from 'path';
 import { ToLink } from './toLink';
 import { ToDB } from './toDB';
-import { config } from './config';
 
 export class Server {
 	private pis = new pack.inputStream();
@@ -16,7 +15,7 @@ export class Server {
 	private wss: ws.websocket;
 	private tolink: any;
 	private todb: any;
-	private configPath: any = config.path;
+	private configPath: any = process.env.HOME+"/data_store/config.json";
 	private dirPath: any = path.dirname(path.dirname(process.execPath)) + 'data_store/projects/';
 	constructor() {
 		this.pis.on('data', (data: any) => {
@@ -69,17 +68,50 @@ export class Server {
 				this.send({ type: data.type, state: true });
 				break;
 			case 'readReport':
-				let prjPath = this.dirPath + data.prjname + '/report.json';
-				let rj = new util.TextDecoder().decode(fs.readFileSync(prjPath));
-				let report = JSON.parse(rj);
+				let repPath = this.dirPath + data.prjname + '/report.json';
+				let reportIsExitst = fs.existsSync(repPath);
+				let report;
+				if(!reportIsExitst){
+					report = {caseData:[],testInfo:null};
+				}else{
+					let rj = new util.TextDecoder().decode(fs.readFileSync(repPath));
+					report = JSON.parse(rj);
+				}
 				this.send({ type: data.type, info: report });
+				break;
+			case "readStopinfo":
+				let stopinfoPath = this.dirPath + data.prjname + '/stopinfo.json';
+				let stopinfoIsExitst = fs.existsSync(stopinfoPath);
+				let stopflag = false;
+				if(stopinfoIsExitst){
+					let rj = new util.TextDecoder().decode(fs.readFileSync(stopinfoPath));
+					let stopinfo = JSON.parse(rj);
+					if(stopinfo.idx>-1)stopflag = true;
+				}
+				this.send({ type: data.type, info: stopflag });
 				break;
 			case 'downCases':
 				let downPath = this.dirPath + data.prjname + '/caselist.json';
 				fs.writeFileSync(downPath, JSON.stringify(data.info));
+				let initStop = this.dirPath + data.prjname + '/stopinfo.json';
+				fs.writeFileSync(initStop, JSON.stringify({idx:-1,gid:-1}));
 				this.send({ type: data.type, state: true });
 				break;
 			case 'startTest':
+				this.tolink.send(data);
+				break;
+			case 'stopTest':
+				this.tolink.send(data);
+				break;
+			case 'replayTest':
+				let stopPath = this.dirPath + data.prjname + '/stopinfo.json';
+				fs.writeFileSync(stopPath, JSON.stringify({idx:-1,gid:-1}));
+				this.tolink.send(data);
+				break;
+			case 'syncRemote':
+				this.tolink.send(data);
+				break;
+			case 'saveCutImage':
 				this.tolink.send(data);
 				break;
 			// toDBserver

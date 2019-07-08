@@ -13,22 +13,34 @@ function Test_mgr(c,obj,lk){
     c.on("data",function(data){
         pos.push(data);
     });
-    pis.push({act:"auth",state:"ok"});
+    pis.push({type:"auth",state:"ok"});
     var handleCmd=function(obj){
-        switch(obj.act){
+        switch(obj.type){
+            case "tolink":
+                var web_link=lk.getLink("web","web");
+                web_link.sendToWebServer(obj);
+                break;
             case "test":
                 console.info("rev!!!!");
                 // disposedCompleted(obj.act,1);
                 break;
 			case "get_status":
-				disposedCompleted(obj.act,currentStatus);
-				break;
+				disposedCompleted(obj.type,currentStatus);
+                break;
+            case "syncRemote":
+                var web_link=lk.getLink("web","web");
+                web_link.sendToWebServer(obj);
+                disposedCompleted(obj.type,1);
+                break;
 			default:
 				break;
 		}
     };
-    var disposedCompleted=function(action,data){
-        pis.push({act:action,data:data});
+    var disposedCompleted=function(type,data){
+        pis.push({type:type,data:data});
+    }
+    this.stopTest=function(){
+        currentStatus = false;
     }
 }
 exports.create=function(c,obj,l){

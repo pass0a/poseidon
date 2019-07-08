@@ -1,7 +1,7 @@
 var Model = require("./model");
 
-function getList(data:any,pis:any,CaseModel:any){
-    CaseModel.find({},{__v:0,_id:0}).sort({case_id:1}).exec(function(err:any,msg:any){
+function getList(data:any,pis:any,ResModel:any){
+    ResModel.find({},{__v:0,_id:0}).sort({case_id:1}).exec(function(err:any,msg:any){
         if(!err){
             data.info=JSON.stringify(msg);
             pis.push(data);
@@ -9,70 +9,37 @@ function getList(data:any,pis:any,CaseModel:any){
     });
 }
 
-function addCases(data:any, pis:any, CaseModel:any){
-    var info = data.info.casedata;
-    var model = new CaseModel({
-		case_num:info.case_num,
-		case_dam:info.case_dam,
-		case_module:info.case_module,
-		case_id:info.case_id,
-		case_name:info.case_name,
-		case_level:info.case_level,
-		case_pre:info.case_pre,
-		case_op:info.case_op,
-		case_exp:info.case_exp,
-		case_assert:info.case_assert,
-		case_note:info.case_note,
-		case_status:false,
-		case_mode:info.case_mode,
-		case_steps:info.case_steps
+function add(data:any,pis:any,ResModel:any){
+    let info:any = data.info;
+    let model=new ResModel({
+		id: info.id,
+		name: info.name
 	});
-	model.save(function (err:any){
+	model.save(function (err:any,msg:any){
 		if(!err){
-            data.info=true;
+            data.info = true;
             pis.push(data);
 		}
 	});
 }
 
-function checkIDAndAdd(data:any,pis:any,CaseModel:any){
-    var info = data.info.casedata;
-    CaseModel.findOne({case_id:info.case_id},{__v:0,_id:0},function(err:any,msg:any){
-		if(msg){
-            data.info=false;
-            pis.push(data);
-        }else{
-            addCases(data,pis,CaseModel);
-        }
-	});
-}
-
-function modifyCase(data:any,pis:any,CaseModel:any){
-    var info = data.info.casedata;
-    CaseModel.updateOne({case_id:info.case_id},{$set: {
-		case_num:info.case_num,
-		case_dam:info.dam_name,
-		case_name:info.case_name,
-		case_level:info.case_level,
-		case_pre:info.case_pre,
-		case_op:info.case_op,
-		case_exp:info.case_exp,
-		case_assert:info.case_assert,
-		case_note:info.case_note,
-		case_mode:info.case_mode,
-		case_steps:info.case_steps
-		}},function(err:any){
-			if(!err){
-                data.info=true;
-                pis.push(data);
-			}
-	});
-}
-
-function deleteCase(data:any,pis:any,CaseModel:any){
-    CaseModel.deleteOne({case_id:data.info.case_id},function(err:any){
+function newPrj(data:any,pis:any,ResModel:any){
+    let new_arr = [
+        {id:"home",name:"回到主界面"},
+        {id:"click",name:"图片点击"},
+        {id:"assert_pic",name:"图片判断"},
+        {id:"wait",name:"等待"},
+        {id:"operate_tool",name:"控制工具板"},
+        {id:"operate_tool-1",name:"打开"},
+        {id:"operate_tool-2",name:"关闭"},
+        {id:"operate_tool-1-1",name:"继电器_1"},
+        {id:"operate_tool-1-2",name:"继电器_2"},
+        {id:"operate_tool-2-1",name:"继电器_1"},
+        {id:"operate_tool-2-2",name:"继电器_2"}
+    ];
+    ResModel.insertMany(new_arr, function(err:any, msg:any) {
         if(!err){
-            data.info=true;
+            data.info = true;
             pis.push(data);
         }
     });
@@ -85,14 +52,10 @@ function disposeData(data:any,pis:any){
             getList(data,pis,ResModel);
             break;
         case "add":
-            checkIDAndAdd(data,pis,ResModel);
+            add(data,pis,ResModel);
             break;
-        case "modify":
-            modifyCase(data,pis,ResModel);
-            break;
-        case "delete":
-            deleteCase(data,pis,ResModel);
-            break;
+        case "new":
+            newPrj(data,pis,ResModel);
         default:
             break;
     }

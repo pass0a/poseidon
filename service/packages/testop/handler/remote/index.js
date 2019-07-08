@@ -2,14 +2,14 @@ function Remote(){
     var net=require("net"),
         pack=require("pack"),
 		fs=require("fs"),
-        remote_info=require("../../../logic/config.json").remote,
         c,pos,pis,platform,
 		alive=0;
-    this.connectDev=async function(){
+    this.connectDev=async function(cfg){
         return new Promise(resolve => {
             pos=new pack.outputStream();
             pis=new pack.inputStream();
-            c=net.connect(remote_info.port,remote_info.ip,function(){
+            console.log(cfg);
+            c=net.connect(parseInt(cfg.port),cfg.ip,function(){
                 console.info("remote connect!!!");
                 pis.push({type:"auth"});
             });
@@ -52,7 +52,7 @@ function Remote(){
 		var tm;
         return new Promise(resolve => {
             pos.on("data",function(data){
-                if(cmd.act==data.act){
+                if(cmd.type==data.type){
                     if(data.stat&&data.buf){
 						if(data.buf.byteLength){
 							fs.writeFileSync(cmd.filepath,data.buf);
@@ -65,21 +65,21 @@ function Remote(){
                     resolve({ret:1,data:data.data!=undefined?data.data:data.stat});
                 }
 			});
-            switch(cmd.act){
+            switch(cmd.type){
                 case "click":
-                    pis.push({act:cmd.act,x:cmd.x,y:cmd.y});
+                    pis.push({type:cmd.type,x:cmd.x,y:cmd.y});
                     break;
                 case "long_click":
-                    pis.push({act:cmd.act,x:cmd.x,y:cmd.y,time:cmd.time});
+                    pis.push({type:cmd.type,x:cmd.x,y:cmd.y,time:cmd.time});
                     break;
                 case "slide":
-                    pis.push({act:cmd.act,x1:cmd.x1,y1:cmd.y1,x2:cmd.x2,y2:cmd.y2,time:cmd.time});
+                    pis.push({type:cmd.type,x1:cmd.x1,y1:cmd.y1,x2:cmd.x2,y2:cmd.y2,time:cmd.time});
                     break;
                 case "cutScreen":
-                    pis.push({act:cmd.act});
+                    pis.push({type:cmd.type});
                     break;
                 case "alive":
-                    pis.push({act:cmd.act});
+                    pis.push({type:cmd.type});
                     break;
             }
             tm=setTimeout(()=>{

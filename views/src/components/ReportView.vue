@@ -1,6 +1,7 @@
 <template>
     <div>
         <el-link v-model="report" v-show="false"></el-link>
+        <el-link v-model="testStatus" v-show="false"></el-link>
         <el-card class="box-card" shadow="never" style="margin:5px 10px 5px 10px;height:50px">
             <span><font size="3"><strong>测试开始时间: </strong></font></span>
             <span style="margin:0px 0px 0px 10px"><font size="2">{{report_info.startTime}}</font></span>
@@ -8,10 +9,10 @@
             <span style="margin:0px 0px 0px 10px"><font size="2">{{report_info.endTime}}</font></span>
             <span style="margin:0px 0px 0px 20px"><font size="3"><strong>测试总耗时长: </strong></font></span>
             <span style="margin:0px 0px 0px 10px"><font size="2">{{report_info.testTime}}</font></span>
-            <span style="margin:0px 0px 0px 20px"><font size="4" color="#F56C6C"><strong>NG: </strong></font></span>
-            <span style="margin:0px 0px 0px 10px"><font size="3" color="#F56C6C">{{report_info.ngCount}}</font></span>
             <span style="margin:0px 0px 0px 20px"><font size="4" color="#67C23A"><strong>OK: </strong></font></span>
             <span style="margin:0px 0px 0px 10px"><font size="3" color="#67C23A">{{report_info.okCount}}</font></span>
+            <span style="margin:0px 0px 0px 20px"><font size="4" color="#F56C6C"><strong>NG: </strong></font></span>
+            <span style="margin:0px 0px 0px 10px"><font size="3" color="#F56C6C">{{report_info.ngCount}}</font></span>
             <span style="margin:0px 0px 0px 20px"><font size="3"><strong>通过率: </strong></font></span>
             <span style="margin:0px 0px 0px 10px"><font size="2">{{report_info.passRate}}</font></span>
         </el-card>
@@ -25,7 +26,7 @@
                 <el-table-column v-for="it in isShowRow" :label="case_prop.get(it)" :key="it" :prop="it" resizable></el-table-column>
                 <el-table-column width="150" label="测试结果" prop="briefResl">
 					<template slot-scope="scope">
-						<span><strong><font size="2" :color="scope.row.briefResl?(scope.row.briefResl==1?'#67C23A':'#F56C6C'):'#bbbec4'">{{ scope.row.briefResl?(scope.row.briefResl==1?'OK':'NG'):'NotTest' }}</font></strong></span>
+						<span><strong><font size="2" :color="scope.row.briefResl!=undefined?(scope.row.briefResl!=-1?(scope.row.briefResl==0?'#67C23A':'#F56C6C'):'#bbbec4'):'#bbbec4'">{{ scope.row.briefResl!=undefined?(scope.row.briefResl!=-1?(scope.row.briefResl==0?'OK':'NG'):'NotTest'):'NotTest' }}</font></strong></span>
 					</template>
 				</el-table-column>
 				<el-table-column label="操作" width="150">
@@ -35,13 +36,15 @@
 				</el-table-column>
             </el-table>
         </el-tabs>
+        <div><CaseResultView/></div>
     </div>
 </template>
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
-import { constants } from 'crypto';
+import CaseResultView from "./CaseResultView.vue";
 @Component({
   components: {
+      CaseResultView
   }
 })
 export default class ReportView extends Vue {
@@ -52,6 +55,7 @@ export default class ReportView extends Vue {
     private case_module:any=this.$store.state.case_module;
     private case_prop:any=this.$store.state.case_prop;
     private select_prop:any=this.$store.state.init_checkbox;
+    private test_status:any=false;
     get report(){
         if(this.$store.state.report_info.data!=""){
             this.setReportInfo(this.$store.state.report_info.data.testInfo);
@@ -66,13 +70,26 @@ export default class ReportView extends Vue {
         }
         return rows; 
     }
+    get testStatus(){
+        this.test_status = this.$store.state.test_info.testing;
+        return;
+    }
     private setReportInfo(data:any){
-        this.report_info.startTime = data.startTime;
-        this.report_info.endTime = data.endTime;
-        this.report_info.testTime = this.disposedTestTime(data);
-        this.report_info.ngCount = data.ngCount;
-        this.report_info.okCount = data.okCount;
-        this.report_info.passRate =  (data.okCount*100/data.total).toFixed(2)+"%";
+        if(data!=null){
+            this.report_info.startTime = data.startTime;
+            this.report_info.endTime = data.endTime;
+            this.report_info.testTime = this.disposedTestTime(data);
+            this.report_info.ngCount = data.ngCount;
+            this.report_info.okCount = data.okCount;
+            this.report_info.passRate =  (data.okCount*100/(data.ngCount+data.okCount)).toFixed(2)+"%";
+        }else{
+            this.report_info.startTime = "";
+            this.report_info.endTime = "";
+            this.report_info.testTime = "";
+            this.report_info.ngCount = 0;
+            this.report_info.okCount = 0;
+            this.report_info.passRate = "";
+        }
     }
     private disposedTestTime(data:any){
         var time_str="";
@@ -87,21 +104,26 @@ export default class ReportView extends Vue {
         this.report_data={};
         let firstModule;
         for(let i=0;i<data.length;i++){
-            let case_class = data[i].case_class;
+            let case_module = data[i].case_module;
             if(i==0){
-                this.current_case_module=case_class;
-                firstModule=case_class;
+                this.current_case_module=case_module;
+                firstModule=case_module;
             }
-            if(this.report_data[case_class]==undefined)this.report_data[case_class]=[];
-            this.report_data[case_class].push(data[i]);
+            if(this.report_data[case_module]==undefined)this.report_data[case_module]=[];
+            this.report_data[case_module].push(data[i]);
         }
         this.current_data=this.report_data[firstModule];
     }
     private select_module(tab:any){
         this.current_data=this.report_data[this.current_case_module];
     }
-    private checkCase(){
-
+    private checkCase(idx:any){
+        if(this.test_status){
+            this.$notify({title: '测试进行中!!!无法进行操作',message: '', type: 'warning',duration:1500});
+        }else{
+            this.$store.state.report_info.case_data=this.current_data[idx];
+            this.$store.state.report_info.showflag=true;
+        }
     }
 }
 </script>

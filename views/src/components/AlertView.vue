@@ -55,6 +55,11 @@ export default class AlertView extends Vue {
                 this.alertInfo.content="是否确定下载已开启的测试用例 ?";
                 this.alertInfo.btn="确定";
                 break;
+            case 4:
+                this.alertInfo.title="重新测试";
+                this.alertInfo.content="是否确定重新开始测试?";
+                this.alertInfo.btn="确定";
+                break;
             default:
                 break;
         }
@@ -83,6 +88,12 @@ export default class AlertView extends Vue {
             case 3:
                 this.$store.state.app_info.type="downCases";
                 this.$store.state.app_info.reqCount++;
+                break;
+            case 4:
+                this.$store.state.test_info.count++;
+                this.$store.state.app_info.type="replayTest";
+                this.$store.state.app_info.reqCount++;
+                this.$store.state.alert_info.showflag = false;
                 break;
         }
     }

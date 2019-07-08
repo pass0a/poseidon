@@ -2,10 +2,10 @@
     <div>
         <el-link v-model="updateTableData" v-show="false"></el-link>
         <el-link v-model="updateCaselist" v-show="false"></el-link>
+        <el-link v-model="testStatus" v-show="false"></el-link>
         <el-button-group style="margin:5px 0px 0px 10px;">
             <el-button plain icon="el-icon-download" size="small" @click="saveCase">下载用例</el-button>
             <el-button plain icon="el-icon-plus" size="small" @click="addCase">新建用例</el-button>
-            <el-button plain icon="el-icon-s-fold" size="small">管理步骤</el-button>
         </el-button-group>
         <el-tabs type="border-card" tab-position="bottom" style="margin:5px 10px 10px 10px;" v-model="current_case_module" @tab-click="select_module">
             <el-tab-pane v-for="it of case_module.keys()" :label="case_module.get(it)" :key="it" :name="it"></el-tab-pane>
@@ -49,6 +49,7 @@ export default class EditCasesView extends Vue {
     private updateflag:any=0;
     private caselist:any=[];
     private current_editIdx:any=0;
+    private test_status:any=false;
     get isShowRow(){
         let rows:any=[];
         for(let item of this.case_prop.keys()){
@@ -82,6 +83,7 @@ export default class EditCasesView extends Vue {
             let module_op = this.$store.state.case_info.data.case_module;
             switch(this.$store.state.case_info.type){
                 case 0:
+                    if(this.caselist[module_op]==undefined)this.caselist[module_op]=[];
                     this.caselist[module_op].push(JSON.parse(JSON.stringify(this.$store.state.case_info.data)));
                     break;
                 case 1:
@@ -100,15 +102,23 @@ export default class EditCasesView extends Vue {
         }
         return;
     }
+    get testStatus(){
+        this.test_status = this.$store.state.test_info.testing;
+        return;
+    }
     private select_module(){
         this.current_data=this.caselist[this.current_case_module];
     }
     private saveCase(){
-        if(this.getCasesOfStatusTrue()){
+        if(this.test_status){
+            this.$notify({title: '测试进行中!!!无法进行操作',message: '', type: 'warning',duration:1500});
+        }else{
+            if(this.getCasesOfStatusTrue()){
             this.$store.state.alert_info.showflag = true;
             this.$store.state.alert_info.type = 3;
-        }else{
-            this.$notify({title: '当前无开启的用例',message: '', type: 'error',duration:1500});
+            }else{
+                this.$notify({title: '当前无开启的用例',message: '', type: 'error',duration:1500});
+            }
         }
     }
     private addCase(){

@@ -4,10 +4,9 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as util from 'util';
 import { Server } from './server';
-import { config } from './config';
 
 export class ToDB {
-	private prjdir: any = path.dirname(path.dirname(process.execPath)) + 'data_warehouse/projects/';
+	private prjdir: any = path.dirname(path.dirname(process.execPath)) + 'data_store/projects/';
 	private pis = new pack.inputStream();
 	private pos = new pack.outputStream();
 	private inst: any;
@@ -57,7 +56,7 @@ export class ToDB {
 		this.ser.send(data);
 	}
 	private readConfig() {
-		let cj = new util.TextDecoder().decode(fs.readFileSync(config.path));
+		let cj = new util.TextDecoder().decode(fs.readFileSync(process.env.HOME+"/data_store/config.json"));
 		// 暂不处理远程服务器
 		return { ip: '127.0.0.1', port: 6002 };
 	}

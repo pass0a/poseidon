@@ -7,6 +7,7 @@ export class ToLink {
 	private pos = new pack.outputStream();
 	private inst: any;
 	private proCall:any;
+	private ser: any;
 	constructor() {
 		this.pis.on('data', (data: any) => {
 			this.inst.write(data);
@@ -17,6 +18,7 @@ export class ToLink {
 	}
 	connect(ser: Server) {
 		return new Promise((resolve) => {
+			this.ser = ser;
 			let that: any = this;
 			that.inst = net.connect(6000, '127.0.0.1', function() {
 				console.info('web_server connect!!!');
@@ -43,6 +45,9 @@ export class ToLink {
 				break;
 			case "auth":
 				this.proCall(data.state=="ok");
+				break;
+			default:
+				this.ser.send(data);
 				break;
 		}
 		console.log(data);

@@ -38,7 +38,7 @@ function Parse_Data(){
 			return cmdbase;
 		}
 		var cmdstr=obj.id.substring(13);
-		var cmdarr=cmdstr.split("_");
+		var cmdarr=cmdstr.split("-");
 		switch(parseInt(cmdarr[0])){
 			case 1:
 				cmdbase[4]=0x01;

@@ -38,6 +38,8 @@ export default class OpenPrj extends Vue {
         if(this.$store.state.project_info.current_prj!=prjname){
             this.$store.state.project_info.current_prj=prjname;
             this.$store.state.editcase_info.refresh_data=true;
+            this.$store.state.app_info.type="readStopinfo";
+            this.$store.state.app_info.reqCount++;
         }
         this.$store.state.project_info.openflag=false;
     }

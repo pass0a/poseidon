@@ -49,6 +49,12 @@ function Linkmgr(){
 			}
 		};
 	});
+	this.getLink=function(){
+		if(lk[arguments[0]]){
+			return lk[arguments[0]][arguments[1]];
+		}
+		return undefined;
+	};
 }
 
 function loadModule(lp){
