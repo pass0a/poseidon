@@ -2,6 +2,7 @@ import { Server } from './server';
 import { ToLink } from './toLink';
 import { ToDB } from './toDB';
 import * as fs from 'fs';
+import * as os from 'os';
 
 export class App {
 	private server = new Server();
@@ -16,8 +17,7 @@ export class App {
 	}
 
 	private findConfig() {
-		let path = process.env.HOME+"/data_store";
-		console.log(process.env.HOME);
+		let path = os.homedir()+"/data_store";
 		let flag=fs.existsSync(path);
 		if(!flag){
 			fs.mkdirSync(path);

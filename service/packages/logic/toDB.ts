@@ -3,6 +3,7 @@ import * as pack from '@passoa/pack';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as util from 'util';
+import * as os from 'os';
 import { Server } from './server';
 
 export class ToDB {
@@ -56,7 +57,7 @@ export class ToDB {
 		this.ser.send(data);
 	}
 	private readConfig() {
-		let cj = new util.TextDecoder().decode(fs.readFileSync(process.env.HOME+"/data_store/config.json"));
+		// let cj = new util.TextDecoder().decode(fs.readFileSync(os.homedir()+"/data_store/config.json"));
 		// 暂不处理远程服务器
 		return { ip: '127.0.0.1', port: 6002 };
 	}
