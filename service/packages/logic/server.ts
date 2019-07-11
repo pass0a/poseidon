@@ -4,6 +4,7 @@ import * as pack from '@passoa/pack';
 import * as fs from 'fs';
 import * as util from 'util';
 import * as path from 'path';
+import * as os from 'os';
 import { ToLink } from './toLink';
 import { ToDB } from './toDB';
 
@@ -15,7 +16,7 @@ export class Server {
 	private wss: ws.websocket;
 	private tolink: any;
 	private todb: any;
-	private configPath: any = process.env.HOME+"/data_store/config.json";
+	private configPath: any = os.homedir()+"/data_store/config.json";
 	private dirPath: any = path.dirname(path.dirname(process.execPath)) + 'data_store/projects/';
 	constructor() {
 		this.pis.on('data', (data: any) => {
@@ -32,6 +33,7 @@ export class Server {
 			this.wss = ws.createServer((c: any) => {
 				this.inst = c;
 				c.on('data', (frm: any) => {
+					console.log(frm.PayloadData);
 					this.pos.push(frm.PayloadData);
 				});
 				fn();
@@ -98,7 +100,8 @@ export class Server {
 				this.send({ type: data.type, state: true });
 				break;
 			case 'startTest':
-				this.tolink.send(data);
+				this.todb.send(data);
+				// this.tolink.send(data);
 				break;
 			case 'stopTest':
 				this.tolink.send(data);

@@ -2,8 +2,8 @@ var net=require("net");
 var pack=require("pack");
 var fs=require("fs");
 var util=require("util");
+var os=require("os");
 var Uarts=require("../uarts/com");
-var Cvip=require("../cvip/index");
 var Remote=require("./index");
 var prjpath=process.argv[2];
 var pos,pis,c;
@@ -12,7 +12,7 @@ main();
 
 async function main(){
     if(await createdLink()){
-        var path = process.env.HOME + "/data_store/config.json";
+        var path = os.homedir() + "/data_store/config.json";
         var cfg=JSON.parse(new util.TextDecoder().decode(fs.readFileSync(path)));
         var isExitst = fs.existsSync(prjpath+"/screen");
         if(!isExitst){
@@ -24,33 +24,37 @@ async function main(){
             await Remote.sendCmd({type:"cutScreen",filepath:screenPath});
             await sendInfoByLink({type:"syncRemote",status:ret,path:screenPath});
         }else{
-            var uarts=Uarts.create();
-            var arm_info = {
-                port: "COM"+cfg.uarts.da_arm.port,
-                info: {
-                    baud_rate :  cfg.uarts.da_arm.baud_rate,
-                    data_bits : cfg.uarts.da_arm.data_bits,
-                    stop_bits : cfg.uarts.da_arm.stop_bits,
-                    parity : cfg.uarts.da_arm.parity,
-                    flow_control : cfg.uarts.da_arm.flow_control
-                }
+            var arm_uart=Uarts.create();
+            var arm_info={port:"",info:{}};
+            for(var prop in cfg.uarts.da_arm){
+                if(prop == "port")arm_info.port="COM"+cfg.uarts.da_arm[prop];
+                else arm_info.info[prop]=cfg.uarts.da_arm[prop];
             }
-            var u_ret = await uarts.openUart({"port":arm_info.port,"info":arm_info.info});
+            var u_ret = await arm_uart.openUart({"port":arm_info.port,"info":arm_info.info});
             if(u_ret){
-                await uarts.sendData("cd /data/app/pack \n",null,1);
-                await uarts.sendData("sh run.sh \n",null,1);
+                await arm_uart.sendData("export LD_LIBRARY_PATH="+cfg.da_server.path+":$LD_LIBRARY_PATH"+" \n",null,1);
+                await arm_uart.sendData(cfg.da_server.path+"/passoa "+cfg.da_server.path+"/robot/index.js& \n",null,1);
+                await wait(500);
                 var r_ret=await Remote.connectDev(cfg.da_server);
                 if(r_ret){
                     await Remote.sendCmd({type:"cutScreen",filepath:screenPath});
                 }
                 await sendInfoByLink({type:"syncRemote",status:r_ret,path:screenPath});
-                uarts.closeUart();
+                arm_uart.closeUart();
             }else{
                 await sendInfoByLink({type:"syncRemote",status:u_ret,path:screenPath});
             }
         }
         endTest();
     }
+}
+
+async function wait(w_time){
+    return new Promise(resolve => {
+		setTimeout(function(){
+			resolve(0);
+		},w_time);
+    });
 }
 
 async function sendInfoByLink(cmd){
@@ -77,7 +81,6 @@ async function sendInfoByLink(cmd){
 }
 
 function endTest(){
-    // Uarts_Mgr.closeNeedUarts();
 	Remote.disconnectDev();
     c.end();
 }

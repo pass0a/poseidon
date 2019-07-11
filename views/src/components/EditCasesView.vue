@@ -88,7 +88,7 @@ export default class EditCasesView extends Vue {
                     break;
                 case 1:
                     let data_op=JSON.parse(JSON.stringify(this.$store.state.case_info.data));
-                    let data_edit=this.caselist[module_op][this.current_editIdx]
+                    let data_edit=this.caselist[module_op][this.current_editIdx];
                     for(let prop in data_edit){
                         data_edit[prop]=data_op[prop];
                     }

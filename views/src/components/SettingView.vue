@@ -2,6 +2,7 @@
     <div>
         <el-link v-model="testStatus" v-show="false"></el-link>
         <el-card class="box-card" shadow="never" style="margin:5px 10px 5px 10px">
+            <el-button type="info" plain size="small" style="margin:0px 0px 5px 0px;width:126px;" @click="save()">保存配置</el-button>
             <el-tabs type="border-card" tab-position="left" style="height:300px" height="300">
                 <el-tab-pane label="串口配置">
                     <el-radio-group v-model="select_uart" @change="selectUart()">
@@ -32,17 +33,19 @@
                     </div>
                 </el-tab-pane>
                 <el-tab-pane label="车机服务配置">
-                    <el-form :model="daserverInfo" ref="daserform" label-width="80px">
+                    <el-form :model="daserverInfo" ref="daserform" label-width="180px">
                         <el-form-item label="IP地址:">
                             <el-input size="small" style="width:220px" v-model="da_server_info.ip"></el-input>
                         </el-form-item>
                         <el-form-item label="端口号:">
                             <el-input size="small" style="width:220px" v-model="da_server_info.port"></el-input>
                         </el-form-item>
+                        <el-form-item label="服务所在车机路径:">
+                            <el-input size="small" style="width:220px" v-model="da_server_info.path"></el-input>
+                        </el-form-item>
                     </el-form>
                 </el-tab-pane>
             </el-tabs>
-            <el-button type="info" plain size="small" style="margin:0px 0px 5px 0px;width:126px;float:right" @click="save()">保存配置</el-button>
         </el-card>
         <div><LoginView/></div>
         <div><AlertView/></div>

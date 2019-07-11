@@ -23,10 +23,13 @@
             <Steps direction="vertical">
 				<Step v-for="(it,idx) in caseData[0].case_steps" :key="idx" :title="getStepTitleOrStatus(0,idx)" :content="showStep(it,idx)" :status="getStepTitleOrStatus(1,idx)"></Step>
 			</Steps>
-            <div v-if="caseData[0].briefResl>0&&caseData[0].image!=undefined">
+            <div v-if="caseData[0].briefResl>0&&caseData[0].image!=undefined&&caseData[0].image!=''">
                 <span><font size="2"><strong>截图对比</strong></font></span><br/>
                 <img :src="'http://127.0.0.1:6003/'+'?action=image&image='+caseData[0].image+'&id='+imgreq" style="max-width:100%;max-height:100%;"/>
                 <img :src="'http://127.0.0.1:6003/'+'?action=image&image='+caseData[0].screen+'&id='+scrreq" style="max-width:100%;max-height:100%;"/>
+            </div>
+            <div v-if="caseData[0].briefResl>0&&caseData[0].image==''">
+                <img id="screen" src="/src/assets/nopic.png" :draggable="false">
             </div>
         </div>
         <div slot="footer">
@@ -80,7 +83,6 @@ export default class CaseResultView extends Vue {
     private showStep(it:any,idx:any){
         let reslist = this.$store.state.steps_info.reslist;
         let action = reslist[it.action];
-        if(it.action == "home")return action;
         let content = it.time!=undefined?it.time+"毫秒":" ["+reslist[it.module]+"] "+reslist[it.id];
         let stepTitle = action+" ==> "+content;
         return stepTitle;

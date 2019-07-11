@@ -12,7 +12,8 @@ export default new Vuex.Store({
 			job:""
 		},
 		home_info: {
-			count:0
+			count:0,
+			mode:0
 		},
 		project_info:{
 			openflag:false,

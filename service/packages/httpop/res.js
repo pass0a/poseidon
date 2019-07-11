@@ -26,7 +26,6 @@ function formatPath(dir,ext){
                 pn=formatPath(__dirname+"/view",info.pathname);
                 break;
         }
-        console.log(pn);
         var f1=fs.statSync(pn);
         var f2=new fs.ReadStream(pn);
         f2.on("open",function(){

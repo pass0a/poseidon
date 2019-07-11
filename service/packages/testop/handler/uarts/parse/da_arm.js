@@ -1,28 +1,28 @@
+var os = require("os");
+
 function Parse_Data(){
-	// var arm_path=require("../../../../config.json").uarts.da_arm.arm_path;
-	this.disposeSendData=function(obj){
-		var cmd="";
-		switch(obj){
-			case 0:
-				cmd="export LD_LIBRARY_PATH=/data/app/pack:$LD_LIBRARY_PATH \n";
+	this.disposeSendData=function(send_id,msg){
+		var send_data;
+		switch(send_id){
+			case "set_arm_lib_path":
+				send_data = "export LD_LIBRARY_PATH="+msg+":$LD_LIBRARY_PATH"+" \n";
 				break;
-			case 1:
-				cmd="/data/app/pack/passoa /data/app/pack/robot/index.js& \n";
+			case "start_arm_server":
+				send_data = msg+"/passoa "+msg+"/robot/index.js& \n";
 				break;
-			case 2:
-				cmd="sendevent /dev/input/event1 0001 0102 00000001 \n";
+			case "button":
+				var arr = msg.ct.split(" ");
+				var str_10 = parseInt(arr[1],16).toString();
+				var len = arr[1].length - str_10.length;
+				for(var k=0;k<len;k++)str_10="0"+str_10;
+				arr[1]=str_10;
+				send_data = "sendevent "+msg.event+" "+arr.join(" ")+" \n";
 				break;
-			case 3:
-				cmd="sendevent /dev/input/event1 0000 0000 00000000 \n";
-				break;
-			case 4:
-				cmd="sendevent /dev/input/event1 0001 0102 00000000 \n";
-				break;
-			case 5:
-				cmd="sendevent /dev/input/event1 0000 0000 00000000 \n";
+			default:
 				break;
 		}
-		return cmd;
+		return send_data;
 	}
 }
+
 module.exports = new Parse_Data();

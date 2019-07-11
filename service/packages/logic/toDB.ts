@@ -5,6 +5,7 @@ import * as fs from 'fs';
 import * as util from 'util';
 import * as os from 'os';
 import { Server } from './server';
+import { ToLink } from './toLink';
 
 export class ToDB {
 	private prjdir: any = path.dirname(path.dirname(process.execPath)) + 'data_store/projects/';
@@ -12,6 +13,7 @@ export class ToDB {
 	private pos = new pack.outputStream();
 	private inst: any;
 	private ser: any;
+	private tolink: any;
 	constructor() {
 		this.pis.on('data', (data: any) => {
 			this.inst.write(data);
@@ -20,9 +22,10 @@ export class ToDB {
 			this.handle(data);
 		});
 	}
-	connect(ser: Server) {
+	connect(ser: Server,toLink:ToLink) {
 		return new Promise((resolve) => {
 			this.ser = ser;
+			this.tolink = toLink;
 			let config_info = this.readConfig();
 			let that: any = this;
 			that.inst = net.connect(config_info.port, config_info.ip, function() {
@@ -53,18 +56,24 @@ export class ToDB {
 	}
 	private handle(data: any) {
 		console.log('toDB_rev:', data);
-		this.specialHandle(data);
-		this.ser.send(data);
+		if(data.type=='toDB'){
+			switch(data.route){
+				case 'projects':
+					if(data.job == 'add' && data.info.state)fs.mkdirSync(this.prjdir + data.info.name);
+					break;
+				default:
+					break;
+			}
+			this.ser.send(data);
+		}else if(data.type=='startTest'){
+			let filename = this.prjdir + data.prjname + '/buttons.json';
+			fs.writeFileSync(filename, data.info);
+			this.tolink.send({type:data.type,prjname:data.prjname});
+		}
 	}
 	private readConfig() {
 		// let cj = new util.TextDecoder().decode(fs.readFileSync(os.homedir()+"/data_store/config.json"));
 		// 暂不处理远程服务器
 		return { ip: '127.0.0.1', port: 6002 };
-	}
-	private specialHandle(data: any) {
-		if (data.route == 'projects' && data.job == 'add' && data.info.state) {
-			fs.mkdirSync(this.prjdir + data.info.name);
-			console.log(this.prjdir + data.info.name);
-		}
 	}
 }

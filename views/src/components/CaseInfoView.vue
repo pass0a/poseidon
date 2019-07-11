@@ -76,7 +76,7 @@ export default class CaseInfoView extends Vue {
     private case_level_list:any=new Map([["1","低"],["2","中"],["3","高"]]);
     private case_mode_alive:any="1";
     private expand:Boolean=false;
-    private caseValidate:any={case_id:[{ required: true, message: '用例ID不能为空', trigger: 'blur' }],case_module:[{ required: true, message: '所属模块不能为空', trigger: 'change' }]}
+    private caseValidate:any={case_id:[{ required: true, message: '用例ID不能为空', trigger: 'blur' }],case_module:[{ required: true, message: '所属模块不能为空', trigger: 'blur' }]}
     private case_info:any={case_module:""};
     get showflag(){
         if(this.$store.state.case_info.showflag){
@@ -90,7 +90,7 @@ export default class CaseInfoView extends Vue {
     }
     private initCaseData(){
         this.case_mode_alive="1";
-        return {case_id:"",case_name:"",case_dam:"",case_num:"",case_module:"",case_mode:1,case_pre:"",case_op:"",case_exp:"",case_note:"",case_level:"",case_steps:[]};
+        return {case_id:"",case_name:"",case_dam:"",case_num:"",case_module:"",case_mode:1,case_status:true,case_pre:"",case_op:"",case_exp:"",case_note:"",case_level:"",case_steps:[]};
     }
     private cancel(){
         (this as any).$refs.caseform.resetFields();

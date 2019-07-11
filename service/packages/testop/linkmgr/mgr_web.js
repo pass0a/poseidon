@@ -56,6 +56,7 @@ function Web_mgr(c,obj,lk){
         var passoaPath=process.execPath;
         var prjPath=dpath.dirname(dpath.dirname(passoaPath)) + 'data_store/projects/'+obj.prjname;
         var path="\""+passoaPath+"\" "+jsPath+" \""+prjPath+"\"";
+        console.log(path);
         childprs.exec(path,{windowsHide:testcfg.windowsHide,detached:testcfg.detached});
     }
     this.sendToWebServer = function(data) {

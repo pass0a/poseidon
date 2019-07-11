@@ -5,7 +5,8 @@ import users from './users/index';
 import cases from './cases/index';
 import projects from './projects/index';
 import res from './res/index';
-import rule from './rule';
+import rule from './rule/index';
+import buttons from './buttons/index';
 
 //config.logmode('rotating', 'passoa', __dirname + '/passoa.log', 1024 * 1024 * 5, 1);
 
@@ -27,7 +28,14 @@ function createServer(port: number) {
 		sv.write(data);
 	});
 	pos.on('data', (data: any) => {
-		handle(data);
+		switch(data.type){
+			case 'toDB':
+				handle(data);
+				break;
+			case 'startTest':
+				buttons.disposeData(data, pis);
+				break;
+		}
 	});
 	net.createServer(function(c) {
 		sv = c;
@@ -59,6 +67,9 @@ function handle(data: any) {
 			break;
 		case 'rule':
 			rule.disposeData(data, pis);
+			break;
+		case 'buttons':
+			buttons.disposeData(data, pis);
 			break;
 		default:
 			break;

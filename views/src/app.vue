@@ -10,8 +10,6 @@ let pis = new pack.inputStream();
 let pos = new pack.outputStream();
 
 import { Component, Prop, Vue } from "vue-property-decorator";
-import { defaultCoreCipherList, defaultCipherList } from 'constants';
-import { resolve } from 'dns';
 @Component
 export default class App extends Vue {
     private ws: any = null;
@@ -100,6 +98,9 @@ export default class App extends Vue {
             case "rule":
                 this.revToDB_rule(data);
                 break;
+            case "buttons":
+                this.revToDB_buttons(data);
+                break;
         }
     }
     private revToDB_users(data:any){
@@ -123,6 +124,7 @@ export default class App extends Vue {
                     this.$store.state.project_info.current_prj=data.info.name;
                     pis.push({type:"toDB",route:"res",job:"new",info:{prjname:data.info.name}});
                     pis.push({type:"toDB",route:"rule",job:"new",info:{prjname:data.info.name}});
+                    pis.push({type:"toDB",route:"buttons",job:"new",info:{prjname:data.info.name}});
                 }else{
                     this.$notify({title: '项目已存在',message: '', type: 'error',duration:1500});
                 }
@@ -185,7 +187,7 @@ export default class App extends Vue {
                 break;
             case "new":
                 this.req_info.new_prj++;
-                if(this.req_info.new_prj==2){
+                if(this.req_info.new_prj==3){
                     pis.push({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
                     this.$store.state.project_info.newflag=false;
                     this.$store.state.editcase_info.refresh_data=true;
@@ -212,7 +214,20 @@ export default class App extends Vue {
                 break;
             case "new":
                 this.req_info.new_prj++;
-                if(this.req_info.new_prj==2){
+                if(this.req_info.new_prj==3){
+                    pis.push({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                    this.$store.state.project_info.newflag=false;
+                    this.$store.state.editcase_info.refresh_data=true;
+                    this.$notify({title: '项目创建成功!',message: '', type: 'success',duration:1500});
+                }
+                break;
+        }
+    }
+    private revToDB_buttons(data:any){
+        switch(data.job){
+            case "new":
+                this.req_info.new_prj++;
+                if(this.req_info.new_prj==3){
                     pis.push({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
                     this.$store.state.project_info.newflag=false;
                     this.$store.state.editcase_info.refresh_data=true;
