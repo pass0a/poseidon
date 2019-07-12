@@ -1,5 +1,6 @@
 <template>
     <div>
+        <el-link v-model="inScreenView" v-show="false"></el-link>
         <el-link v-model="updateImage" v-show="false"></el-link>
         <el-link v-model="updateSaveStatus" v-show="false"></el-link>
         <el-link v-model="testStatus" v-show="false"></el-link>
@@ -55,6 +56,14 @@ export default class ScreenView extends Vue {
     private s_module:string="";
     private s_clid:string="";
     private test_status:any=false;
+    get inScreenView(){
+        if(this.$store.state.home_info.mode!="6_2"){
+            this.stopDraw = true;
+            let img:any = document.getElementById("screen");
+            img.src="/none.21306cad.png";
+        } 
+        return;
+    }
     get updateImage(){
         if(this.$store.state.screen_info.count){
             this.btnStatus = false;
@@ -111,7 +120,7 @@ export default class ScreenView extends Vue {
             this.onCutImage();
         }else{
             this.stopDraw = true;
-            img.src="/none.6ae91388.png";
+            img.src="/none.21306cad.png";
         }
     }
     private ok(){
@@ -148,14 +157,14 @@ export default class ScreenView extends Vue {
             maxY=img.offsetTop+img.offsetHeight;
         };
         document.onmousedown = function(e){
-            let evt:any = window.event || e;
-            scrollTop = document.body.scrollTop || document.documentElement.scrollTop;
-            scrollLeft = document.body.scrollLeft || document.documentElement.scrollLeft;
-            startX = evt.clientX + scrollLeft;
-            startY = evt.clientY + scrollTop;
-            if(startX>minX&&maxX>startX){
-                if(startY>minY&&maxY>startY){
-                    if(!that.stopDraw){
+            if(!that.stopDraw){
+                let evt:any = window.event || e;
+                scrollTop = document.body.scrollTop || document.documentElement.scrollTop;
+                scrollLeft = document.body.scrollLeft || document.documentElement.scrollLeft;
+                startX = evt.clientX + scrollLeft;
+                startY = evt.clientY + scrollTop;
+                if(startX>minX&&maxX>startX){
+                    if(startY>minY&&maxY>startY){
                         flag=true;
                         switch(that.mode){
                             case "pic":

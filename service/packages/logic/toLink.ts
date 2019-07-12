@@ -50,6 +50,5 @@ export class ToLink {
 				this.ser.send(data);
 				break;
 		}
-		console.log(data);
 	}
 }

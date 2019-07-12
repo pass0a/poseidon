@@ -84,6 +84,7 @@ export default class Home extends Vue {
         return;
     }
     private selectMode(key:any){
+        this.$store.state.home_info.mode = key;
         if(this.select_mode!=key){
           switch(key){
             case "1":

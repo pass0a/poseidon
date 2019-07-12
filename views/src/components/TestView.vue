@@ -225,14 +225,8 @@ export default class TestView extends Vue {
         let ret = data.ret;
         let reslist = this.$store.state.steps_info.reslist;
         let action = reslist[step.action];
-        let step_log = "";
-        if(step.action == "home"){
-            step_log = action + "- - - 执行"+ (ret==0?"成功":"失败");
-            this.updateLogCmd(1,step_log);
-            return;
-        }
         let content = step.time!=undefined?step.time+"毫秒":" ["+reslist[step.module]+"] "+reslist[step.id];
-        step_log = action+" ==> "+content + "- - - 执行"+ (ret==0?"成功":"失败");
+        let step_log = action+" ==> "+content + "- - - 执行"+ (ret==0?"成功":"失败");
         this.updateLogCmd(1,step_log);
     }
     private showErrorLog(){

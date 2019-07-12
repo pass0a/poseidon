@@ -12,7 +12,7 @@ export class App {
 	async start() {
 		this.findConfig();
 		await this.tolink.connect(this.server);
-		await this.todb.connect(this.server);
+		await this.todb.connect(this.server,this.tolink);
 		this.server.run(6001, this.tolink, this.todb, () => {});
 	}
 

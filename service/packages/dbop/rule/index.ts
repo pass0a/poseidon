@@ -3,7 +3,7 @@ var Model = require("./model");
 function getList(data:any,pis:any,CaseModel:any){
     CaseModel.find({},{__v:0,_id:0}).sort({case_id:1}).exec(function(err:any,msg:any){
         if(!err){
-            data.info=JSON.stringify(msg);
+            data.info = JSON.stringify(msg);
             pis.push(data);
         }
     });
@@ -49,7 +49,7 @@ function newPrj(data:any,pis:any,RuleModel:any){
     let new_arr = [
         {
             id: "action",
-            content: ["click","assert_pic","wait","operate_tool"]
+            content: ["click","assert_pic","wait","operate_tool","button"]
         },
         {
             id: "operate_tool",
@@ -62,6 +62,14 @@ function newPrj(data:any,pis:any,RuleModel:any){
         {
             id: "operate_tool-2",
             content: ["operate_tool-2-1","operate_tool-2-2"]
+        },
+        {
+            id: "button",
+            content: ["button-1", "button-2"]
+        },
+        {
+            id: "button-1",
+            content: ["button-1-1", "button-1-2","button-1-3","button-1-4","button-1-5","button-1-6","button-1-7","button-1-8"]
         }
     ];
     RuleModel.insertMany(new_arr, function(err:any, msg:any) {

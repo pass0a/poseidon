@@ -11,11 +11,11 @@ var progress_info={current:0,total:0};
 var test_log_info={step:{},ret:0};
 var result_to_web={ok:0,ng:0};
 var actionList={
-	home: home,
 	wait: wait,
 	click: click,
 	assert_pic : assertPic,
-	operate_tool: operateTool
+	operate_tool: operateTool,
+	button : button
 };
 
 async function startTest(data){
@@ -51,7 +51,7 @@ async function readyForTest(toContinue){
 			if(uartsSet.size!=2){
 				if(act=="operate_tool"){
 					if(!uartsSet.has("relay"))uartsSet.add("relay");
-				}else if(act=="click"||act=="assert_pic"||act=="home"){
+				}else if(act=="click"||act=="assert_pic"||act=="button"){
 					if(!uartsSet.has("da_arm"))uartsSet.add("da_arm");
 				}
 			}
@@ -125,9 +125,6 @@ async function runSteps(caseData){ // 执行步骤
     for(var i=0;i<caseData.case_mode;i++){ // 执行用例循环
         for(var j=0;j<caseData.case_steps.length;j++){
 			var ret=await disposeStepLoop(j,caseData);
-			test_log_info.step=caseData.case_steps[j];
-			test_log_info.ret=caseData.briefResl;
-			notifyWebView({type:toWebServerType,mode:4,info:test_log_info});// 测试步骤执行结果通知
 			if(!ret){
 				var finish = true;
 				if(j<caseData.case_steps.length-1){
@@ -156,6 +153,9 @@ async function disposeStepLoop(idx,caseData){ // 执行步骤循环
 				return new Promise(resolve => {resolve(0);});
 			}
 		}
+		test_log_info.step=cmdStep;
+		test_log_info.ret=ret;
+		notifyWebView({type:toWebServerType,mode:4,info:test_log_info});// 测试步骤执行结果通知
 		if(ret==0)await defaultDelay(idx,caseData.case_steps);
     }
 	return new Promise(resolve => {resolve(1);});
@@ -193,19 +193,24 @@ function calculateRunTime(startTime,ret){
 	return testInfo;
 }
 
-async function defaultDelay(index,caseSteps){
+async function defaultDelay(index,caseSteps){//current action or next action is wait,do not wait
 	if(index<caseSteps.length-1){
-		if(caseSteps[index+1].action=="wait"||caseSteps[index].action=="wait"){
-			return;//current action or next action is wait,do not wait
+		if(caseSteps[index+1].action!="wait"||caseSteps[index].action!="wait"){
+			await wait({time:stepsWaitTime});
 		}
 	}
-	await wait({time:stepsWaitTime});
 	return new Promise(resolve => {resolve(0);});
 }
 
-async function home(cmd,caseData){
-	for(var i=2;i<6;i++){
-		await Uarts_Mgr.sendDataForUarts("da_arm",i,1);
+async function button(cmd,caseData){
+	var buttonCmd = caseInfo.buttons[cmd.id];
+	for(var i=0;i<buttonCmd.content.length;i++){
+		var ct = buttonCmd.content[i];
+		for(var j=0;j<ct.length;j++){
+			var info={event:buttonCmd.event,ct:ct[j]};
+			await Uarts_Mgr.sendDataForUarts("da_arm","button",1,info);
+		}
+		if(cmd.click_type=="1")await wait({time:cmd.click_time});
 	}
 	return new Promise(resolve => {
 		resolve(0);
@@ -221,7 +226,7 @@ async function wait(cmd,caseData){
 }
 
 async function operateTool(cmd,caseData){
-	var result=Uarts_Mgr.sendDataForUarts("relay",cmd,0);
+	var result=Uarts_Mgr.sendDataForUarts("relay",cmd,0,0);
 	// var ret = result.ret?0:1;
     return new Promise(resolve => {
 		resolve(0);
@@ -233,10 +238,10 @@ async function assertPic(cmd,caseData){
 	var result;
 	if(stat){
 		var ret=await imageMatch(cmd);
-		if(!ret.valid){
+		if(ret.ret&&!ret.obj.valid){
 			if(caseData.case_mode==1)await saveScreen(cmd,caseData);
-		}
-		result=ret.valid?0:1;
+		}else if(!ret.ret)caseData.image="";
+		result=ret.ret&&ret.obj.valid?0:1;
 	}else{
 		result=2;
 	}
@@ -250,11 +255,12 @@ async function click(cmd,caseData){
 	var result;
 	if(stat){
 		var ret=await imageMatch(cmd);
-		if(ret.valid){
+		if(ret.ret&&ret.obj.valid){
 			var rev=await Remote.sendCmd({type:cmd.action,x:ret.x,y:ret.y});
 			result=rev.ret?0:2;
 		}else{
-			if(caseData.case_mode==1)await saveScreen(cmd,caseData);
+			if(caseData.case_mode==1&&ret.ret)await saveScreen(cmd,caseData);
+			else if(!ret.ret)caseData.image="";
 			result=1;
 		}
 	}else{
@@ -266,24 +272,23 @@ async function click(cmd,caseData){
 }
 
 async function checkRemoteAlive(){
-	var flag=Remote.getAlive();
-	if(flag){
+	if(Remote.getAlive()){
 		var rev=await Remote.sendCmd({type:"alive"});
 		if(rev.ret){
 			return new Promise(resolve => {
 				resolve(1);
 			});
 		}
-	}// 目前无法测试以下逻辑, wifi问题
-	var num=2;
+	}
+	var num=2;// 连接2次车机
 	while(num){
 		var ret=await Remote.connectDev(caseInfo.config.da_server);
 		if(ret){
 			break;
 		}
-		for(var i=0;i<2;i++){
-			await Uarts_Mgr.sendDataForUarts("da_arm",i,1);
-		}
+		await Uarts_Mgr.sendDataForUarts("da_arm","set_arm_lib_path",1,caseInfo.config.da_server.path);
+		await Uarts_Mgr.sendDataForUarts("da_arm","start_arm_server",1,caseInfo.config.da_server.path);
+		await wait({time:500});
 		num--;
 	}
 	var result=num==0?0:1;
@@ -295,10 +300,15 @@ async function checkRemoteAlive(){
 async function imageMatch(cmd){
 	var tmpPath=caseInfo.path+"/tmp/test.png";
 	var imgPath=caseInfo.path+"/img/"+cmd.id+".png";
-	await Remote.sendCmd({type:"cutScreen",filepath:tmpPath});
-	var obj=Cvip.imageMatch(imgPath,tmpPath);
+	var info;
+	if(!fs.existsSync(imgPath)){
+		info={ret:0};
+	}else{
+		await Remote.sendCmd({type:"cutScreen",filepath:tmpPath});
+		info={ret:1,obj:Cvip.imageMatch(imgPath,tmpPath)};
+	}
 	return new Promise(resolve => {
-		resolve(obj);
+		resolve(info);
 	});
 }
 

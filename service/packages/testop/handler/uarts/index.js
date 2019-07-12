@@ -30,16 +30,15 @@ function Uarts_Mgr(){
 			uartsList[name].closeUart();
 		}
 	}
-	this.sendDataForUarts=async function(name,data,send_type){
-		if(parseList[name]==undefined){
-			var parse_file="./parse/"+name+".js";
-			parseList[name]=require(parse_file);
+	this.sendDataForUarts=async function(uart_name,send_id,send_type,info){
+		if(parseList[uart_name]==undefined){
+			var parse_file="./parse/"+uart_name+".js";
+			parseList[uart_name]=require(parse_file);
 		}
-		var cmd=parseList[name].disposeSendData(data);
-		console.log(cmd);
-		var revdata=await uartsList[name].sendData(cmd,parseList[name],send_type);
+		var send_data=parseList[uart_name].disposeSendData(send_id,info);
+		var rev_data=await uartsList[uart_name].sendData(send_data,parseList[uart_name],send_type);
 		return new Promise(resolve => {
-			resolve({ret:1,data:revdata.data});
+			resolve({ret:1,data:rev_data.data});
 		});
 	}
 
