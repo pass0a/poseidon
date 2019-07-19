@@ -45,6 +45,25 @@
                         </el-form-item>
                     </el-form>
                 </el-tab-pane>
+                <el-tab-pane label="测试配置">
+                    <el-form :model="testInfo" ref="testform" label-width="190px">
+                        <el-form-item label="用例失败时是否退出测试:">
+                            <el-radio-group v-model="testInfo.error_exit">
+                                <el-radio :label="0">是</el-radio>
+                                <el-radio :label="1">否</el-radio>
+                            </el-radio-group>
+                        </el-form-item>
+                        <el-form-item label="用例失败时是否播放提示音:">
+                            <el-radio-group v-model="testInfo.error_music">
+                                <el-radio :label="0">是</el-radio>
+                                <el-radio :label="1">否</el-radio>
+                            </el-radio-group>
+                        </el-form-item>
+                        <el-form-item label="图片匹配度(0 ~ 100):">
+                            <el-input-number style="width:130px" v-model="testInfo.match" controls-position="right" :min="0" :max="100" size="small"></el-input-number>
+                        </el-form-item>
+                    </el-form>
+                </el-tab-pane>
             </el-tabs>
         </el-card>
         <div><LoginView/></div>
@@ -68,6 +87,7 @@ export default class SettingView extends Vue {
     private select_server:any=0;
     private db_server_info:any={};
     private da_server_info:any={};
+    private test_info:any={};
     private test_status:any=false;
     private uarts:any=["relay","da_mcu","da_arm"];
     private created() {
@@ -80,6 +100,10 @@ export default class SettingView extends Vue {
     get daserverInfo(){
         if(this.$store.state.setting_info.info.da_server!=undefined)this.da_server_info=this.$store.state.setting_info.info.da_server;
         return this.da_server_info;
+    }
+    get testInfo(){
+        if(this.$store.state.setting_info.info.test_info!=undefined)this.test_info=this.$store.state.setting_info.info.test_info;
+        return this.test_info;
     }
     get testStatus(){
         this.test_status = this.$store.state.test_info.testing;

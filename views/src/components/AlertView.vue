@@ -70,32 +70,45 @@ export default class AlertView extends Vue {
     private ok(){
         switch(this.$store.state.alert_info.type){
             case 0:
-                this.$store.state.app_info.type="saveConfig";
-                this.$store.state.app_info.reqCount++;
+                this.$store.state.app_info.pis.push({type:"toSer",job:"saveConfig",info:this.$store.state.setting_info.info});
                 break;
             case 1:
-                this.$store.state.app_info.type="toDB";
-                this.$store.state.app_info.route="projects";
-                this.$store.state.app_info.job="add";
-                this.$store.state.app_info.reqCount++;
+                let p_info = {
+                    name : this.$store.state.alert_info.info,
+                    uid : this.$store.state.login_info._id
+                }
+                this.sendReq("toDB","projects","add",p_info);
                 break;
             case 2:
-                this.$store.state.app_info.type="toDB";
-                this.$store.state.app_info.route="cases";
-                this.$store.state.app_info.job="delete";
-                this.$store.state.app_info.reqCount++;
+                let c_info = {
+                    prjname:this.$store.state.project_info.current_prj,
+                    _id: this.$store.state.case_info.data._id
+                };
+                this.sendReq("toDB","cases","delete",c_info);
+                let s_info = {
+                    type:1,
+                    prjname:this.$store.state.project_info.current_prj,
+                    cid: this.$store.state.case_info.data._id,
+                    uid:this.$store.state.login_info._id
+                };
+                this.sendReq("toDB","status","delete",s_info);
                 break;
             case 3:
-                this.$store.state.app_info.type="downCases";
-                this.$store.state.app_info.reqCount++;
-                break;
-            case 4:
+                this.$store.state.app_info.pis.push({type:"toSer",job:"replayTest",info:{prjname:this.$store.state.project_info.current_prj}});
                 this.$store.state.test_info.count++;
-                this.$store.state.app_info.type="replayTest";
-                this.$store.state.app_info.reqCount++;
                 this.$store.state.alert_info.showflag = false;
                 break;
         }
+    }
+
+    private sendReq(type:string,route:string,job:string,info:any){
+        let req = {
+            type : type,
+            route : route,
+            job : job,
+            info : info
+        }
+        this.$store.state.app_info.pis.push(req);
     }
 }
 </script>

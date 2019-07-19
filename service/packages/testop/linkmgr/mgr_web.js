@@ -20,14 +20,18 @@ function Web_mgr(c,obj,lk){
     });
     pis.push({type:"auth",state:"ok"});
     var handleCmd=function(obj){
-        switch(obj.type){
+        switch(obj.job){
             case "startTest":
+                var jsPath = "\"" + dpath.dirname(__dirname) + "/handler/test/main.js\"";
+                startJS(obj,jsPath);
+                break;
+            case "continueTest":
                 var jsPath = "\"" + dpath.dirname(__dirname) + "/handler/test/main.js\"";
                 startJS(obj,jsPath);
                 break;
             case "stopTest":
                 var test_link=lk.getLink("test","test");
-                test_link.stopTest(obj);
+                test_link.stopTest();
                 break;
             case "replayTest":
                 var jsPath = "\"" + dpath.dirname(__dirname) + "/handler/test/main.js\"";
@@ -39,14 +43,14 @@ function Web_mgr(c,obj,lk){
                 break;
             case "saveCutImage":
                 var passoaPath=process.execPath;
-                var prjPath=dpath.dirname(dpath.dirname(passoaPath)) + 'data_store/projects/'+obj.prjname;
+                var prjPath=dpath.dirname(dpath.dirname(passoaPath)) + 'data_store/projects/'+obj.info.prjname;
                 var screenPath = prjPath+"/screen/screen.png";
                 var imgPath = prjPath+"/img";
                 if(!fs.existsSync(imgPath))fs.mkdirSync(imgPath);
-                var icon_info = obj.info;
+                var icon_info = obj.info.cut_info;
                 var iconPath = imgPath+"/"+icon_info.id+".png";
                 var ret=Cvip.imageCut(screenPath,iconPath,16,icon_info.info.x1,icon_info.info.y1,icon_info.info.w,icon_info.info.h);
-                pis.push({type:obj.type,ret:ret});
+                pis.push({type:obj.type,job:obj.job,ret:ret});
                 break;
 			default:
 				break;
@@ -54,7 +58,7 @@ function Web_mgr(c,obj,lk){
     };
     var startJS=function(obj,jsPath){
         var passoaPath=process.execPath;
-        var prjPath=dpath.dirname(dpath.dirname(passoaPath)) + 'data_store/projects/'+obj.prjname;
+        var prjPath=dpath.dirname(dpath.dirname(passoaPath)) + 'data_store/projects/'+obj.info.prjname;
         var path="\""+passoaPath+"\" "+jsPath+" \""+prjPath+"\"";
         console.log(path);
         childprs.exec(path,{windowsHide:testcfg.windowsHide,detached:testcfg.detached});

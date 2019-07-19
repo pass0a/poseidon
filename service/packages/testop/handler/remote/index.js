@@ -67,9 +67,6 @@ function Remote(){
 			});
             switch(cmd.type){
                 case "click":
-                    pis.push({type:cmd.type,x:cmd.x,y:cmd.y});
-                    break;
-                case "long_click":
                     pis.push({type:cmd.type,x:cmd.x,y:cmd.y,time:cmd.time});
                     break;
                 case "slide":

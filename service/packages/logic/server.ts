@@ -58,52 +58,60 @@ export class Server {
 		this.pis.push(obj);
 	}
 	private handle(data: any) {
-		console.log('server_rev:', data);
+		// console.log('server_rev:', data);
 		switch (data.type) {
+			// toThisServer
+			case 'toSer':
+				this.execJob(data);
+				break;
+			// toDBserver
+			case 'toDB':
+				this.todb.send(data);
+				break;
+			default:
+				break;
+		}
+	}
+
+	private execJob(data:any){
+		switch(data.job){
 			case 'readConfig':
 				let cj = new util.TextDecoder().decode(fs.readFileSync(this.configPath));
-				let config_info = JSON.parse(cj);
-				this.send({ type: data.type, info: config_info });
+				data.info = JSON.parse(cj);
+				this.send(data);
 				break;
 			case 'saveConfig':
 				fs.writeFileSync(this.configPath, JSON.stringify(data.info));
-				this.send({ type: data.type, state: true });
+				data.info = true;
+				this.send(data);
 				break;
 			case 'readReport':
 				let repPath = this.dirPath + data.prjname + '/report.json';
-				let reportIsExitst = fs.existsSync(repPath);
-				let report;
-				if(!reportIsExitst){
-					report = {caseData:[],testInfo:null};
+				if(!fs.existsSync(repPath)){
+					data.info = {caseData:[],testInfo:null};
 				}else{
 					let rj = new util.TextDecoder().decode(fs.readFileSync(repPath));
-					report = JSON.parse(rj);
+					data.info = JSON.parse(rj);
 				}
-				this.send({ type: data.type, info: report });
+				this.send(data);
 				break;
-			case "readStopinfo":
+			case 'readStopinfo':
 				let stopinfoPath = this.dirPath + data.prjname + '/stopinfo.json';
-				let stopinfoIsExitst = fs.existsSync(stopinfoPath);
-				let stopflag = false;
-				if(stopinfoIsExitst){
+				data.info = false;
+				if(fs.existsSync(stopinfoPath)){
 					let rj = new util.TextDecoder().decode(fs.readFileSync(stopinfoPath));
 					let stopinfo = JSON.parse(rj);
-					if(stopinfo.idx>-1)stopflag = true;
+					if(stopinfo.idx>-1)data.info = true;
 				}
-				this.send({ type: data.type, info: stopflag });
-				break;
-			case 'downCases':
-				let downPath = this.dirPath + data.prjname + '/caselist.json';
-				fs.writeFileSync(downPath, JSON.stringify(data.info));
-				let initStop = this.dirPath + data.prjname + '/stopinfo.json';
-				fs.writeFileSync(initStop, JSON.stringify({idx:-1,gid:-1}));
-				this.send({ type: data.type, state: true });
+				this.send(data);
 				break;
 			case 'startTest':
 				this.todb.send(data);
-				// this.tolink.send(data);
 				break;
 			case 'stopTest':
+				this.tolink.send(data);
+				break;
+			case 'continueTest':
 				this.tolink.send(data);
 				break;
 			case 'replayTest':
@@ -116,12 +124,6 @@ export class Server {
 				break;
 			case 'saveCutImage':
 				this.tolink.send(data);
-				break;
-			// toDBserver
-			case 'toDB':
-				this.todb.send(data);
-				break;
-			default:
 				break;
 		}
 	}

@@ -43,7 +43,7 @@
         <el-card class="box-card" shadow="never" style="margin:10px 10px 10px 10px;">
             <el-card class="box-card" shadow="never">
             <span style="margin:0px 0px 0px 5px"><font size="3"><strong>测试输出</strong></font></span>
-            <el-input type="textarea" :readonly="true" :autosize="{ minRows: 10, maxRows: 10}" placeholder="" v-model="logCmd" ref="table"></el-input>
+            <el-input id="imp" type="textarea" :readonly="true" :autosize="{ minRows: 10, maxRows: 10}" placeholder="" v-model="logCmd"></el-input>
             </el-card>
         </el-card>
     </div>
@@ -154,7 +154,7 @@ export default class TestView extends Vue {
                 this.btnMode=2;
                 break;
             case 2:
-                this.processNum=(this.testInfo.info.current/this.testInfo.info.total)*100;
+                this.processNum = Math.floor((this.testInfo.info.current/this.testInfo.info.total)*10000)/100;
                 this.statusTitle.t_progress=this.testInfo.info.current+" / "+this.testInfo.info.total;
                 break;
             case 3:
@@ -196,8 +196,12 @@ export default class TestView extends Vue {
                 this.btnMode=1;
                 this.processNum=0;
                 this.updateLogCmd(0);
-                this.$store.state.app_info.type="startTest";
-                this.$store.state.app_info.reqCount++;
+                let req = {
+                    type:"toSer",
+                    job:"startTest",
+                    info:{prjname:this.$store.state.project_info.current_prj,uid:this.$store.state.login_info._id}
+                }
+                this.$store.state.app_info.pis.push(req);
             }else{
                 this.$notify({title: '当前正在同步车机屏幕无法进行测试',message: '', type: 'warning',duration:1500});
             }
@@ -206,26 +210,41 @@ export default class TestView extends Vue {
         }
     }
     private stopTest(){
-        this.$store.state.app_info.type="stopTest";
-        this.$store.state.app_info.reqCount++;
+        this.$store.state.app_info.pis.push({type:"toSer",job:"stopTest"});
         this.btnMode=3;
         this.updateLogCmd(1,"暂停中...等待当前步骤执行完");
     }
     private continueTest(){
         this.btnMode=1;
-        this.$store.state.app_info.type="startTest";
-        this.$store.state.app_info.reqCount++;
+        let req = {
+            type:"toSer",
+            job:"continueTest",
+            info:{prjname:this.$store.state.project_info.current_prj}
+        }
+        this.$store.state.app_info.pis.push(req);
     }
     private replayTest(){
         this.$store.state.alert_info.showflag = true;
-        this.$store.state.alert_info.type = 4;
+        this.$store.state.alert_info.type = 3;
     }
     private showStepsLog(data:any){
         let step = data.step;
         let ret = data.ret;
         let reslist = this.$store.state.steps_info.reslist;
         let action = reslist[step.action];
-        let content = step.time!=undefined?step.time+"毫秒":" ["+reslist[step.module]+"] "+reslist[step.id];
+        if((step.action=="button"||step.action=="click")&&step.click_type=="1")action+=" [长按:"+step.click_time+"ms]";
+        let content:string="";
+        switch(step.action){
+            case "wait":
+                content = step.time+"毫秒";
+                break;
+            case "qg_box":
+                content = " ["+reslist[step.module]+"] "+step.b_volt + " V";
+                break;
+            default:
+                content = " ["+reslist[step.module]+"] "+reslist[step.id];
+                break;
+        }
         let step_log = action+" ==> "+content + "- - - 执行"+ (ret==0?"成功":"失败");
         this.updateLogCmd(1,step_log);
     }
@@ -245,6 +264,8 @@ export default class TestView extends Vue {
             let logTime = "[ " + (new Date()).toLocaleString() + " ] ";
             this.logCmd+=logTime+" "+info+"\r";
         }
+        let div:any = document.getElementById('imp');
+        div.scrollTop = div.scrollHeight;
     }
     private showRunTime(data:any){
         let ms=data%1000;

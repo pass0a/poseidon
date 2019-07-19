@@ -5,11 +5,12 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
 	state:{
+		req_info:{
+			new_prj : 0,
+			refresh_rl : 0
+		},
 		app_info:{
-			reqCount:0,
-			type:"",
-			route:"",
-			job:""
+			pis:{}
 		},
 		home_info: {
 			count:0,
@@ -50,8 +51,7 @@ export default new Vuex.Store({
 		editcase_info:{
 			refresh_data:false,
 			update_op:false,
-			data:{},
-			downCases:[]
+			data:{}
 		},
 		case_info:{
 			showflag:false,
@@ -68,11 +68,9 @@ export default new Vuex.Store({
 			running:false,
 			status:false,
 			path:"",
-			cut_info:{},
 			save_count:0
 		},
 		id_info:{
-			info:{},
 			count:0
 		},
 		case_prop:new Map([

@@ -101,10 +101,16 @@ export default class CaseInfoView extends Vue {
             if(valid){
                 this.case_info.case_steps=this.$store.state.steps_info.steplist;
                 this.$store.state.case_info.data=this.case_info;
-                this.$store.state.app_info.type="toDB";
-                this.$store.state.app_info.route="cases";
-                this.$store.state.app_info.job=this.$store.state.case_info.type?"modify":"add";
-                this.$store.state.app_info.reqCount++;
+                let req = {
+                    type : "toDB",
+                    route : "cases",
+                    job : this.$store.state.case_info.type?"modify":"add",
+                    info : {
+                        prjname:this.$store.state.project_info.current_prj,
+                        casedata:this.case_info
+                    }
+                }
+                this.$store.state.app_info.pis.push(req);
             }
         });
     }

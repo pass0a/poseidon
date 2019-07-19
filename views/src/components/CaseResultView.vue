@@ -7,11 +7,17 @@
         <p slot="header">
             <i class="el-icon-warning"></i>
             <span>自动化测试结果</span>
+            <a style="float:right" @click="ok"><i class="el-icon-close"></i></a>
         </p>
         <el-table :data="caseData" style="width: 100%" size="mini" stripe border ref="caseResultTable">
             <el-table-column label="用例ID" prop="case_id" resizable></el-table-column>
             <el-table-column label="测试模式" prop="case_mode" resizable></el-table-column>
-            <el-table-column label="操作">
+            <el-table-column label="测试结果" prop="briefResl" resizable>
+                <template slot-scope="scope">
+                    <span><strong><font size="2" :color="scope.row.briefResl!=undefined?(scope.row.briefResl!=-1?(scope.row.briefResl==0?'#67C23A':'#F56C6C'):'#bbbec4'):'#bbbec4'">{{ scope.row.briefResl!=undefined?(scope.row.briefResl!=-1?(scope.row.briefResl==0?'OK':'NG'):'NotTest'):'NotTest' }}</font></strong></span>
+                </template>
+            </el-table-column>
+            <el-table-column label="操作" width="200">
                 <template slot-scope="scope">
                     <button class="button" @click="replayCase(scope.$index)">重新执行</button>
                     <button class="button" @click="replayCase(scope.$index)">重新截图</button>
@@ -23,6 +29,9 @@
             <Steps direction="vertical">
 				<Step v-for="(it,idx) in caseData[0].case_steps" :key="idx" :title="getStepTitleOrStatus(0,idx)" :content="showStep(it,idx)" :status="getStepTitleOrStatus(1,idx)"></Step>
 			</Steps>
+            <div v-if="caseData[0].match!=undefined">
+                <span><font size="2"><strong>当前匹配度 : {{caseData[0].match}}</strong></font></span><br/>
+            </div>
             <div v-if="caseData[0].briefResl>0&&caseData[0].image!=undefined&&caseData[0].image!=''">
                 <span><font size="2"><strong>截图对比</strong></font></span><br/>
                 <img :src="'http://127.0.0.1:6003/'+'?action=image&image='+caseData[0].image+'&id='+imgreq" style="max-width:100%;max-height:100%;"/>
@@ -83,9 +92,20 @@ export default class CaseResultView extends Vue {
     private showStep(it:any,idx:any){
         let reslist = this.$store.state.steps_info.reslist;
         let action = reslist[it.action];
-        let content = it.time!=undefined?it.time+"毫秒":" ["+reslist[it.module]+"] "+reslist[it.id];
-        let stepTitle = action+" ==> "+content;
-        return stepTitle;
+        if((it.action=="button"||it.action=="click")&&it.click_type=="1")action+=" [长按:"+it.click_time+"ms]";
+        let content:string="";
+        switch(it.action){
+            case "wait":
+                content = it.time+"毫秒";
+                break;
+            case "qg_box":
+                content = " ["+reslist[it.module]+"] "+it.b_volt + " V";
+                break;
+            default:
+                content = " ["+reslist[it.module]+"] "+reslist[it.id];
+                break;
+        }
+        return action+" ==> "+content;
     }
 }
 </script>

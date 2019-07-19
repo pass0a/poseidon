@@ -16,11 +16,13 @@
                 <el-select placeholder="请选择" filterable size="small" style="width:140px" v-model="s_module" v-show="s_action!=waitType" @change="changeSel(1)">
                     <el-option v-for="val in Module" :key="val" :label="getResName(val)" :value="val"></el-option>
                 </el-select>
-                <el-select placeholder="请选择" filterable clearable  size="small" style="width:155px" v-model="s_clid" v-show="s_action!=waitType" @change="changeSel(2)">
+                <el-input-number v-model="s_box" style="width:130px" controls-position="right" :min="2.529" size="small" v-show="s_module==boxType.freq"></el-input-number>
+                <el-select placeholder="请选择" filterable clearable  size="small" style="width:155px" v-model="s_clid" v-show="s_action!=waitType&&s_action!=boxType.act" @change="changeSel(2)">
                     <el-option v-for="val in Clid" :key="val" :label="getResName(val)" :value="val"></el-option>
                 </el-select>
                 <el-input-number v-model="s_wait" controls-position="right" :min="0" size="small" v-show="s_action==waitType"></el-input-number>
                 <button class="steps_button" @click="onSetWait" v-show="s_action==waitType">确定</button>
+                <button class="steps_button" @click="onSetBox" v-show="s_module==boxType.freq">设置</button>
                 <button class="steps_button" style="background-color:#606266"  @click="initOp">取消</button>
             </div>
             <div v-show="idx!=s_idx||s_op==1||s_op==3">
@@ -47,11 +49,13 @@
             <el-select placeholder="请选择" filterable size="small" style="width:140px" v-model="s_module" v-show="s_action!=waitType" @change="changeSel(1)">
                 <el-option v-for="val in Module" :key="val" :label="getResName(val)" :value="val"></el-option>
             </el-select>
-            <el-select placeholder="请选择" filterable clearable  size="small" style="width:155px" v-model="s_clid" v-show="s_action!=waitType" @change="changeSel(2)">
+            <el-input-number v-model="s_box" style="width:130px" controls-position="right" :min="2.529" size="small" v-show="s_module==boxType.freq"></el-input-number>
+            <el-select placeholder="请选择" filterable clearable  size="small" style="width:155px" v-model="s_clid" v-show="s_action!=waitType&&s_action!=boxType.act" @change="changeSel(2)">
                 <el-option v-for="val in Clid" :key="val" :label="getResName(val)" :value="val"></el-option>
             </el-select>
             <el-input-number v-model="s_wait" controls-position="right" :min="0" size="small" v-show="s_action==waitType"></el-input-number>
             <button class="steps_button" @click="onSetWait" v-show="s_action==waitType">确定</button>
+            <button class="steps_button" @click="onSetBox" v-show="s_module==boxType.freq">设置</button>
         </div>
     </div>
 </template>
@@ -67,11 +71,13 @@ export default class StepsView extends Vue {
     private s_clicktype:string="0";
     private s_clicktime:Number=1500;
     private s_clid:string="";
+    private s_box:any = 2.529;
     private s_wait:Number=100;
     private s_op:Number=0;
     private s_idx:any=-1;
     private steplist:any=[];
     private waitType:string="wait";
+    private boxType:any={act:"qg_box",freq:"freq"};
     private clickType:any=new Map([["0","短按"],["1","长按"]]);
     get clearInfo(){
         if(this.$store.state.case_info.showflag){
@@ -108,6 +114,7 @@ export default class StepsView extends Vue {
                 this.s_clid="";
                 this.s_clicktype="0";
                 this.s_clicktime=1500;
+                this.s_box = 2.529;
                 break;
             case 1:
                 this.s_clid="";
@@ -115,7 +122,7 @@ export default class StepsView extends Vue {
             case 2:
                 if(this.s_clid!=undefined){
                     let obj:any = {action:this.s_action,module:this.s_module,id:this.s_clid};
-                    if(this.s_action=="button"){
+                    if(this.s_action=="button"||this.s_action=="click"){
                         obj["click_type"]=this.s_clicktype;
                         obj["click_time"]=this.s_clicktime;
                     }
@@ -129,7 +136,15 @@ export default class StepsView extends Vue {
     }
     private onSetWait(){
         if(this.s_wait==undefined)this.s_wait=100;
-        let obj = {action:"wait",time:this.s_wait};
+        let obj = {action:this.s_action,time:this.s_wait};
+        if(this.s_op==0)this.steplist.push(obj);
+        else if(this.s_op==2)this.steplist[this.s_idx]=obj;
+        else if(this.s_op==3)this.steplist.splice(this.s_idx,0,obj);
+        this.initOp();
+    }
+    private onSetBox(){
+        if(this.s_box==undefined)this.s_box=2.529;
+        let obj = {action:this.s_action,module:this.s_module,b_volt:this.s_box};
         if(this.s_op==0)this.steplist.push(obj);
         else if(this.s_op==2)this.steplist[this.s_idx]=obj;
         else if(this.s_op==3)this.steplist.splice(this.s_idx,0,obj);
@@ -147,12 +162,23 @@ export default class StepsView extends Vue {
     }
     private showStep(it:any){
         let action=this.getResName(it.action);
-        if(it.action=="button"&&it.click_type=="1")action+=" [长按:"+it.click_time+"ms]";
-        let content=it.time!=undefined?it.time+"毫秒":" ["+this.getResName(it.module)+"] "+this.getResName(it.id);
+        if((it.action=="button"||it.action=="click")&&it.click_type=="1")action+=" [长按:"+it.click_time+"ms]";
+        let content:string="";
+        switch(it.action){
+            case "wait":
+                content = it.time+"毫秒";
+                break;
+            case "qg_box":
+                content = " ["+this.getResName(it.module)+"] "+it.b_volt + " V";
+                break;
+            default:
+                content = " ["+this.getResName(it.module)+"] "+this.getResName(it.id);
+                break;
+        }
         return action+" ==> "+content;
     }
     private showClickType(act:any){
-        if(act=="button")return true;
+        if(act=="button"||act=="click")return true;
         return false;
     }
     private showClickTime(clicktype:any){
@@ -176,10 +202,15 @@ export default class StepsView extends Vue {
                 this.s_action=item.action;
                 if(this.s_action==this.waitType){
                     this.s_wait=item.time;
-                }else{
+                }
+                else if(item.action==this.boxType.act){
+                    this.s_module=item.module;
+                    this.s_box = item.b_volt;
+                }
+                else{
                     this.s_module=item.module;
                     this.s_clid=item.id;
-                    if(item.action=="button"&&item.click_type=="1"){
+                    if((item.action=="button"||item.action=="click")&&item.click_type=="1"){
                         this.s_clicktype=item.click_type;
                         this.s_clicktime=item.click_time;
                     }

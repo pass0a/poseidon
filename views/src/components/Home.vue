@@ -51,6 +51,7 @@ import ReportView from "./ReportView.vue";
 import SettingView from "./SettingView.vue";
 import ScreenView from "./ScreenView.vue";
 import StepsMgrView from "./StepsMgrView.vue";
+import { truncate } from 'fs';
 @Component({
   components: {
     OpenPrj,
@@ -66,6 +67,8 @@ import StepsMgrView from "./StepsMgrView.vue";
 export default class Home extends Vue {
     private select_mode:any="4";
     private test_status:any=false;
+    private needOpenPrj:any=["3","5","6_1","6_2"];
+    private needStopTest:any=["1","2"];
     get currentProject(){
         if(this.$store.state.project_info.current_prj.length){
             this.select_mode="4";
@@ -86,68 +89,61 @@ export default class Home extends Vue {
     private selectMode(key:any){
         this.$store.state.home_info.mode = key;
         if(this.select_mode!=key){
+          if(this.warningForAction(key))return;
           switch(key){
             case "1":
-                if(this.test_status){
-                    this.$notify({title: '测试进行中!!!无法进行操作',message: '', type: 'warning',duration:1500});
-                }else{
-                    this.setReq("toDB","projects","list");
-                }
-                break;
+              let p_req = {
+                  type : "toDB",
+                  route : "projects",
+                  job : "list"
+              }
+              this.$store.state.app_info.pis.push(p_req);
+              break;
             case "2":
-                if(this.test_status){
-                    this.$notify({title: '测试进行中!!!无法进行操作',message: '', type: 'warning',duration:1500});
-                }else{
-                    this.$store.state.project_info.newflag=true;
-                }
-                break;
+              this.$store.state.project_info.newflag=true;
+              break;
             case "3":
-                if(this.$store.state.project_info.current_prj.length){
-                    if(this.$store.state.editcase_info.refresh_data){
-                      this.setReq("toDB","cases","list");
-                    }
-                    this.select_mode=key;
-                }else{
-                    this.$notify({title: '当前无项目,请选择项目',message: '', type: 'warning',duration:1500});
+              if(this.$store.state.editcase_info.refresh_data){
+                let l_req = {
+                    type : "toDB",
+                    route : "cases",
+                    job : "list",
+                    info : {prjname:this.$store.state.project_info.current_prj}
                 }
-                break;
+                this.$store.state.app_info.pis.push(l_req);
+              }
+              this.select_mode=key;
+              break;
             case "5":
-                if(this.$store.state.project_info.current_prj.length){
-                    this.setReq("readReport");
-                    this.select_mode=key;
-                }else{
-                    this.$notify({title: '当前无项目,请选择项目',message: '', type: 'warning',duration:1500});
-                }
-                break;
-            case "6_1":
-                if(this.$store.state.project_info.current_prj.length){
-                    this.select_mode=key;
-                }else{
-                    this.$notify({title: '当前无项目,请选择项目',message: '', type: 'warning',duration:1500});
-                }
-                break;
-            case "6_2":
-                if(this.$store.state.project_info.current_prj.length){
-                    this.select_mode=key;
-                }else{
-                    this.$notify({title: '当前无项目,请选择项目',message: '', type: 'warning',duration:1500});
-                }
-                break;
+              this.$store.state.app_info.pis.push({type:"toSer",job:"readReport",prjname:this.$store.state.project_info.current_prj});
+              this.select_mode=key;
+              break;
             case "7":
-                this.setReq("readConfig");
-                this.select_mode=key;
-                break;
+              this.$store.state.app_info.pis.push({type:"toSer",job:"readConfig"});
+              this.select_mode=key;
+              break;
             default:
-                this.select_mode=key;
-                break;
+              this.select_mode=key;
+              break;
           }
+          
         }
     }
-    private setReq(type:any,route?:any,job?:any){
-      this.$store.state.app_info.reqCount++;
-      this.$store.state.app_info.type=type;
-      this.$store.state.app_info.route=route;
-      this.$store.state.app_info.job=job;
+    private warningForAction(key:string){
+      if(this.needOpenPrj.indexOf(key)!=-1){
+        if(this.$store.state.project_info.current_prj.length==0){
+          this.$notify({title: '当前无项目,请选择项目',message: '', type: 'warning',duration:1500});
+          return true;
+        }
+        return false;
+      }
+      else if(this.needStopTest.indexOf(key)!=-1){
+        if(this.test_status){
+          this.$notify({title: '测试进行中!!!无法进行操作',message: '', type: 'warning',duration:1500});
+          return true;
+        }
+        return false;
+      }
     }
 }
 </script>

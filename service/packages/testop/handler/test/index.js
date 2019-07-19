@@ -4,6 +4,7 @@ var fs=require("fs");
 var Uarts_Mgr=require("../uarts/index");
 var Cvip=require("../cvip/index");
 var Remote=require("../remote/index");
+var QGBox=require("../qgbox/index");
 var stepsWaitTime = 1500;
 var toWebServerType = "tolink";
 var pos,pis,c,caseInfo,gid=0;
@@ -11,11 +12,12 @@ var progress_info={current:0,total:0};
 var test_log_info={step:{},ret:0};
 var result_to_web={ok:0,ng:0};
 var actionList={
-	wait: wait,
-	click: click,
+	wait : wait,
+	click : click,
 	assert_pic : assertPic,
 	operate_tool: operateTool,
-	button : button
+	button : button,
+	qg_box : qgBox
 };
 
 async function startTest(data){
@@ -217,6 +219,23 @@ async function button(cmd,caseData){
 	});
 }
 
+async function qgBox(cmd,caseData){
+	var rev = await QGBox.sendBoxApi(cmd.module,0,caseInfo.config.qg_box);
+	console.log(rev);
+	var result;
+	if(!rev.ret){
+		result = parseFloat(rev.data)>cmd.b_volt?0:1;
+		console.log(parseFloat(rev.data));
+		console.log(cmd.b_volt);
+		console.log(result);
+	}else{
+		result = 2;
+	}
+	return new Promise(resolve => {
+		resolve(result);
+	});
+}
+
 async function wait(cmd,caseData){
     return new Promise(resolve => {
 		setTimeout(function(){
@@ -239,7 +258,10 @@ async function assertPic(cmd,caseData){
 	if(stat){
 		var ret=await imageMatch(cmd);
 		if(ret.ret&&!ret.obj.valid){
-			if(caseData.case_mode==1)await saveScreen(cmd,caseData);
+			if(caseData.case_mode==1){
+				await saveScreen(cmd,caseData);
+				caseData.match = Math.floor(ret.obj.val*10000)/100;
+			}
 		}else if(!ret.ret)caseData.image="";
 		result=ret.ret&&ret.obj.valid?0:1;
 	}else{
@@ -256,10 +278,15 @@ async function click(cmd,caseData){
 	if(stat){
 		var ret=await imageMatch(cmd);
 		if(ret.ret&&ret.obj.valid){
-			var rev=await Remote.sendCmd({type:cmd.action,x:ret.x,y:ret.y});
+			var c_info = {type:cmd.action,x:ret.obj.x,y:ret.obj.y};
+			if(cmd.click_type=="1")c_info.time = cmd.click_time;
+			var rev=await Remote.sendCmd(c_info);
 			result=rev.ret?0:2;
 		}else{
-			if(caseData.case_mode==1&&ret.ret)await saveScreen(cmd,caseData);
+			if(caseData.case_mode==1&&ret.ret){
+				await saveScreen(cmd,caseData);
+				caseData.match = Math.floor(ret.obj.val*10000)/100;
+			}
 			else if(!ret.ret)caseData.image="";
 			result=1;
 		}

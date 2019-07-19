@@ -60,7 +60,7 @@ export default class ScreenView extends Vue {
         if(this.$store.state.home_info.mode!="6_2"){
             this.stopDraw = true;
             let img:any = document.getElementById("screen");
-            img.src="/none.21306cad.png";
+            if(img)img.src="/none.21306cad.png";
         } 
         return;
     }
@@ -108,8 +108,7 @@ export default class ScreenView extends Vue {
             this.btnStatus = true;
             this.stopDraw = true;
             this.$store.state.screen_info.running = true;
-            this.$store.state.app_info.type="syncRemote";
-            this.$store.state.app_info.reqCount++;
+            this.$store.state.app_info.pis.push({type:"toSer",job:"syncRemote",info:{prjname:this.$store.state.project_info.current_prj}});
         }
     }
     private showImage(){
@@ -126,9 +125,15 @@ export default class ScreenView extends Vue {
     private ok(){
         if(this.s_clid&&this.s_clid.length){
             this.saveStatus=true;
-            this.$store.state.screen_info.cut_info = {id : this.s_clid, info : this.info};
-            this.$store.state.app_info.type="saveCutImage";
-            this.$store.state.app_info.reqCount++;
+            let s_req = {
+                type : "toSer",
+                job : "saveCutImage",
+                info : {
+                    prjname : this.$store.state.project_info.current_prj,
+                    cut_info : {id : this.s_clid, info : this.info}
+                }
+            }
+            this.$store.state.app_info.pis.push(s_req);
         }else{
             this.$notify({title: '请绑定步骤',message: '', type: 'warning',duration:1500});
         }

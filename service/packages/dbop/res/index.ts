@@ -1,9 +1,14 @@
 var Model = require("./model");
 
 function getList(data:any,pis:any,ResModel:any){
-    ResModel.find({},{__v:0,_id:0}).sort({case_id:1}).exec(function(err:any,msg:any){
+    ResModel.aggregate([
+        {$project:{
+            "_id":0,"__v":0
+        }}
+    ],function(err:any,docs:any){
         if(!err){
-            data.info=JSON.stringify(msg);
+            // console.log(JSON.stringify(docs))
+            data.info=JSON.stringify(docs);
             pis.push(data);
         }
     });

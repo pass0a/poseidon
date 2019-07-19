@@ -7,6 +7,7 @@ import projects from './projects/index';
 import res from './res/index';
 import rule from './rule/index';
 import buttons from './buttons/index';
+import status from './status/index';
 
 //config.logmode('rotating', 'passoa', __dirname + '/passoa.log', 1024 * 1024 * 5, 1);
 
@@ -32,8 +33,9 @@ function createServer(port: number) {
 			case 'toDB':
 				handle(data);
 				break;
-			case 'startTest':
+			case 'toSer':
 				buttons.disposeData(data, pis);
+				status.disposeData(data, pis);
 				break;
 		}
 	});
@@ -70,6 +72,9 @@ function handle(data: any) {
 			break;
 		case 'buttons':
 			buttons.disposeData(data, pis);
+			break;
+		case 'status':
+			status.disposeData(data, pis);
 			break;
 		default:
 			break;

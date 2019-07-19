@@ -1,6 +1,5 @@
 <template>
   <div id="app">
-    <el-link v-model="sendRequest" v-show="false"></el-link>
     <router-view></router-view>
   </div>
 </template>
@@ -14,9 +13,6 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 export default class App extends Vue {
     private ws: any = null;
     private count:any=0;
-    private req_info:any={
-        new_prj:0
-    };
     private created() {
         pis.on("data", (data: any) => {
             this.ws.send(data);
@@ -27,7 +23,8 @@ export default class App extends Vue {
         this.ws = new WebSocket("ws://127.0.0.1:6001");
         this.ws.onopen = () => {
             this.ws.binaryType = "arraybuffer";
-            pis.push({type:"readConfig"});
+            this.$store.state.app_info.pis = pis;
+            pis.push({type:"toSer",job:"readConfig"});
             pis.push({type:"toDB",route:"users",job:"find",info:{name:"admin",psw:"123"}});
         };
         this.ws.onmessage = (frm: any) => {
@@ -39,35 +36,9 @@ export default class App extends Vue {
     }
     private revHandle(data:any){
         switch(data.type){
-            case "readConfig":
-                this.$store.state.setting_info.info=data.info;
-                break;
-            case "saveConfig":
-                this.$store.state.alert_info.showflag=false;
-                this.$notify({title: '系统配置信息保存成功',message: '', type: 'success',duration:1500});
-                break;
-            case "readReport":
-                this.$store.state.report_info.data = data.info;
-                break;
-            case "readStopinfo":
-                this.$store.state.test_info.stopflag = 0;
-                this.$store.state.test_info.stopflag = data.info;
-                pis.push({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
-                break;
-            case "downCases":
-                this.$store.state.alert_info.showflag=false;
-                this.$store.state.home_info.count++;
-                this.$notify({title: '用例下载成功,请进行测试',message: '', type: 'success',duration:1500});
-                break;
-            case "syncRemote":
-                this.$store.state.screen_info.status = data.status;
-                this.$store.state.screen_info.path = data.path;
-                this.$store.state.screen_info.count++;
-                this.$notify({title: data.status?'同步成功':'同步失败',message: '', type: data.status?'success':'error',duration:1500});
-                break;
-            case "saveCutImage":
-                this.$store.state.screen_info.save_count++;
-                this.$notify({title: '保存成功!',message: '', type: 'success',duration:1500});
+            case "toSer":
+                console.log("revSer:",data);
+                this.revToSer(data);
                 break;
             case "tolink":
                 console.log("revLink:",data);
@@ -78,6 +49,38 @@ export default class App extends Vue {
                 this.revToDB(data);
                 break;
             default:
+                break;
+        }
+    }
+    private revToSer(data:any){
+        switch(data.job){
+            case "readConfig":
+                this.$store.state.setting_info.info = data.info;
+                break;
+            case "saveConfig":
+                this.$store.state.alert_info.showflag = false;
+                this.$notify({title: '系统配置信息保存成功',message: '', type: 'success',duration:1500});
+                break;
+            case "readReport":
+                this.$store.state.report_info.data = data.info;
+                break;
+            case "readStopinfo":
+                this.$store.state.test_info.stopflag = 0;
+                this.$store.state.test_info.stopflag = data.info;
+
+                this.$store.state.req_info.refresh_rl = 0;
+                pis.push({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                pis.push({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                break;
+            case "syncRemote":
+                this.$store.state.screen_info.status = data.status;
+                this.$store.state.screen_info.path = data.path;
+                this.$store.state.screen_info.count++;
+                this.$notify({title: data.status?'同步成功':'同步失败',message: '', type: data.status?'success':'error',duration:1500});
+                break;
+            case "saveCutImage":
+                this.$store.state.screen_info.save_count++;
+                this.$notify({title: '保存成功!',message: '', type: 'success',duration:1500});
                 break;
         }
     }
@@ -106,12 +109,7 @@ export default class App extends Vue {
     private revToDB_users(data:any){
         switch(data.job){
             case "find":
-                var _id = "";
-                for(var i=0;i<data.info.id.length;i++){
-                    if(data.info.id[i]<16)_id+="0";
-                    _id+=data.info.id[i].toString(16);
-                }
-                this.$store.state.login_info._id=_id;
+                this.$store.state.login_info._id=data.info;
                 break;
         }
     }
@@ -120,7 +118,7 @@ export default class App extends Vue {
             case "add":
                 this.$store.state.alert_info.showflag=false;
                 if(data.info.state){
-                    this.req_info.new_prj=0;
+                    this.$store.state.req_info.new_prj=0;
                     this.$store.state.project_info.current_prj=data.info.name;
                     pis.push({type:"toDB",route:"res",job:"new",info:{prjname:data.info.name}});
                     pis.push({type:"toDB",route:"rule",job:"new",info:{prjname:data.info.name}});
@@ -143,8 +141,10 @@ export default class App extends Vue {
                 break;
             case "add":
                 if(data.info){
-                    this.$store.state.case_info.showflag=false;
-                    this.$store.state.editcase_info.update_op=true;
+                    this.$store.state.case_info.showflag = false;
+                    this.$store.state.case_info.data._id = data.info;
+                    this.$store.state.case_info.data.c_status = [];
+                    this.$store.state.editcase_info.update_op = true;
                     this.$notify({title: '用例创建成功!',message: '', type: 'success',duration:1500});
                 }else{
                     this.$notify({title: '用例ID已存在',message: '', type: 'error',duration:1500});
@@ -177,18 +177,25 @@ export default class App extends Vue {
                     reslist[id]=name;
                 }
                 this.$store.state.steps_info.reslist=reslist;
-                pis.push({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                this.$store.state.req_info.refresh_rl++;
+                if(this.$store.state.req_info.refresh_rl == 2)this.$store.state.id_info.count++;
                 break;
             case "add":
                 if(data.info){
                     this.$notify({title: '添加成功!',message: '', type: 'success',duration:1500});
+                    
+                    this.$store.state.req_info.refresh_rl = 0;
                     pis.push({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                    pis.push({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
                 }
                 break;
             case "new":
-                this.req_info.new_prj++;
-                if(this.req_info.new_prj==3){
+                this.$store.state.req_info.new_prj++;
+                if(this.$store.state.req_info.new_prj==3){
+                    
+                    this.$store.state.req_info.refresh_rl = 0;
                     pis.push({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                    pis.push({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
                     this.$store.state.project_info.newflag=false;
                     this.$store.state.editcase_info.refresh_data=true;
                     this.$notify({title: '项目创建成功!',message: '', type: 'success',duration:1500});
@@ -207,15 +214,29 @@ export default class App extends Vue {
                     if(content!=null)rulelist[id]=content;
                 }
                 this.$store.state.steps_info.rulelist=rulelist;
-                this.$store.state.id_info.count++;
+                this.$store.state.req_info.refresh_rl++;
+                if(this.$store.state.req_info.refresh_rl == 2)this.$store.state.id_info.count++;
                 break;
             case "add":
-                pis.push({type:"toDB",route:"res",job:"add",info:{prjname:this.$store.state.project_info.current_prj,id:data.info,name:this.$store.state.id_info.info.name}});
+                let a_req = {
+                    type:"toDB",
+                    route:"res",
+                    job:"add",
+                    info:{
+                        prjname : this.$store.state.project_info.current_prj,
+                        id : data.info.id,
+                        name : data.info.name
+                    }
+                }
+                pis.push(a_req);
                 break;
             case "new":
-                this.req_info.new_prj++;
-                if(this.req_info.new_prj==3){
+                this.$store.state.req_info.new_prj++;
+                if(this.$store.state.req_info.new_prj==3){
+                    this.$store.state.req_info.refresh_rl = 0;
                     pis.push({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                    pis.push({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+
                     this.$store.state.project_info.newflag=false;
                     this.$store.state.editcase_info.refresh_data=true;
                     this.$notify({title: '项目创建成功!',message: '', type: 'success',duration:1500});
@@ -226,133 +247,18 @@ export default class App extends Vue {
     private revToDB_buttons(data:any){
         switch(data.job){
             case "new":
-                this.req_info.new_prj++;
-                if(this.req_info.new_prj==3){
+                this.$store.state.req_info.new_prj++;
+                if(this.$store.state.req_info.new_prj==3){
+                    this.$store.state.req_info.refresh_rl = 0;
                     pis.push({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                    pis.push({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+
                     this.$store.state.project_info.newflag=false;
                     this.$store.state.editcase_info.refresh_data=true;
                     this.$notify({title: '项目创建成功!',message: '', type: 'success',duration:1500});
                 }
                 break;
         }
-    }
-    get sendRequest(){
-        if(this.$store.state.app_info.reqCount > this.count){
-            let reqType = this.$store.state.app_info.type;
-            switch(reqType){
-                case "readConfig":
-                    pis.push({type:reqType});
-                    break;
-                case "saveConfig":
-                    pis.push({type:reqType,info:this.$store.state.setting_info.info});
-                    break;
-                case "readReport":
-                    pis.push({type:reqType,prjname:this.$store.state.project_info.current_prj});
-                    break;
-                case "downCases":
-                    pis.push({type:reqType,prjname:this.$store.state.project_info.current_prj,info:this.$store.state.editcase_info.downCases});
-                    break;
-                case "startTest":
-                    pis.push({type:reqType,prjname:this.$store.state.project_info.current_prj});
-                    break;
-                case "stopTest":
-                    pis.push({type:reqType});
-                    break;
-                case "replayTest":
-                    pis.push({type:reqType,prjname:this.$store.state.project_info.current_prj});
-                    break;
-                case "readStopinfo":
-                    pis.push({type:reqType,prjname:this.$store.state.project_info.current_prj});
-                    break;
-                case "syncRemote":
-                    pis.push({type:reqType,prjname:this.$store.state.project_info.current_prj});
-                    break;
-                case "saveCutImage":
-                    pis.push({type:reqType,prjname:this.$store.state.project_info.current_prj,info:this.$store.state.screen_info.cut_info});
-                    break;
-                case "toDB":
-                    this.sendToDB(reqType);
-                    break;
-            }
-            this.count++;
-        }
-        return this.$store.state.app_info.reqCount;
-    }
-    private sendToDB(type:any){
-        let route = this.$store.state.app_info.route;
-        let job = this.$store.state.app_info.job;
-        let info:any;
-        switch(route){
-            case "users":
-                info=this.sendToDB_users(job,info);
-                break;
-            case "projects":
-                info=this.sendToDB_projects(job,info);
-                break;
-            case "cases":
-                info=this.sendToDB_cases(job,info);
-                break;
-            case "res":
-                info=this.sendToDB_res(job,info);
-                break;
-            case "rule":
-                info=this.sendToDB_rule(job,info);
-                break;
-        }
-        pis.push({type:type,route:route,job:job,info:info});
-    }
-    private sendToDB_users(job:any,info:any){
-        switch(job){
-            case "find":
-                info={name:"admin",psw:"123"};
-                break;
-        }
-        return info;
-    }
-    private sendToDB_projects(job:any,info:any){
-        switch(job){
-            case "add":
-                info={name:this.$store.state.alert_info.info,uid:this.$store.state.login_info._id};
-                break;
-            case "list":
-                break;
-        }
-        return info;
-    }
-    private sendToDB_cases(job:any,info:any){
-        switch(job){
-            case "add":
-                info={prjname:this.$store.state.project_info.current_prj,casedata:this.$store.state.case_info.data};
-                break;
-            case "list":
-                info={prjname:this.$store.state.project_info.current_prj}
-                break;
-            case "modify":
-                info={prjname:this.$store.state.project_info.current_prj,casedata:this.$store.state.case_info.data};
-                break;
-            case "delete":
-                info={prjname:this.$store.state.project_info.current_prj,case_id:this.$store.state.alert_info.info};
-                break;
-        }
-        return info;
-    }
-    private sendToDB_res(job:any,info:any){
-        switch(job){
-            case "list":
-                info={prjname:this.$store.state.project_info.current_prj};
-                break;
-        }
-        return info;
-    }
-    private sendToDB_rule(job:any,info:any){
-        switch(job){
-            case "list":
-                info={prjname:this.$store.state.project_info.current_prj};
-                break;
-            case "add":
-                info={prjname:this.$store.state.project_info.current_prj,id:this.$store.state.id_info.info.id};
-        }
-        return info;
     }
 }
 </script>

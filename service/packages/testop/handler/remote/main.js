@@ -22,7 +22,7 @@ async function main(){
         var ret=await Remote.connectDev(cfg.da_server);
         if(ret){
             await Remote.sendCmd({type:"cutScreen",filepath:screenPath});
-            await sendInfoByLink({type:"syncRemote",status:ret,path:screenPath});
+            await sendInfoByLink({type:"toSer",job:"syncRemote",status:ret,path:screenPath});
         }else{
             var arm_uart=Uarts.create();
             var arm_info={port:"",info:{}};
@@ -39,10 +39,10 @@ async function main(){
                 if(r_ret){
                     await Remote.sendCmd({type:"cutScreen",filepath:screenPath});
                 }
-                await sendInfoByLink({type:"syncRemote",status:r_ret,path:screenPath});
+                await sendInfoByLink({type:"toSer",job:"syncRemote",status:r_ret,path:screenPath});
                 arm_uart.closeUart();
             }else{
-                await sendInfoByLink({type:"syncRemote",status:u_ret,path:screenPath});
+                await sendInfoByLink({type:"toSer",job:"syncRemote",status:u_ret,path:screenPath});
             }
         }
         endTest();
