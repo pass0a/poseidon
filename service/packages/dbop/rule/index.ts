@@ -75,6 +75,10 @@ function newPrj(data:any,pis:any,RuleModel:any){
         {
             id: "button-1",
             content: ["button-1-1", "button-1-2","button-1-3","button-1-4","button-1-5","button-1-6","button-1-7","button-1-8"]
+        },
+        {
+            id: "module",
+            content: ["module-1","module-2","module-3","module-4","module-5"]
         }
     ];
     RuleModel.insertMany(new_arr, function(err:any, msg:any) {

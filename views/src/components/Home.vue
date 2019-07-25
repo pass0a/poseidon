@@ -16,7 +16,7 @@
             <template slot="title">多项管理</template>
             <el-menu-item index="6_1">步骤管理</el-menu-item>
             <el-menu-item index="6_2">截图管理</el-menu-item>
-            <!-- <el-menu-item index="6_3">模块管理</el-menu-item> -->
+            <el-menu-item index="6_3">模块管理</el-menu-item>
         </el-submenu>
         <el-menu-item index="7"><i class="el-icon-setting"></i>系统配置</el-menu-item>
         <el-menu-item index="8"><i class="el-icon-service"></i>关于我们</el-menu-item>
@@ -30,7 +30,9 @@
         <ul v-show="select_mode=='5'"><ReportView/></ul>
         <ul v-show="select_mode=='6_1'"><StepsMgrView/></ul>
         <ul v-show="select_mode=='6_2'"><ScreenView/></ul>
+        <ul v-show="select_mode=='6_3'"><ModuleView/></ul>
         <ul v-show="select_mode=='7'"><SettingView/></ul>
+        <ul v-show="select_mode=='8'"><About/></ul>
       </div>
       <div>
         <OpenPrj/>
@@ -51,7 +53,8 @@ import ReportView from "./ReportView.vue";
 import SettingView from "./SettingView.vue";
 import ScreenView from "./ScreenView.vue";
 import StepsMgrView from "./StepsMgrView.vue";
-import { truncate } from 'fs';
+import ModuleView from "./ModuleView.vue";
+import About from "./About.vue";
 @Component({
   components: {
     OpenPrj,
@@ -61,13 +64,15 @@ import { truncate } from 'fs';
     ReportView,
     SettingView,
     ScreenView,
-    StepsMgrView
+    StepsMgrView,
+    ModuleView,
+    About
   }
 })
 export default class Home extends Vue {
     private select_mode:any="4";
     private test_status:any=false;
-    private needOpenPrj:any=["3","5","6_1","6_2"];
+    private needOpenPrj:any=["3","5","6_1","6_2","6_3"];
     private needStopTest:any=["1","2"];
     get currentProject(){
         if(this.$store.state.project_info.current_prj.length){
@@ -112,6 +117,10 @@ export default class Home extends Vue {
                 }
                 this.$store.state.app_info.pis.push(l_req);
               }
+              this.select_mode=key;
+              break;
+            case "6_3":
+              this.$store.state.module_info.enter++;
               this.select_mode=key;
               break;
             case "5":

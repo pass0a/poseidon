@@ -64,6 +64,16 @@
                         </el-form-item>
                     </el-form>
                 </el-tab-pane>
+                <el-tab-pane label="QG BOX配置">
+                    <el-form :model="boxInfo" ref="boxform" label-width="190px">
+                        <el-form-item label="IP地址:">
+                            <el-input size="small" style="width:220px" v-model="box_info.ip"></el-input>
+                        </el-form-item>
+                        <el-form-item label="端口号:">
+                            <el-input size="small" style="width:220px" v-model="box_info.port"></el-input>
+                        </el-form-item>
+                    </el-form>
+                </el-tab-pane>
             </el-tabs>
         </el-card>
         <div><LoginView/></div>
@@ -88,6 +98,7 @@ export default class SettingView extends Vue {
     private db_server_info:any={};
     private da_server_info:any={};
     private test_info:any={};
+    private box_info:any={};
     private test_status:any=false;
     private uarts:any=["relay","da_mcu","da_arm"];
     private created() {
@@ -104,6 +115,10 @@ export default class SettingView extends Vue {
     get testInfo(){
         if(this.$store.state.setting_info.info.test_info!=undefined)this.test_info=this.$store.state.setting_info.info.test_info;
         return this.test_info;
+    }
+    get boxInfo(){
+        if(this.$store.state.setting_info.info.qg_box!=undefined)this.box_info=this.$store.state.setting_info.info.qg_box;
+        return this.box_info;
     }
     get testStatus(){
         this.test_status = this.$store.state.test_info.testing;

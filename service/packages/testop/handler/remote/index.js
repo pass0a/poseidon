@@ -8,7 +8,6 @@ function Remote(){
         return new Promise(resolve => {
             pos=new pack.outputStream();
             pis=new pack.inputStream();
-            console.log(cfg);
             c=net.connect(parseInt(cfg.port),cfg.ip,function(){
                 console.info("remote connect!!!");
                 pis.push({type:"auth"});

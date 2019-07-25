@@ -20,6 +20,9 @@ var actionList={
 	qg_box : qgBox
 };
 
+//adb need
+var childprs = require("child_process");
+
 async function startTest(data){
 	caseInfo=data;
 	if(await createdLink()){
@@ -54,7 +57,7 @@ async function readyForTest(toContinue){
 				if(act=="operate_tool"){
 					if(!uartsSet.has("relay"))uartsSet.add("relay");
 				}else if(act=="click"||act=="assert_pic"||act=="button"){
-					if(!uartsSet.has("da_arm"))uartsSet.add("da_arm");
+					// if(!uartsSet.has("da_arm"))uartsSet.add("da_arm");
 				}
 			}
 			if(act=="wait")runtime+=data.case_steps[j].time;
@@ -145,7 +148,7 @@ async function runSteps(caseData){ // 执行步骤
 
 async function disposeStepLoop(idx,caseData){ // 执行步骤循环
     var cmdStep=caseData.case_steps[idx];
-    var stepLoop=cmdStep.loop?cmdStep.loop:1;
+    var stepLoop=cmdStep.loop!=undefined?cmdStep.loop:1;
     for(var i=0;i<stepLoop;i++){
 		var ret=await actionList[cmdStep.action](cmdStep,caseData); // 0: 成功 1: 失败 2: 连接错误
 		caseData.briefResl=ret;
@@ -158,6 +161,12 @@ async function disposeStepLoop(idx,caseData){ // 执行步骤循环
 		test_log_info.step=cmdStep;
 		test_log_info.ret=ret;
 		notifyWebView({type:toWebServerType,mode:4,info:test_log_info});// 测试步骤执行结果通知
+		if(stepLoop>1){
+			var prop = idx.toString();
+			if(caseData.loopRet==undefined)caseData.loopRet={};
+			if(caseData.loopRet[prop]==undefined)caseData.loopRet[prop]=[];
+			caseData.loopRet[prop].push(i);
+		}
 		if(ret==0)await defaultDelay(idx,caseData.case_steps);
     }
 	return new Promise(resolve => {resolve(1);});
@@ -205,12 +214,20 @@ async function defaultDelay(index,caseSteps){//current action or next action is 
 }
 
 async function button(cmd,caseData){
+	console.log(cmd.id);
 	var buttonCmd = caseInfo.buttons[cmd.id];
 	for(var i=0;i<buttonCmd.content.length;i++){
 		var ct = buttonCmd.content[i];
 		for(var j=0;j<ct.length;j++){
+			// 串口发送
 			var info={event:buttonCmd.event,ct:ct[j]};
 			await Uarts_Mgr.sendDataForUarts("da_arm","button",1,info);
+
+			// adb发送
+			// var arr = ct[j].split(" ");
+			// arr[1] = parseInt(arr[1],16).toString();
+			// var cmd = "adb/adb shell sendevent "+buttonCmd.event+" "+arr.join(" ")+" \n";
+			// childprs.execSync(cmd,{windowsHide:true,detached:true});
 		}
 		if(cmd.click_type=="1")await wait({time:cmd.click_time});
 	}
@@ -221,13 +238,9 @@ async function button(cmd,caseData){
 
 async function qgBox(cmd,caseData){
 	var rev = await QGBox.sendBoxApi(cmd.module,0,caseInfo.config.qg_box);
-	console.log(rev);
 	var result;
 	if(!rev.ret){
 		result = parseFloat(rev.data)>cmd.b_volt?0:1;
-		console.log(parseFloat(rev.data));
-		console.log(cmd.b_volt);
-		console.log(result);
 	}else{
 		result = 2;
 	}
@@ -258,7 +271,7 @@ async function assertPic(cmd,caseData){
 	if(stat){
 		var ret=await imageMatch(cmd);
 		if(ret.ret&&!ret.obj.valid){
-			if(caseData.case_mode==1){
+			if(caseData.case_mode==1&&cmd.loop==undefined){
 				await saveScreen(cmd,caseData);
 				caseData.match = Math.floor(ret.obj.val*10000)/100;
 			}
@@ -283,7 +296,7 @@ async function click(cmd,caseData){
 			var rev=await Remote.sendCmd(c_info);
 			result=rev.ret?0:2;
 		}else{
-			if(caseData.case_mode==1&&ret.ret){
+			if((caseData.case_mode==1&&cmd.loop==undefined)&&ret.ret){
 				await saveScreen(cmd,caseData);
 				caseData.match = Math.floor(ret.obj.val*10000)/100;
 			}
@@ -293,6 +306,8 @@ async function click(cmd,caseData){
 	}else{
 		result=2;
 	}
+	// 点击不判断
+	if(result==1&&cmd.click_skip)result=0;
 	return new Promise(resolve => {
 		resolve(result);
 	});
@@ -313,9 +328,17 @@ async function checkRemoteAlive(){
 		if(ret){
 			break;
 		}
+		// 串口启动车机passoa (2次)
 		await Uarts_Mgr.sendDataForUarts("da_arm","set_arm_lib_path",1,caseInfo.config.da_server.path);
 		await Uarts_Mgr.sendDataForUarts("da_arm","start_arm_server",1,caseInfo.config.da_server.path);
 		await wait({time:500});
+
+		// ADB启动车机passoa (1次)
+		// if(num==2){
+		// 	var cmd = "adb/adb shell sh /data/app/pack/run.sh \n";
+		// 	childprs.exec(cmd,{windowsHide:true,detached:true});
+		// 	await wait({time:3000});
+		// }
 		num--;
 	}
 	var result=num==0?0:1;

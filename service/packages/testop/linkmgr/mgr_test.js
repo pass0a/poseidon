@@ -20,10 +20,6 @@ function Test_mgr(c,obj,lk){
                 var web_link=lk.getLink("web","web");
                 web_link.sendToWebServer(obj);
                 break;
-            case "test":
-                console.info("rev!!!!");
-                // disposedCompleted(obj.act,1);
-                break;
 			case "get_status":
 				disposedCompleted(obj.type,currentStatus);
                 break;

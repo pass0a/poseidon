@@ -57,7 +57,7 @@ export class ToDB {
 		});
 	}
 	private handle(data: any) {
-		console.log('toDB_rev:', data);
+		// console.log('toDB_rev:', data);
 		if(data.type=='toDB'){
 			switch(data.route){
 				case 'projects':

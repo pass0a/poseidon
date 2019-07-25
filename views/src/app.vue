@@ -183,7 +183,6 @@ export default class App extends Vue {
             case "add":
                 if(data.info){
                     this.$notify({title: '添加成功!',message: '', type: 'success',duration:1500});
-                    
                     this.$store.state.req_info.refresh_rl = 0;
                     pis.push({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
                     pis.push({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
@@ -199,6 +198,13 @@ export default class App extends Vue {
                     this.$store.state.project_info.newflag=false;
                     this.$store.state.editcase_info.refresh_data=true;
                     this.$notify({title: '项目创建成功!',message: '', type: 'success',duration:1500});
+                }
+                break;
+            case "modify":
+                if(data.info){
+                    pis.push({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                    pis.push({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                    this.$notify({title: '修改成功!',message: '', type: 'success',duration:1500});
                 }
                 break;
         }

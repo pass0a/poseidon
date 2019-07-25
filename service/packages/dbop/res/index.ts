@@ -28,6 +28,19 @@ function add(data:any,pis:any,ResModel:any){
 	});
 }
 
+function modify(data:any,pis:any,ResModel:any){
+    let info:any = data.info.msg;
+    ResModel.updateOne({id:info.id},{$set: {
+		name:info.name
+		}},function(err:any){
+			if(!err){
+                data.info=true;
+                pis.push(data);
+			}
+        }
+    );
+}
+
 function newPrj(data:any,pis:any,ResModel:any){
     let new_arr = [
         {id:"click",name:"图片点击"},
@@ -50,7 +63,12 @@ function newPrj(data:any,pis:any,ResModel:any){
         {id:"button-1-5",name:"前除霜"},
         {id:"button-1-6",name:"后除霜"},
         {id:"button-1-7",name:"AUTO"},
-        {id:"button-1-8",name:"OFF"}
+        {id:"button-1-8",name:"OFF"},
+        {id:"module-1",name:"System"},
+        {id:"module-2",name:"AUX"},
+        {id:"module-3",name:"USB"},
+        {id:"module-4",name:"IPOD"},
+        {id:"module-5",name:"Radio"}
     ];
     ResModel.insertMany(new_arr, function(err:any, msg:any) {
         if(!err){
@@ -68,6 +86,9 @@ function disposeData(data:any,pis:any){
             break;
         case "add":
             add(data,pis,ResModel);
+            break;
+        case "modify":
+            modify(data,pis,ResModel);
             break;
         case "new":
             newPrj(data,pis,ResModel);

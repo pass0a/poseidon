@@ -7,7 +7,7 @@
             <el-button plain icon="el-icon-plus" size="small" @click="addCase">新建用例</el-button>
         </el-button-group>
         <el-tabs type="border-card" tab-position="bottom" style="margin:5px 10px 10px 10px;" v-model="current_case_module" @tab-click="select_module">
-            <el-tab-pane v-for="it of case_module.keys()" :label="case_module.get(it)" :key="it" :name="it"></el-tab-pane>
+            <el-tab-pane v-for="it of ModuleData" :label="getResName(it)" :key="it" :name="it"></el-tab-pane>
             <el-checkbox-group style="margin:0px 0px 5px 0px" v-model="select_prop">
                 <el-checkbox v-for="it of case_prop.keys()" :label="it" :key="it">{{case_prop.get(it)}}</el-checkbox>
             </el-checkbox-group>
@@ -72,9 +72,15 @@ export default class EditCasesView extends Vue {
             this.current_case_module=firstModule;
             this.current_data=this.caselist[firstModule];
         }else{
-            this.current_case_module="module_1";
-            this.caselist["module_1"]=[];
-            this.current_data=this.caselist["module_1"];
+            let module_data = this.$store.state.steps_info.rulelist.module;
+            if(module_data&&module_data.length){
+                this.current_case_module=module_data[0];
+                this.caselist[module_data[0]]=[];
+                this.current_data=this.caselist[module_data[0]];
+            }else{
+                this.current_case_module="";
+                this.current_data=[];
+            }
         }
         return;
     }
@@ -105,6 +111,13 @@ export default class EditCasesView extends Vue {
     get testStatus(){
         this.test_status = this.$store.state.test_info.testing;
         return;
+    }
+    get ModuleData(){
+        if(this.$store.state.steps_info.rulelist.module)return this.$store.state.steps_info.rulelist.module;
+        return [];
+    }
+    private getResName(id:any){
+        return this.$store.state.steps_info.reslist[id];
     }
     private select_module(){
         this.current_data=this.caselist[this.current_case_module];
