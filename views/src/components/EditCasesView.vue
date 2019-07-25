@@ -4,20 +4,19 @@
         <el-link v-model="updateCaselist" v-show="false"></el-link>
         <el-link v-model="testStatus" v-show="false"></el-link>
         <el-button-group style="margin:5px 0px 0px 10px;">
-            <el-button plain icon="el-icon-download" size="small" @click="saveCase">下载用例</el-button>
             <el-button plain icon="el-icon-plus" size="small" @click="addCase">新建用例</el-button>
         </el-button-group>
         <el-tabs type="border-card" tab-position="bottom" style="margin:5px 10px 10px 10px;" v-model="current_case_module" @tab-click="select_module">
-            <el-tab-pane v-for="it of case_module.keys()" :label="case_module.get(it)" :key="it" :name="it"></el-tab-pane>
+            <el-tab-pane v-for="it of ModuleData" :label="getResName(it)" :key="it" :name="it"></el-tab-pane>
             <el-checkbox-group style="margin:0px 0px 5px 0px" v-model="select_prop">
                 <el-checkbox v-for="it of case_prop.keys()" :label="it" :key="it">{{case_prop.get(it)}}</el-checkbox>
             </el-checkbox-group>
             <el-table v-loading="tableLoading" :data="current_data" style="width: 100%" height="370" size="mini" stripe border ref="CasesTable">
                 <el-table-column type="index" label="No." width="50"></el-table-column>
                 <el-table-column v-for="it in isShowRow" :label="case_prop.get(it)" :key="it" :prop="it" resizable></el-table-column>
-                <el-table-column prop="case_status" width="80" label="状态">
+                <el-table-column prop="c_status" width="80" label="状态">
 					<template slot-scope="scope">
-						<el-button type="text" @click="changeCaseStatus(scope.$index)"><font size="2" :color="scope.row.case_status?'#67C23A':'#909399'">{{scope.row.case_status?'开启':'关闭'}}</font></el-button>
+						<el-button type="text" @click="changeCaseStatus(scope.$index)"><font size="2" :color="scope.row.c_status.length?'#67C23A':'#909399'">{{scope.row.c_status.length?'开启':'关闭'}}</font></el-button>
 					</template>
 				</el-table-column>
                 <el-table-column label="操作" width="220">
@@ -73,8 +72,15 @@ export default class EditCasesView extends Vue {
             this.current_case_module=firstModule;
             this.current_data=this.caselist[firstModule];
         }else{
-            this.caselist={};
-            this.current_data=[];
+            let module_data = this.$store.state.steps_info.rulelist.module;
+            if(module_data&&module_data.length){
+                this.current_case_module=module_data[0];
+                this.caselist[module_data[0]]=[];
+                this.current_data=this.caselist[module_data[0]];
+            }else{
+                this.current_case_module="";
+                this.current_data=[];
+            }
         }
         return;
     }
@@ -106,20 +112,15 @@ export default class EditCasesView extends Vue {
         this.test_status = this.$store.state.test_info.testing;
         return;
     }
+    get ModuleData(){
+        if(this.$store.state.steps_info.rulelist.module)return this.$store.state.steps_info.rulelist.module;
+        return [];
+    }
+    private getResName(id:any){
+        return this.$store.state.steps_info.reslist[id];
+    }
     private select_module(){
         this.current_data=this.caselist[this.current_case_module];
-    }
-    private saveCase(){
-        if(this.test_status){
-            this.$notify({title: '测试进行中!!!无法进行操作',message: '', type: 'warning',duration:1500});
-        }else{
-            if(this.getCasesOfStatusTrue()){
-            this.$store.state.alert_info.showflag = true;
-            this.$store.state.alert_info.type = 3;
-            }else{
-                this.$notify({title: '当前无开启的用例',message: '', type: 'error',duration:1500});
-            }
-        }
     }
     private addCase(){
         this.$store.state.case_info.type=0;
@@ -140,20 +141,19 @@ export default class EditCasesView extends Vue {
         this.$store.state.alert_info.info = this.current_data[idx].case_id;
     }
     private changeCaseStatus(idx:any){
-        this.current_data[idx].case_status=!this.current_data[idx].case_status;
-    }
-    private getCasesOfStatusTrue(){
-        let downCases:any=[];
-        for(let prop in this.caselist){
-            for(let i=0;i<this.caselist[prop].length;i++){
-                if(this.caselist[prop][i].case_status)downCases.push(this.caselist[prop][i]);
+        let req = {
+            type : "toDB",
+            route : "status",
+            job : this.current_data[idx].c_status.length?"delete":"add",
+            info : {
+                type:1,
+                prjname:this.$store.state.project_info.current_prj,
+                cid:this.current_data[idx]._id,
+                uid:this.$store.state.login_info._id
             }
         }
-        if(downCases.length){
-            this.$store.state.editcase_info.downCases=downCases;
-            return true;        
-        }
-        return false;
+        this.$store.state.app_info.pis.push(req);
+        this.current_data[idx].c_status=this.current_data[idx].c_status.length?[]:[{type:1}];
     }
 }
 </script>

@@ -1,9 +1,14 @@
 var Model = require("./model");
 
 function getList(data:any,pis:any,ResModel:any){
-    ResModel.find({},{__v:0,_id:0}).sort({case_id:1}).exec(function(err:any,msg:any){
+    ResModel.aggregate([
+        {$project:{
+            "_id":0,"__v":0
+        }}
+    ],function(err:any,docs:any){
         if(!err){
-            data.info=JSON.stringify(msg);
+            // console.log(JSON.stringify(docs))
+            data.info=JSON.stringify(docs);
             pis.push(data);
         }
     });
@@ -21,6 +26,19 @@ function add(data:any,pis:any,ResModel:any){
             pis.push(data);
 		}
 	});
+}
+
+function modify(data:any,pis:any,ResModel:any){
+    let info:any = data.info.msg;
+    ResModel.updateOne({id:info.id},{$set: {
+		name:info.name
+		}},function(err:any){
+			if(!err){
+                data.info=true;
+                pis.push(data);
+			}
+        }
+    );
 }
 
 function newPrj(data:any,pis:any,ResModel:any){
@@ -45,7 +63,12 @@ function newPrj(data:any,pis:any,ResModel:any){
         {id:"button-1-5",name:"前除霜"},
         {id:"button-1-6",name:"后除霜"},
         {id:"button-1-7",name:"AUTO"},
-        {id:"button-1-8",name:"OFF"}
+        {id:"button-1-8",name:"OFF"},
+        {id:"module-1",name:"System"},
+        {id:"module-2",name:"AUX"},
+        {id:"module-3",name:"USB"},
+        {id:"module-4",name:"IPOD"},
+        {id:"module-5",name:"Radio"}
     ];
     ResModel.insertMany(new_arr, function(err:any, msg:any) {
         if(!err){
@@ -63,6 +86,9 @@ function disposeData(data:any,pis:any){
             break;
         case "add":
             add(data,pis,ResModel);
+            break;
+        case "modify":
+            modify(data,pis,ResModel);
             break;
         case "new":
             newPrj(data,pis,ResModel);

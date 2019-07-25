@@ -17,14 +17,11 @@
             </el-form-item>
             <el-form-item label="所属模块" prop="case_module">
                 <el-select style="width:180px" v-model="case_info.case_module" :disabled="title=='修改用例'">
-                    <el-option v-for="val in case_module_list.keys()" :label="case_module_list.get(val)" :value="val" :key="val"></el-option>
+                    <el-option v-for="val in ModuleData" :label="getResName(val)" :value="val" :key="val"></el-option>
                 </el-select>
             </el-form-item>
-            <el-form-item label="测试模式">
-                <el-select style="width:100px" v-model="case_mode_alive" @change="selectMode()">
-                    <el-option v-for="val in case_mode_list.keys()" :label="case_mode_list.get(val)" :value="val" :key="val"></el-option>
-                </el-select>
-                <el-input-number style="width:105px" v-model="case_info.case_mode" controls-position="right" :min="2" :max="100000" v-if="case_mode_alive=='2'"></el-input-number>
+            <el-form-item label="测试次数">
+                <el-input-number style="width:105px" v-model="case_info.case_mode" controls-position="right" :min="1" :max="100000"></el-input-number>
             </el-form-item>
             <el-form-item label="需求名称" v-if="expand">
                 <el-input style="width:180px" placeholder="请输入" v-model="case_info.case_dam"></el-input>
@@ -71,10 +68,7 @@ import StepsView from "./StepsView.vue";
 })
 export default class CaseInfoView extends Vue {
     private title:any="";
-    private case_module_list:any=this.$store.state.case_module;
-    private case_mode_list:any=new Map([["1","单次测试"],["2","循环测试"]]);
     private case_level_list:any=new Map([["1","低"],["2","中"],["3","高"]]);
-    private case_mode_alive:any="1";
     private expand:Boolean=false;
     private caseValidate:any={case_id:[{ required: true, message: '用例ID不能为空', trigger: 'blur' }],case_module:[{ required: true, message: '所属模块不能为空', trigger: 'blur' }]}
     private case_info:any={case_module:""};
@@ -88,8 +82,14 @@ export default class CaseInfoView extends Vue {
         }
         return this.$store.state.case_info.showflag;
     }
+    get ModuleData(){
+        if(this.$store.state.steps_info.rulelist.module)return this.$store.state.steps_info.rulelist.module;
+        return [];
+    }
+    private getResName(id:any){
+        return this.$store.state.steps_info.reslist[id];
+    }
     private initCaseData(){
-        this.case_mode_alive="1";
         return {case_id:"",case_name:"",case_dam:"",case_num:"",case_module:"",case_mode:1,case_status:true,case_pre:"",case_op:"",case_exp:"",case_note:"",case_level:"",case_steps:[]};
     }
     private cancel(){
@@ -101,15 +101,18 @@ export default class CaseInfoView extends Vue {
             if(valid){
                 this.case_info.case_steps=this.$store.state.steps_info.steplist;
                 this.$store.state.case_info.data=this.case_info;
-                this.$store.state.app_info.type="toDB";
-                this.$store.state.app_info.route="cases";
-                this.$store.state.app_info.job=this.$store.state.case_info.type?"modify":"add";
-                this.$store.state.app_info.reqCount++;
+                let req = {
+                    type : "toDB",
+                    route : "cases",
+                    job : this.$store.state.case_info.type?"modify":"add",
+                    info : {
+                        prjname:this.$store.state.project_info.current_prj,
+                        casedata:this.case_info
+                    }
+                }
+                this.$store.state.app_info.pis.push(req);
             }
         });
-    }
-    private selectMode(){
-        this.case_info.case_mode=this.case_mode_alive=="1"?1:2;
     }
     private clickExpand(){
         this.expand=!this.expand;

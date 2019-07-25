@@ -1,27 +1,18 @@
 var Model = require("./model");
 
 function getList(data:any,pis:any,BtnModel:any){
-    BtnModel.find({},{__v:0,_id:0},function(err:any,msg:any){
+    BtnModel.aggregate([
+        {$project:{
+            "_id":0,"__v":0
+        }}
+    ],function(err:any,docs:any){
         if(!err){
-            data.info=JSON.stringify(msg);
-            data.rount="buttons";
+            // console.log(JSON.stringify(docs))
+            data.route="buttons";
+            data.info.data=JSON.stringify(docs);
             pis.push(data);
         }
     });
-}
-
-function add(data:any,pis:any,ResModel:any){
-    let info:any = data.info;
-    let model=new ResModel({
-		id: info.id,
-		name: info.name
-	});
-	model.save(function (err:any,msg:any){
-		if(!err){
-            data.info = true;
-            pis.push(data);
-		}
-	});
 }
 
 function newPrj(data:any,pis:any,BtnModel:any){
@@ -44,25 +35,16 @@ function newPrj(data:any,pis:any,BtnModel:any){
 }
 
 function disposeData(data:any,pis:any){
-    let BtnModel;
-    if(data.type=="toDB"){
-        BtnModel = Model.getModel(data.info.prjname+"_btn");
-        switch(data.job){
-            case "list":
-                getList(data,pis,BtnModel);
-                break;
-            case "add":
-                add(data,pis,BtnModel);
-                break;
-            case "new":
-                newPrj(data,pis,BtnModel);
-                break;
-            default:
-                break;
-        }
-    }else{
-        BtnModel = Model.getModel(data.prjname+"_btn");
-        getList(data,pis,BtnModel);
+    let BtnModel = Model.getModel(data.info.prjname+"_btn");
+    switch(data.job){
+        case "new":
+            newPrj(data,pis,BtnModel);
+            break;
+        case "startTest":
+            getList(data,pis,BtnModel);
+            break;
+        default:
+            break;
     }
 }
 

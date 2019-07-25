@@ -11,7 +11,6 @@ var propSchema=new Schema({
 	case_op:String,
 	case_exp:String,
 	case_assert:String,
-	case_status:Boolean,
 	case_mode:Number,
 	case_note:String,
 	case_steps:Array

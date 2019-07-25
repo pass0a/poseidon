@@ -8,7 +8,6 @@ function Remote(){
         return new Promise(resolve => {
             pos=new pack.outputStream();
             pis=new pack.inputStream();
-            console.log(cfg);
             c=net.connect(parseInt(cfg.port),cfg.ip,function(){
                 console.info("remote connect!!!");
                 pis.push({type:"auth"});
@@ -67,9 +66,6 @@ function Remote(){
 			});
             switch(cmd.type){
                 case "click":
-                    pis.push({type:cmd.type,x:cmd.x,y:cmd.y});
-                    break;
-                case "long_click":
                     pis.push({type:cmd.type,x:cmd.x,y:cmd.y,time:cmd.time});
                     break;
                 case "slide":

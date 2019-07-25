@@ -5,11 +5,12 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
 	state:{
+		req_info:{
+			new_prj : 0,
+			refresh_rl : 0
+		},
 		app_info:{
-			reqCount:0,
-			type:"",
-			route:"",
-			job:""
+			pis:{}
 		},
 		home_info: {
 			count:0,
@@ -50,8 +51,7 @@ export default new Vuex.Store({
 		editcase_info:{
 			refresh_data:false,
 			update_op:false,
-			data:{},
-			downCases:[]
+			data:{}
 		},
 		case_info:{
 			showflag:false,
@@ -68,12 +68,13 @@ export default new Vuex.Store({
 			running:false,
 			status:false,
 			path:"",
-			cut_info:{},
 			save_count:0
 		},
 		id_info:{
-			info:{},
 			count:0
+		},
+		module_info:{
+			enter:0
 		},
 		case_prop:new Map([
 			["case_num","需求编号"],
@@ -85,13 +86,6 @@ export default new Vuex.Store({
 			["case_op","操作步骤"],
 			["case_exp","预期结果"],
 			["case_note","备注"]
-		]),
-		case_module:new Map([
-			["module_1","System"],
-			["module_2","AUX"],
-			["module_3","USB"],
-			["module_4","IPOD"],
-			["module_5","Radio"],
 		]),
 		init_checkbox:["case_id","case_pre","case_op","case_exp"]
 	},

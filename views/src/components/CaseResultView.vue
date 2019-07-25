@@ -7,11 +7,17 @@
         <p slot="header">
             <i class="el-icon-warning"></i>
             <span>自动化测试结果</span>
+            <a style="float:right" @click="ok"><i class="el-icon-close"></i></a>
         </p>
         <el-table :data="caseData" style="width: 100%" size="mini" stripe border ref="caseResultTable">
             <el-table-column label="用例ID" prop="case_id" resizable></el-table-column>
-            <el-table-column label="测试模式" prop="case_mode" resizable></el-table-column>
-            <el-table-column label="操作">
+            <el-table-column label="测试次数" prop="case_mode" resizable></el-table-column>
+            <el-table-column label="测试结果" prop="briefResl" resizable>
+                <template>
+                    <span><strong><font size="2" :color="getColor()">{{ getResultTitle() }}</font></strong></span>
+                </template>
+            </el-table-column>
+            <el-table-column label="操作" width="200">
                 <template slot-scope="scope">
                     <button class="button" @click="replayCase(scope.$index)">重新执行</button>
                     <button class="button" @click="replayCase(scope.$index)">重新截图</button>
@@ -21,15 +27,27 @@
         <div style="margin:10px 0px 0px 10px;" v-if="caseData.length">
             <span><font size="2"><strong>自动化测试步骤</strong></font></span>
             <Steps direction="vertical">
-				<Step v-for="(it,idx) in caseData[0].case_steps" :key="idx" :title="getStepTitleOrStatus(0,idx)" :content="showStep(it,idx)" :status="getStepTitleOrStatus(1,idx)"></Step>
+				<Step v-for="(it,idx) in caseData[0].case_steps" :key="idx" :title="getStepTitleOrStatus(0,idx)" :content="showStep(it)" :status="getStepTitleOrStatus(1,idx)"></Step>
 			</Steps>
-            <div v-if="caseData[0].briefResl>0&&caseData[0].image!=undefined&&caseData[0].image!=''">
-                <span><font size="2"><strong>截图对比</strong></font></span><br/>
-                <img :src="'http://127.0.0.1:6003/'+'?action=image&image='+caseData[0].image+'&id='+imgreq" style="max-width:100%;max-height:100%;"/>
-                <img :src="'http://127.0.0.1:6003/'+'?action=image&image='+caseData[0].screen+'&id='+scrreq" style="max-width:100%;max-height:100%;"/>
+            <div v-if="caseData[0].case_mode==1">
+                <div v-if="caseData[0].match!=undefined">
+                    <span><font size="2"><strong>当前匹配度 : {{caseData[0].match}}</strong></font></span><br/>
+                </div>
+                <div v-if="caseData[0].briefResl>0&&caseData[0].image!=undefined&&caseData[0].image!=''">
+                    <span><font size="2"><strong>截图对比</strong></font></span><br/>
+                    <img :src="'http://127.0.0.1:6003/'+'?action=image&image='+caseData[0].image+'&id='+imgreq" style="max-width:100%;max-height:100%;"/>
+                    <img :src="'http://127.0.0.1:6003/'+'?action=image&image='+caseData[0].screen+'&id='+scrreq" style="max-width:100%;max-height:100%;"/>
+                </div>
+                <div v-if="caseData[0].briefResl>0&&caseData[0].image==''">
+                    <img id="screen" src="/src/assets/nopic.png" :draggable="false">
+                </div>
             </div>
-            <div v-if="caseData[0].briefResl>0&&caseData[0].image==''">
-                <img id="screen" src="/src/assets/nopic.png" :draggable="false">
+            <div v-else>
+                <span><font size="2"><strong>测试结果</strong></font></span><br/>
+                <span style="margin:10px 10px 10px 10px">共{{caseData[0].case_mode}}次循环 [ <font color="green">通过：{{caseData[0].case_mode-caseData[0].results.length}}次</font> | <font color="red">失败：{{caseData[0].results.length}}次</font> ] </span>
+                <div v-for="(it,idx) in caseData[0].results" style="margin:5px 5px 10px 10px" :key="idx">
+                    <span><font color="red">第{{it.runNum+1}}次循环测试中: {{it.stepNum+1}}.{{ showStep(caseData[0].case_steps[it.stepNum]) }}</font></span>
+                </div>
             </div>
         </div>
         <div slot="footer">
@@ -80,12 +98,50 @@ export default class CaseResultView extends Vue {
             }else return content[0];
         }
     }
-    private showStep(it:any,idx:any){
+    private showStep(it:any){
         let reslist = this.$store.state.steps_info.reslist;
         let action = reslist[it.action];
-        let content = it.time!=undefined?it.time+"毫秒":" ["+reslist[it.module]+"] "+reslist[it.id];
-        let stepTitle = action+" ==> "+content;
-        return stepTitle;
+        if(it.action=="click"&&it.click_skip)action+=" (不判断) ";
+        if((it.action=="button"||it.action=="click")&&it.click_type=="1")action+=" [长按:"+it.click_time+"ms]";
+        let content:string="";
+        switch(it.action){
+            case "wait":
+                content = it.time+"毫秒";
+                break;
+            case "qg_box":
+                content = " ["+reslist[it.module]+"] "+it.b_volt + " V";
+                break;
+            default:
+                content = " ["+reslist[it.module]+"] "+reslist[it.id];
+                break;
+        }
+        if(it.loop!=undefined)content += "<循环 "+it.loop+" 次>";
+        return action+" ==> "+content;
+    }
+    private getColor(){
+        if(this.caseData.length==0)return "";
+        if(this.caseData[0].case_mode==1){
+            return this.caseData[0].briefResl!=undefined?(this.caseData[0].briefResl!=-1?(this.caseData[0].briefResl==0?'#67C23A':'#F56C6C'):'#bbbec4'):'#bbbec4';
+        }else{
+            if(this.caseData[0].results.length){
+                return '#F56C6C';
+            }else{
+                return this.caseData[0].briefResl!=undefined?(this.caseData[0].briefResl!=-1?'#67C23A':'#bbbec4'):'#bbbec4';
+            }
+        }
+    }
+    private getResultTitle(){
+        if(this.caseData.length==0)return "";
+        if(this.caseData[0].case_mode==1){
+            return this.caseData[0].briefResl!=undefined?(this.caseData[0].briefResl!=-1?(this.caseData[0].briefResl==0?'OK':'NG'):'NotTest'):'NotTest';
+        }else{
+            if(this.caseData[0].results.length){
+                return 'NG';
+            }else{
+                return this.caseData[0].briefResl!=undefined?(this.caseData[0].briefResl!=-1?'OK':'NotTest'):'NotTest';
+            }
+        }
+         
     }
 }
 </script>

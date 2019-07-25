@@ -8,6 +8,9 @@ var Remote=require("./index");
 var prjpath=process.argv[2];
 var pos,pis,c;
 
+//adb need
+var childprs = require("child_process");
+
 main();
 
 async function main(){
@@ -22,8 +25,9 @@ async function main(){
         var ret=await Remote.connectDev(cfg.da_server);
         if(ret){
             await Remote.sendCmd({type:"cutScreen",filepath:screenPath});
-            await sendInfoByLink({type:"syncRemote",status:ret,path:screenPath});
+            await sendInfoByLink({type:"toSer",job:"syncRemote",status:ret,path:screenPath});
         }else{
+            // 串口启动车机Passoa
             var arm_uart=Uarts.create();
             var arm_info={port:"",info:{}};
             for(var prop in cfg.uarts.da_arm){
@@ -39,11 +43,21 @@ async function main(){
                 if(r_ret){
                     await Remote.sendCmd({type:"cutScreen",filepath:screenPath});
                 }
-                await sendInfoByLink({type:"syncRemote",status:r_ret,path:screenPath});
+                await sendInfoByLink({type:"toSer",job:"syncRemote",status:r_ret,path:screenPath});
                 arm_uart.closeUart();
             }else{
-                await sendInfoByLink({type:"syncRemote",status:u_ret,path:screenPath});
+                await sendInfoByLink({type:"toSer",job:"syncRemote",status:u_ret,path:screenPath});
             }
+
+            // ADB启动车机Passoa
+            // var cmd = "adb/adb shell sh /data/app/pack/run.sh \n";
+            // childprs.exec(cmd,{windowsHide:true,detached:true});
+            // await wait(3000);
+            // var r_ret=await Remote.connectDev(cfg.da_server);
+            // if(r_ret){
+            //     await Remote.sendCmd({type:"cutScreen",filepath:screenPath});
+            // }
+            // await sendInfoByLink({type:"toSer",job:"syncRemote",status:r_ret,path:screenPath});
         }
         endTest();
     }
@@ -81,7 +95,7 @@ async function sendInfoByLink(cmd){
 }
 
 function endTest(){
-	Remote.disconnectDev();
+    Remote.disconnectDev();
     c.end();
 }
 

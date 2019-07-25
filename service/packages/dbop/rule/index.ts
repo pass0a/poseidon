@@ -1,22 +1,27 @@
 var Model = require("./model");
 
-function getList(data:any,pis:any,CaseModel:any){
-    CaseModel.find({},{__v:0,_id:0}).sort({case_id:1}).exec(function(err:any,msg:any){
+function getList(data:any,pis:any,RuleModel:any){
+    RuleModel.aggregate([
+        {$project:{
+            "_id":0,"__v":0
+        }}
+    ],function(err:any,docs:any){
         if(!err){
-            data.info = JSON.stringify(msg);
+            // console.log(JSON.stringify(docs))
+            data.info=JSON.stringify(docs);
             pis.push(data);
         }
     });
 }
 
 function add(data:any,pis:any,RuleModel:any){
-    let id:any = data.info.id;
+    let id:any = data.info.msg.id;
     RuleModel.findOne({id:id},{__v:0,_id:0},function(err:any,msg:any){
         if(msg){
             let newId = disposeIdInfo(msg.content[msg.content.length-1]);
             RuleModel.updateOne({id:id},{$addToSet:{content:newId}},function(err:any,mg:any){
                 if(!err){
-                    data.info = newId;
+                    data.info = {id:newId,name:data.info.msg.name};
                     pis.push(data);
                 }
             });
@@ -28,7 +33,7 @@ function add(data:any,pis:any,RuleModel:any){
             });
             model.save(function (err:any,mg:any){
                 if(!err){
-                    data.info = newId;
+                    data.info = {id:newId,name:data.info.msg.name};
                     pis.push(data);
                 }
             });
@@ -70,6 +75,10 @@ function newPrj(data:any,pis:any,RuleModel:any){
         {
             id: "button-1",
             content: ["button-1-1", "button-1-2","button-1-3","button-1-4","button-1-5","button-1-6","button-1-7","button-1-8"]
+        },
+        {
+            id: "module",
+            content: ["module-1","module-2","module-3","module-4","module-5"]
         }
     ];
     RuleModel.insertMany(new_arr, function(err:any, msg:any) {

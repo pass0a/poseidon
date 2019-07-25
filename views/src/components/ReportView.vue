@@ -17,7 +17,7 @@
             <span style="margin:0px 0px 0px 10px"><font size="2">{{report_info.passRate}}</font></span>
         </el-card>
         <el-tabs type="border-card" tab-position="bottom" style="margin:5px 10px 5px 10px;" v-model="current_case_module" @tab-click="select_module">
-            <el-tab-pane v-for="it of case_module.keys()" :label="case_module.get(it)" :key="it" :name="it"></el-tab-pane>
+            <el-tab-pane v-for="it of ModuleData" :label="getResName(it)" :key="it" :name="it"></el-tab-pane>
             <el-checkbox-group v-model="select_prop">
                 <el-checkbox v-for="it of case_prop.keys()" :label="it" :key="it">{{case_prop.get(it)}}</el-checkbox>
             </el-checkbox-group>
@@ -52,7 +52,6 @@ export default class ReportView extends Vue {
     private current_case_module:any="";
     private report_data:any={};
     private current_data:any=[];
-    private case_module:any=this.$store.state.case_module;
     private case_prop:any=this.$store.state.case_prop;
     private select_prop:any=this.$store.state.init_checkbox;
     private test_status:any=false;
@@ -73,6 +72,13 @@ export default class ReportView extends Vue {
     get testStatus(){
         this.test_status = this.$store.state.test_info.testing;
         return;
+    }
+    get ModuleData(){
+        if(this.$store.state.steps_info.rulelist.module)return this.$store.state.steps_info.rulelist.module;
+        return [];
+    }
+    private getResName(id:any){
+        return this.$store.state.steps_info.reslist[id];
     }
     private setReportInfo(data:any){
         if(data!=null){

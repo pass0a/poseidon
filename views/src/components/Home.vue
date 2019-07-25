@@ -16,7 +16,7 @@
             <template slot="title">多项管理</template>
             <el-menu-item index="6_1">步骤管理</el-menu-item>
             <el-menu-item index="6_2">截图管理</el-menu-item>
-            <!-- <el-menu-item index="6_3">模块管理</el-menu-item> -->
+            <el-menu-item index="6_3">模块管理</el-menu-item>
         </el-submenu>
         <el-menu-item index="7"><i class="el-icon-setting"></i>系统配置</el-menu-item>
         <el-menu-item index="8"><i class="el-icon-service"></i>关于我们</el-menu-item>
@@ -30,7 +30,9 @@
         <ul v-show="select_mode=='5'"><ReportView/></ul>
         <ul v-show="select_mode=='6_1'"><StepsMgrView/></ul>
         <ul v-show="select_mode=='6_2'"><ScreenView/></ul>
+        <ul v-show="select_mode=='6_3'"><ModuleView/></ul>
         <ul v-show="select_mode=='7'"><SettingView/></ul>
+        <ul v-show="select_mode=='8'"><About/></ul>
       </div>
       <div>
         <OpenPrj/>
@@ -51,6 +53,8 @@ import ReportView from "./ReportView.vue";
 import SettingView from "./SettingView.vue";
 import ScreenView from "./ScreenView.vue";
 import StepsMgrView from "./StepsMgrView.vue";
+import ModuleView from "./ModuleView.vue";
+import About from "./About.vue";
 @Component({
   components: {
     OpenPrj,
@@ -60,12 +64,16 @@ import StepsMgrView from "./StepsMgrView.vue";
     ReportView,
     SettingView,
     ScreenView,
-    StepsMgrView
+    StepsMgrView,
+    ModuleView,
+    About
   }
 })
 export default class Home extends Vue {
     private select_mode:any="4";
     private test_status:any=false;
+    private needOpenPrj:any=["3","5","6_1","6_2","6_3"];
+    private needStopTest:any=["1","2"];
     get currentProject(){
         if(this.$store.state.project_info.current_prj.length){
             this.select_mode="4";
@@ -86,68 +94,65 @@ export default class Home extends Vue {
     private selectMode(key:any){
         this.$store.state.home_info.mode = key;
         if(this.select_mode!=key){
+          if(this.warningForAction(key))return;
           switch(key){
             case "1":
-                if(this.test_status){
-                    this.$notify({title: '测试进行中!!!无法进行操作',message: '', type: 'warning',duration:1500});
-                }else{
-                    this.setReq("toDB","projects","list");
-                }
-                break;
+              let p_req = {
+                  type : "toDB",
+                  route : "projects",
+                  job : "list"
+              }
+              this.$store.state.app_info.pis.push(p_req);
+              break;
             case "2":
-                if(this.test_status){
-                    this.$notify({title: '测试进行中!!!无法进行操作',message: '', type: 'warning',duration:1500});
-                }else{
-                    this.$store.state.project_info.newflag=true;
-                }
-                break;
+              this.$store.state.project_info.newflag=true;
+              break;
             case "3":
-                if(this.$store.state.project_info.current_prj.length){
-                    if(this.$store.state.editcase_info.refresh_data){
-                      this.setReq("toDB","cases","list");
-                    }
-                    this.select_mode=key;
-                }else{
-                    this.$notify({title: '当前无项目,请选择项目',message: '', type: 'warning',duration:1500});
+              if(this.$store.state.editcase_info.refresh_data){
+                let l_req = {
+                    type : "toDB",
+                    route : "cases",
+                    job : "list",
+                    info : {prjname:this.$store.state.project_info.current_prj}
                 }
-                break;
+                this.$store.state.app_info.pis.push(l_req);
+              }
+              this.select_mode=key;
+              break;
+            case "6_3":
+              this.$store.state.module_info.enter++;
+              this.select_mode=key;
+              break;
             case "5":
-                if(this.$store.state.project_info.current_prj.length){
-                    this.setReq("readReport");
-                    this.select_mode=key;
-                }else{
-                    this.$notify({title: '当前无项目,请选择项目',message: '', type: 'warning',duration:1500});
-                }
-                break;
-            case "6_1":
-                if(this.$store.state.project_info.current_prj.length){
-                    this.select_mode=key;
-                }else{
-                    this.$notify({title: '当前无项目,请选择项目',message: '', type: 'warning',duration:1500});
-                }
-                break;
-            case "6_2":
-                if(this.$store.state.project_info.current_prj.length){
-                    this.select_mode=key;
-                }else{
-                    this.$notify({title: '当前无项目,请选择项目',message: '', type: 'warning',duration:1500});
-                }
-                break;
+              this.$store.state.app_info.pis.push({type:"toSer",job:"readReport",prjname:this.$store.state.project_info.current_prj});
+              this.select_mode=key;
+              break;
             case "7":
-                this.setReq("readConfig");
-                this.select_mode=key;
-                break;
+              this.$store.state.app_info.pis.push({type:"toSer",job:"readConfig"});
+              this.select_mode=key;
+              break;
             default:
-                this.select_mode=key;
-                break;
+              this.select_mode=key;
+              break;
           }
+          
         }
     }
-    private setReq(type:any,route?:any,job?:any){
-      this.$store.state.app_info.reqCount++;
-      this.$store.state.app_info.type=type;
-      this.$store.state.app_info.route=route;
-      this.$store.state.app_info.job=job;
+    private warningForAction(key:string){
+      if(this.needOpenPrj.indexOf(key)!=-1){
+        if(this.$store.state.project_info.current_prj.length==0){
+          this.$notify({title: '当前无项目,请选择项目',message: '', type: 'warning',duration:1500});
+          return true;
+        }
+        return false;
+      }
+      else if(this.needStopTest.indexOf(key)!=-1){
+        if(this.test_status){
+          this.$notify({title: '测试进行中!!!无法进行操作',message: '', type: 'warning',duration:1500});
+          return true;
+        }
+        return false;
+      }
     }
 }
 </script>

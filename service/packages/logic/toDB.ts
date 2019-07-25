@@ -14,6 +14,7 @@ export class ToDB {
 	private inst: any;
 	private ser: any;
 	private tolink: any;
+	private req_start_flag : any = 0;
 	constructor() {
 		this.pis.on('data', (data: any) => {
 			this.inst.write(data);
@@ -44,6 +45,7 @@ export class ToDB {
 		});
 	}
 	send(cmd: any) {
+		if(cmd.type=="toSer"&&cmd.job=="startTest")this.req_start_flag = 0;
 		this.pis.push(cmd);
 	}
 	close() {
@@ -55,7 +57,7 @@ export class ToDB {
 		});
 	}
 	private handle(data: any) {
-		console.log('toDB_rev:', data);
+		// console.log('toDB_rev:', data);
 		if(data.type=='toDB'){
 			switch(data.route){
 				case 'projects':
@@ -65,10 +67,11 @@ export class ToDB {
 					break;
 			}
 			this.ser.send(data);
-		}else if(data.type=='startTest'){
-			let filename = this.prjdir + data.prjname + '/buttons.json';
-			fs.writeFileSync(filename, data.info);
-			this.tolink.send({type:data.type,prjname:data.prjname});
+		}else if(data.type=='toSer'){
+			let filename = this.prjdir + data.info.prjname + '/'+ data.route +'.json';
+			fs.writeFileSync(filename, data.info.data);
+			this.req_start_flag++;
+			if(this.req_start_flag==2)this.tolink.send({type:data.type,job:data.job,info:{prjname:data.info.prjname}});
 		}
 	}
 	private readConfig() {

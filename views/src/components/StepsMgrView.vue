@@ -58,7 +58,7 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 @Component
 export default class StepsMgrView extends Vue {
     private actionList:any=["click","assert_pic"];
-    private actionName:any="";
+    private actionName:any=this.actionList[0];
     private moduleName:any="";
     private reslist:any;
     private rulelist:any;
@@ -70,9 +70,9 @@ export default class StepsMgrView extends Vue {
     private loading:Boolean = false;
     private add_info:any={action:"",module:"",name:""};
     private idValidate:any={
-        action:[{ required: true, message: '所属动作不能为空', trigger: 'change' }],
+        action:[{ required: true, message: '所属动作不能为空', trigger: 'blur' }],
         name:[{ required: true, message: '名称不能为空', trigger: 'blur' }],
-        module:[{ required: true, message: '所属二级选项不能为空', trigger: 'change' }]
+        module:[{ required: true, message: '所属二级选项不能为空', trigger: 'blur' }]
     }
     get ResList(){
         this.reslist=this.$store.state.steps_info.reslist;
@@ -83,6 +83,11 @@ export default class StepsMgrView extends Vue {
         return;
     }
     get Module(){
+        if(this.moduleName==""||this.moduleName==0){
+            if(this.rulelist[this.actionName]!=undefined&&this.rulelist[this.actionName].length){
+                this.moduleName = this.rulelist[this.actionName][0];
+            }
+        }
         return this.rulelist[this.actionName]!=undefined?this.rulelist[this.actionName]:[];
     }
     get moduleList(){
@@ -148,11 +153,7 @@ export default class StepsMgrView extends Vue {
         (this as any).$refs.caseform.validate((valid:any) => {
             if(valid){
                 this.loading = true;
-                this.$store.state.id_info.info={
-                    id:this.add_type?this.add_info.module:this.add_info.action,
-                    name:this.add_info.name
-                }
-                this.setSeq("rule","add");
+                this.sendSeq("rule","add",{id:this.add_type?this.add_info.module:this.add_info.action,name:this.add_info.name});
             }
         });
     }
@@ -167,11 +168,17 @@ export default class StepsMgrView extends Vue {
     private emptyText(){
         return this.actionName.length>1?"暂无数据":"请选择动作";
     }
-    private setSeq(route:any,job:any){
-        this.$store.state.app_info.type="toDB";
-        this.$store.state.app_info.route=route;
-        this.$store.state.app_info.job=job;
-        this.$store.state.app_info.reqCount++;
+    private sendSeq(route:any,job:any,msg:any){
+        let req = {
+            type : "toDB",
+            route : route,
+            job : job,
+            info : {
+                prjname : this.$store.state.project_info.current_prj,
+                msg : msg
+            }
+        }
+        this.$store.state.app_info.pis.push(req);
     }
 }
 </script>

@@ -20,17 +20,14 @@ function Test_mgr(c,obj,lk){
                 var web_link=lk.getLink("web","web");
                 web_link.sendToWebServer(obj);
                 break;
-            case "test":
-                console.info("rev!!!!");
-                // disposedCompleted(obj.act,1);
-                break;
 			case "get_status":
 				disposedCompleted(obj.type,currentStatus);
                 break;
-            case "syncRemote":
-                var web_link=lk.getLink("web","web");
-                web_link.sendToWebServer(obj);
-                disposedCompleted(obj.type,1);
+            case "toSer":
+                if(obj.job == "syncRemote"){
+                    var web_link=lk.getLink("web","web");
+                    web_link.sendToWebServer(obj);
+                }
                 break;
 			default:
 				break;
