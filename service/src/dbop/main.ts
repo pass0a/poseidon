@@ -22,14 +22,13 @@ mongoose.connect(DB_URL, options, function(error) {
 		createServer(6002);
 	}
 });
-
 function createServer(port: number) {
 	let sv: any;
 	pis.on('data', (data: any) => {
 		sv.write(data);
 	});
 	pos.on('data', (data: any) => {
-		switch(data.type){
+		switch (data.type) {
 			case 'toDB':
 				handle(data);
 				break;
@@ -39,18 +38,20 @@ function createServer(port: number) {
 				break;
 		}
 	});
-	net.createServer(function(c) {
-		sv = c;
-		sv.on('data', function(data: any) {
-			pos.push(data);
-		});
-		sv.on('end', function(data: any) {
-			console.log('server end');
-		});
-		sv.on('error', function(data: any) {
-			console.log('server error');
-		});
-	}).listen(port);
+	net
+		.createServer(function(c) {
+			sv = c;
+			sv.on('data', function(data: any) {
+				pos.push(data);
+			});
+			sv.on('end', function(data: any) {
+				console.log('server end');
+			});
+			sv.on('error', function(data: any) {
+				console.log('server error');
+			});
+		})
+		.listen(port);
 }
 
 function handle(data: any) {
