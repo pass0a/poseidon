@@ -23,6 +23,7 @@ function formatPath(dir,ext){
                 pn=params.image;
                 break;
             default:
+                console.log(__dirname);
                 pn=formatPath(__dirname+"/view",info.pathname);
                 break;
         }

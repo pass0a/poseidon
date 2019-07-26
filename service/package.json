@@ -4,30 +4,29 @@
 	"description": "",
 	"main": "main.js",
 	"scripts": {
-		"jst": "babel packages/testop --out-dir dist/testop",
-		"jsh": "babel packages/httpop --out-dir dist/httpop",
-		"cfg": "babel packages/config --out-dir dist/config",
-		"dep": "babel packages/node_modules --out-dir dist/node_modules --copy-files",
-		"ts": "tsc",
-		"build": "npm run jst && npm run dep && npm run ts && npm run jsh",
-		"dev": "passoa dist/logic/main.js",
-		"dop": "passoa dist/dbop/main.js",
-		"dlp": "passoa dist/testop/main.js",
-		"dhp": "passoa dist/httpop/main.js"
+		"build": "npm run clean && webpack",
+		"clean": "rimraf dist"
 	},
 	"author": "",
 	"license": "ISC",
 	"devDependencies": {
-		"@babel/cli": "^7.4.4",
-		"@babel/core": "^7.4.5",
+		"@babel/cli": "^7.5.5",
+		"@babel/core": "^7.5.5",
 		"@babel/plugin-transform-runtime": "^7.4.4",
-		"@babel/preset-env": "^7.4.5",
-		"@types/mongoose": "^5.5.6",
+		"@babel/preset-env": "^7.5.5",
+		"@types/mongoose": "^5.5.11",
+		"babel-loader": "^8.0.6",
 		"cross-env": "^5.2.0",
-		"typescript": "^3.5.1"
+		"fs-extra": "^8.1.0",
+		"ts-loader": "^6.0.4",
+		"typescript": "^3.5.3",
+		"webpack": "^4.35.3",
+		"webpack-bundle-analyzer": "^3.3.2",
+		"webpack-cli": "^3.3.5"
 	},
 	"dependencies": {
-		"@babel/runtime": "^7.4.5",
-		"@passoa/pack": "^1.0.3"
+		"@passoa/pack": "^1.0.3",
+		"@passoa/websocket": "^1.0.3",
+		"mongoose": "^5.6.4"
 	}
 }

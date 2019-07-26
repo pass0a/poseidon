@@ -20,9 +20,6 @@
 *.man
 *.zip
 *.7z
-*.mp4
-*.ts
-*.h264
 *.pptx
 *.doc
 dist
@@ -36,6 +33,7 @@ binary/*
 !.gitignore
 !.travis.yml
 !*.sh
+!*.github
 !.babelrc
 !*.ts
 !*.vue
