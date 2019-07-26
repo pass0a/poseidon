@@ -9,8 +9,8 @@ function WebApp(){
 	}));
 	this.app.use(res);
 }
-WebApp.prototype.start=function(port){
-	this.app.listen(port);
+WebApp.prototype.start=function(){
+	this.app.listen(6003);
 };
 
 module.exports=new WebApp();

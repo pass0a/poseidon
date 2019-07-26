@@ -1,4 +1,4 @@
-var pack=require("pack");
+var pack=require("@passoa/pack");
 
 function Test_mgr(c,obj,lk){
     var pos=new pack.outputStream(),

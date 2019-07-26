@@ -9,7 +9,7 @@
 		"cfg": "babel packages/config --out-dir dist/config",
 		"dep": "babel packages/node_modules --out-dir dist/node_modules --copy-files",
 		"ts": "tsc",
-		"build": "npm run jst && npm run dep && npm run ts",
+		"build": "npm run jst && npm run dep && npm run ts && npm run jsh",
 		"dev": "passoa dist/logic/main.js",
 		"dop": "passoa dist/dbop/main.js",
 		"dlp": "passoa dist/testop/main.js",

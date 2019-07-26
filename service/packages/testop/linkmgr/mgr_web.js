@@ -1,4 +1,4 @@
-var pack=require("pack");
+var pack=require("@passoa/pack");
 var childprs = require("child_process");
 var dpath=require("path");
 var util=require("util");
