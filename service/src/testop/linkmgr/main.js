@@ -60,8 +60,8 @@ function loadModule(lp) {
 	lp['test'] = require('./mgr_test.js');
 }
 
-Linkmgr.prototype.start = function(port) {
-	this.app.listen(port);
+Linkmgr.prototype.start = function() {
+	this.app.listen(6000);
 };
 
 module.exports = new Linkmgr();

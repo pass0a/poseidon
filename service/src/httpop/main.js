@@ -1,1 +1,1 @@
-require("./index").start(6003);
+require("./index").start();

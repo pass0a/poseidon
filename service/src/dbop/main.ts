@@ -15,43 +15,48 @@ let pis = new pack.inputStream();
 let pos = new pack.outputStream();
 let DB_URL = 'mongodb://127.0.0.1/poseidon_data';
 let options = { useNewUrlParser: true, ssl: false };
+let db_status : boolean = false;
+createServer();
 
-mongoose.connect(DB_URL, options, function(error) {
-	if (error) console.error(error);
-	else {
-		createServer(6002);
-	}
-});
-function createServer(port: number) {
+function createServer() {
 	let sv: any;
 	pis.on('data', (data: any) => {
 		sv.write(data);
 	});
 	pos.on('data', (data: any) => {
-		switch (data.type) {
-			case 'toDB':
-				handle(data);
-				break;
-			case 'toSer':
-				buttons.disposeData(data, pis);
-				status.disposeData(data, pis);
-				break;
+		if(db_status){
+			switch(data.type){
+				case 'toDB':
+					handle(data);
+					break;
+				case 'toSer':
+					buttons.disposeData(data, pis);
+					status.disposeData(data, pis);
+					break;
+			}
 		}
 	});
-	net
-		.createServer(function(c) {
-			sv = c;
-			sv.on('data', function(data: any) {
-				pos.push(data);
-			});
-			sv.on('end', function(data: any) {
-				console.log('server end');
-			});
-			sv.on('error', function(data: any) {
-				console.log('server error');
-			});
-		})
-		.listen(port);
+	net.createServer(function(c) {
+		sv = c;
+		sv.on('data', function(data: any) {
+			pos.push(data);
+		});
+		sv.on('end', function(data: any) {
+			console.log('server end');
+		});
+		sv.on('error', function(data: any) {
+			console.log('server error');
+		});
+		// pis.push({});
+	}).listen(6002);
+
+	mongoose.connect(DB_URL, options, function(error) {
+		if (error) console.error(error);
+		else {
+			// pis.push({});
+			db_status = true;
+		}
+	});
 }
 
 function handle(data: any) {

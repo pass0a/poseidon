@@ -66,7 +66,9 @@ const nodeConfig = {
 		path: false,
 		tty: false,
 		module: false,
-		zlib: false
+		zlib: false,
+		__dirname:false,
+		__filename:false
 	},
 	externals: {
 		'@passoa/img': '@passoa/img',

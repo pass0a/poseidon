@@ -1,1 +1,1 @@
-require("./linkmgr/main.js").start(6000);
+require("./linkmgr/main.js").start();

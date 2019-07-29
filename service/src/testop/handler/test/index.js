@@ -220,14 +220,14 @@ async function button(cmd,caseData){
 		var ct = buttonCmd.content[i];
 		for(var j=0;j<ct.length;j++){
 			// 串口发送
-			var info={event:buttonCmd.event,ct:ct[j]};
-			await Uarts_Mgr.sendDataForUarts("da_arm","button",1,info);
+			// var info={event:buttonCmd.event,ct:ct[j]};
+			// await Uarts_Mgr.sendDataForUarts("da_arm","button",1,info);
 
 			// adb发送
-			// var arr = ct[j].split(" ");
-			// arr[1] = parseInt(arr[1],16).toString();
-			// var cmd = "adb/adb shell sendevent "+buttonCmd.event+" "+arr.join(" ")+" \n";
-			// childprs.execSync(cmd,{windowsHide:true,detached:true});
+			var arr = ct[j].split(" ");
+			arr[1] = parseInt(arr[1],16).toString();
+			var cmd = "adb/adb shell sendevent "+buttonCmd.event+" "+arr.join(" ")+" \n";
+			childprs.execSync(cmd,{windowsHide:true,detached:true});
 		}
 		if(cmd.click_type=="1")await wait({time:cmd.click_time});
 	}
@@ -329,16 +329,16 @@ async function checkRemoteAlive(){
 			break;
 		}
 		// 串口启动车机passoa (2次)
-		await Uarts_Mgr.sendDataForUarts("da_arm","set_arm_lib_path",1,caseInfo.config.da_server.path);
-		await Uarts_Mgr.sendDataForUarts("da_arm","start_arm_server",1,caseInfo.config.da_server.path);
-		await wait({time:500});
+		// await Uarts_Mgr.sendDataForUarts("da_arm","set_arm_lib_path",1,caseInfo.config.da_server.path);
+		// await Uarts_Mgr.sendDataForUarts("da_arm","start_arm_server",1,caseInfo.config.da_server.path);
+		// await wait({time:500});
 
 		// ADB启动车机passoa (1次)
-		// if(num==2){
-		// 	var cmd = "adb/adb shell sh /data/app/pack/run.sh \n";
-		// 	childprs.exec(cmd,{windowsHide:true,detached:true});
-		// 	await wait({time:3000});
-		// }
+		if(num==2){
+			var cmd = "adb/adb shell sh /data/app/pack/run.sh \n";
+			childprs.exec(cmd,{windowsHide:true,detached:true});
+			await wait({time:3000});
+		}
 		num--;
 	}
 	var result=num==0?0:1;
