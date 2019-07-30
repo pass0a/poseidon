@@ -14,4 +14,4 @@ function Cvip() {
 	};
 }
 
-exports = new Cvip();
+export default new Cvip();

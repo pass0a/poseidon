@@ -138,6 +138,7 @@ export class Server {
 				this.tolink.send(data);
 				break;
 			case 'syncRemote':
+				console.log("888888888888");
 				this.tolink.send(data);
 				break;
 			case 'saveCutImage':

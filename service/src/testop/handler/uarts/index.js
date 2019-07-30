@@ -53,4 +53,5 @@ function Uarts_Mgr(){
 	}
 }
 
-module.exports = new Uarts_Mgr();
+// module.exports = new Uarts_Mgr();
+export default new Uarts_Mgr();

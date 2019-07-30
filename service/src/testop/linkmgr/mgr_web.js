@@ -41,7 +41,7 @@ function Web_mgr(c, obj, lk) {
 				startJS(obj, jsPath);
 				break;
 			case 'saveCutImage':
-				var Cvip = require('../handler/cvip/index')
+				var Cvip = require('@passoa/cvip');
 				var passoaPath = process.execPath;
 				var prjPath = dpath.dirname(dpath.dirname(passoaPath)) + 'data_store/projects/' + obj.info.prjname;
 				var screenPath = prjPath + '/screen/screen.png';

@@ -34,4 +34,5 @@ function QG_BOX(){
     }
 }
 
-exports = new QG_BOX();
+// exports = new QG_BOX();
+export default new QG_BOX();
