@@ -6,7 +6,6 @@
 	"scripts": {
 		"build": "npm run clean && webpack",
 		"clean": "rimraf dist",
-
 		"jst": "babel src/testop --out-dir dist/testop",
 		"jsh": "babel packages/httpop --out-dir dist/httpop",
 		"cfg": "babel packages/config --out-dir dist/config",
