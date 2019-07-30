@@ -7,6 +7,10 @@ import * as path from 'path';
 import * as os from 'os';
 import { ToLink } from './toLink';
 import { ToDB } from './toDB';
+declare function __passoa_auth_getstatus(): any;
+declare function __passoa_auth_getfn(): any;
+declare function __passoa_auth_gethwid(): any;
+declare function __passoa_auth_setsn(authnum:any): any;
 
 export class Server {
 	private pis = new pack.inputStream();
@@ -75,6 +79,20 @@ export class Server {
 
 	private execJob(data:any){
 		switch(data.job){
+			case 'getAuth':
+				let auth :any = {};
+				auth.status=__passoa_auth_getstatus();
+				if(!auth.status){
+					auth.fn=__passoa_auth_getfn();
+					auth.hwid=__passoa_auth_gethwid();
+				}
+				data.info = auth;
+				this.send(data);
+				break;
+			case 'setAuth':
+				data.info =	__passoa_auth_setsn(data.info);
+				this.send(data);
+				break;
 			case 'readConfig':
 				let cj = new util.TextDecoder().decode(fs.readFileSync(this.configPath));
 				data.info = JSON.parse(cj);

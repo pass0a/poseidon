@@ -14,4 +14,4 @@ function Cvip() {
 	};
 }
 
-module.exports = new Cvip();
+exports = new Cvip();

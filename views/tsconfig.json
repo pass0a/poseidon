@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "outDir": "./dist",  
+    "outDir": "./view",  
     "target": "esnext",
     "module": "esnext",
     "strict": true,

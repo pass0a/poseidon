@@ -1,5 +1,5 @@
 var net=require("net");
-var pack=require("pack");
+var pack=require("@passoa/pack");
 var fs=require("fs");
 var Uarts_Mgr=require("../uarts/index");
 var Cvip=require("../cvip/index");

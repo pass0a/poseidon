@@ -4,7 +4,6 @@ var dpath = require('path');
 var util = require('util');
 var fs = require('fs');
 var testcfg = require('../testcfg.json');
-var Cvip = require('../handler/cvip/index');
 
 function Web_mgr(c, obj, lk) {
 	var pos = new pack.outputStream(),
@@ -22,11 +21,11 @@ function Web_mgr(c, obj, lk) {
 	var handleCmd = function(obj) {
 		switch (obj.job) {
 			case 'startTest':
-				var jsPath = '"' + dpath.dirname(__dirname) + '/handler/test/main.js"';
+				var jsPath = '"' + __dirname + '/test.js"';
 				startJS(obj, jsPath);
 				break;
 			case 'continueTest':
-				var jsPath = '"' + dpath.dirname(__dirname) + '/handler/test/main.js"';
+				var jsPath = '"' + __dirname + '/test.js"';
 				startJS(obj, jsPath);
 				break;
 			case 'stopTest':
@@ -34,14 +33,15 @@ function Web_mgr(c, obj, lk) {
 				test_link.stopTest();
 				break;
 			case 'replayTest':
-				var jsPath = '"' + dpath.dirname(__dirname) + '/handler/test/main.js"';
+				var jsPath = '"' + __dirname + '/test.js"';
 				startJS(obj, jsPath);
 				break;
 			case 'syncRemote':
-				var jsPath = '"' + dpath.dirname(__dirname) + '/handler/remote/main.js"';
+				var jsPath = '"' + __dirname + '/remote.js"';
 				startJS(obj, jsPath);
 				break;
 			case 'saveCutImage':
+				var Cvip = require('../handler/cvip/index')
 				var passoaPath = process.execPath;
 				var prjPath = dpath.dirname(dpath.dirname(passoaPath)) + 'data_store/projects/' + obj.info.prjname;
 				var screenPath = prjPath + '/screen/screen.png';

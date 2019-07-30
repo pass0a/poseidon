@@ -12,6 +12,10 @@ export default new Vuex.Store({
 		app_info:{
 			pis:{}
 		},
+		auth_info:{
+			showflag:false,
+			data:{}
+		},
 		home_info: {
 			count:0,
 			mode:0
