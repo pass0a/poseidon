@@ -232,6 +232,7 @@ export default class TestView extends Vue {
         let ret = data.ret;
         let reslist = this.$store.state.steps_info.reslist;
         let action = reslist[step.action];
+        if(step.action=="click"&&step.click_skip)action+=" (不判断) ";
         if((step.action=="button"||step.action=="click")&&step.click_type=="1")action+=" [长按:"+step.click_time+"ms]";
         let content:string="";
         switch(step.action){
