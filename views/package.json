@@ -6,7 +6,7 @@
 	"scripts": {
 		"dev": "parcel index.html",
 		"build": "npm run clean && parcel build index.html",
-		"clean": "rimraf view",
+		"clean": "rimraf dis",
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"author": "",
@@ -25,8 +25,6 @@
 	"devDependencies": {
 		"@types/node": "latest",
 		"@vue/component-compiler-utils": "^3.0.0",
-		"babel-core": "^6.26.3",
-		"babel-preset-env": "^1.7.0",
 		"parcel-bundler": "^1.12.3",
 		"sass": "^1.20.1",
 		"typescript": "^3.4.5",

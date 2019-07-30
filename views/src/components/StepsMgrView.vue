@@ -2,53 +2,106 @@
     <div>
         <el-link v-model="ResList" v-show="false"></el-link>
         <el-link v-model="RuleList" v-show="false"></el-link>
+        <el-link v-model="ButtonList" v-show="false"></el-link>
         <el-link v-model="updateShowflage" v-show="false"></el-link>
         <el-tabs type="border-card" style="margin:5px 10px 10px 10px;" v-model="actionName" @tab-click="clickAction()">
 			<el-tab-pane v-for="it in actionList" :name="it" :key="it" :label="getResName(it)"></el-tab-pane>
-            <el-button-group style="margin:0px 0px 10px 0px;" v-show="actionName.length>1">
+            <el-button-group style="margin:0px 0px 10px 0px;" v-show="actionName.length>1&&actionName!='button'">
                 <el-button plain icon="el-icon-plus" size="small" @click="addID(0)">添加二级选项</el-button>
                 <el-button plain icon="el-icon-plus" size="small" @click="addID(1)">添加三级选项</el-button>
             </el-button-group>
+            <el-button style="margin:0px 0px 10px 0px;" plain icon="el-icon-plus" size="small" @click="addID(2)" v-show="actionName.length>1&&actionName=='button'">添加硬按键</el-button>
             <el-tabs tab-position="left" v-model="moduleName" @tab-click="clickModule()">
 				<el-tab-pane v-for="it in Module" :name="it" :key="it" :label="getResName(it)"></el-tab-pane>
                 <el-table :data="TableData" style="width: 100%" height="370" size="mini" stripe border ref="stepsTable" :empty-text="emptyText()">
                     <el-table-column prop="id" label="名称">
                         <template slot-scope="scope">
-                            <span  v-if="scope.row">{{ getResName(scope.row.id) }}</span>
+                            <span v-if="scope.row">{{ getResName(scope.row.id) }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column prop="id" label="ID"></el-table-column>
+                    <el-table-column label="操作" width="100">
+                        <template slot-scope="scope">
+                            <button class="button" @click="edit(scope.row.id)">修改</button>
+                        </template>
+                    </el-table-column>
                 </el-table>
             </el-tabs>
         </el-tabs>
         <Modal
             v-model="showflag"
-            width="450"
+            width="500"
             :closable="false"
             :mask-closable="false">
             <p slot="header">
                 <i class="el-icon-warning"></i>
                 <span>{{ title }}</span>
             </p>
-            <el-form :inline="true" label-position="right" ref="caseform" :model="add_info" :rules="idValidate" label-width="110px" size="small">
-                <el-form-item label="所属动作" prop="action">
+            <el-form label-position="right" ref="caseform" :model="add_info" :rules="idValidate" label-width="115px" size="small">
+                <el-form-item label="所属动作 :" prop="action">
                     <el-select style="width:180px" v-model="add_info.action" @change="changeAction()">
                         <el-option v-for="val in actionList" :label="getResName(val)" :value="val" :key="val"></el-option>
                     </el-select>
                 </el-form-item>
-                <el-form-item label="所属二级选项" prop="module" v-if="add_type">
+                <el-form-item label="所属二级选项 :" prop="module" v-if="add_type">
                     <el-select style="width:180px" v-model="add_info.module">
                         <el-option v-for="val in moduleList" :label="getResName(val)" :value="val" :key="val"></el-option>
                     </el-select>
                 </el-form-item>
-                <el-form-item label="名称" prop="name">
+                <el-form-item label="名称 :" prop="name">
                     <el-input style="width:180px" placeholder="请输入" v-model="add_info.name"></el-input>
                 </el-form-item>
+                <div v-if="add_info.action=='button'">
+                    <el-form-item label="Event :" prop="event">
+                        <el-input style="width:180px" placeholder="请输入" v-model="add_info.event"></el-input>
+                    </el-form-item>
+                    <el-form-item label="按下事件 :">
+                        <el-input style="width:220px" placeholder="请输入事件" v-model="add_info.event_down_1"></el-input>
+                        <el-input style="width:220px" placeholder="请输入事件" v-model="add_info.event_down_2"></el-input>
+                    </el-form-item>
+                    <el-form-item label="抬起事件 :">
+                        <el-input style="width:220px" placeholder="请输入事件" v-model="add_info.event_up_1"></el-input>
+                        <el-input style="width:220px" placeholder="请输入事件" v-model="add_info.event_up_2"></el-input>
+                    </el-form-item>
+                </div>
             </el-form>
             <span slot="footer">
                 <el-button type="info" @click="cancel">取消</el-button>
                 <el-button type="primary" v-show="!loading" @click="ok">添加</el-button>
                 <el-button type="primary" v-show="loading" icon="el-icon-loading" disabled>添加中</el-button>
+            </span>
+        </Modal>
+        <Modal
+            v-model="editflag"
+            width="400"
+            :closable="false"
+            :mask-closable="false">
+            <p slot="header">
+                <i class="el-icon-warning"></i>
+                <span>修改</span>
+            </p>
+            <el-form label-position="right" ref="editform" :model="edit_info" :rules="editVal" label-width="115px" size="small">
+                <el-form-item label="名称 :" prop="name">
+                    <el-input style="width:180px" placeholder="请输入" v-model="edit_info.name"></el-input>
+                </el-form-item>
+                <div v-if="actionName=='button'">
+                    <el-form-item label="Event :" prop="event">
+                        <el-input style="width:180px" placeholder="请输入" v-model="edit_info.event"></el-input>
+                    </el-form-item>
+                    <el-form-item label="按下事件 :">
+                        <el-input style="width:220px" placeholder="请输入事件" v-model="edit_info.event_down_1"></el-input>
+                        <el-input style="width:220px" placeholder="请输入事件" v-model="edit_info.event_down_2"></el-input>
+                    </el-form-item>
+                    <el-form-item label="抬起事件 :">
+                        <el-input style="width:220px" placeholder="请输入事件" v-model="edit_info.event_up_1"></el-input>
+                        <el-input style="width:220px" placeholder="请输入事件" v-model="edit_info.event_up_2"></el-input>
+                    </el-form-item>
+                </div>
+            </el-form>
+            <span slot="footer">
+                <el-button type="info" @click="editCancel">取消</el-button>
+                <el-button type="primary" v-show="!loading" @click="editOk">保存</el-button>
+                <el-button type="primary" v-show="loading" icon="el-icon-loading" disabled>保存中</el-button>
             </span>
         </Modal>
     </div>
@@ -57,22 +110,30 @@
 import { Component, Prop, Vue } from "vue-property-decorator";
 @Component
 export default class StepsMgrView extends Vue {
-    private actionList:any=["click","assert_pic"];
+    private actionList:any=["click","assert_pic","button"];
     private actionName:any=this.actionList[0];
     private moduleName:any="";
     private reslist:any;
     private rulelist:any;
+    private buttonlist:any;
     private current_data:any=[];
-    private showflag:Boolean=false;
+    private showflag:boolean = false;
+    private editflag:boolean = false;
     private add_type:any=0;
     private title:any="";
     private count:any=0;
-    private loading:Boolean = false;
-    private add_info:any={action:"",module:"",name:""};
+    private loading:boolean = false;
+    private add_info:any= {action:"",module:"",name:"",event:"/dev/input/event1",event_down_1:"",event_down_2:"",event_up_1:"",event_up_2:""};
+    private edit_info:any = {id:"",name:"",event:"",event_down_1:"",event_down_2:"",event_up_1:"",event_up_2:""};
     private idValidate:any={
         action:[{ required: true, message: '所属动作不能为空', trigger: 'blur' }],
         name:[{ required: true, message: '名称不能为空', trigger: 'blur' }],
-        module:[{ required: true, message: '所属二级选项不能为空', trigger: 'blur' }]
+        module:[{ required: true, message: '所属二级选项不能为空', trigger: 'blur' }],
+        event:[{ required: true, message: 'Event不能为空', trigger: 'blur' }]
+    }
+    private editVal:any={
+        name:[{ required: true, message: '名称不能为空', trigger: 'blur' }],
+        event:[{ required: true, message: 'Event不能为空', trigger: 'blur' }]
     }
     get ResList(){
         this.reslist=this.$store.state.steps_info.reslist;
@@ -80,6 +141,10 @@ export default class StepsMgrView extends Vue {
     }
     get RuleList(){
         this.rulelist=this.$store.state.steps_info.rulelist;
+        return;
+    }
+    get ButtonList(){
+        this.buttonlist=this.$store.state.steps_info.buttonlist;
         return;
     }
     get Module(){
@@ -127,11 +192,23 @@ export default class StepsMgrView extends Vue {
             }
         }else this.moduleName = "";
     }
-    private clickModule(){
-        
+    private clickModule(){  
     }
     private changeAction(){
         this.add_info.module = "";
+    }
+    private edit(id:any){
+        this.edit_info.id = id;
+        this.edit_info.name = this.getResName(id);
+        if(id.indexOf("button")>-1){
+            let btn = this.buttonlist[id];
+            this.edit_info.event = btn.event;
+            this.edit_info.event_down_1 =btn.event_down_1;
+            this.edit_info.event_down_2 =btn.event_down_2;
+            this.edit_info.event_up_1 =btn.event_up_1;
+            this.edit_info.event_up_2 =btn.event_up_2;
+        }
+        this.editflag = true;
     }
     private addID(type:number){
         this.count = this.$store.state.id_info.count;
@@ -147,13 +224,36 @@ export default class StepsMgrView extends Vue {
                 this.add_info.module = this.moduleName;
                 this.title="添加三级选项";
                 break;
+            case 2:
+                this.add_info.action = this.actionName;
+                this.add_info.module = this.moduleName;
+                this.title="添加三级选项";
+                break;
         }
     }
     private ok(){
         (this as any).$refs.caseform.validate((valid:any) => {
             if(valid){
                 this.loading = true;
-                this.sendSeq("rule","add",{id:this.add_type?this.add_info.module:this.add_info.action,name:this.add_info.name});
+                let req:any = {name:this.add_info.name};
+                switch(this.add_type){
+                    case 0:
+                        req.id = this.add_info.action;
+                        break;
+                    case 1:
+                        req.id = this.add_info.module;
+                        break;
+                    case 2:
+                        req.id = this.add_info.module;
+                        req.event = this.add_info.event;
+                        req.content = [[],[]];
+                        req.content[0].push(this.add_info.event_down_1);
+                        req.content[0].push(this.add_info.event_down_2);
+                        req.content[1].push(this.add_info.event_up_1);
+                        req.content[1].push(this.add_info.event_up_2);
+                        break;
+                }
+                this.sendReq("rule","add",req);
             }
         });
     }
@@ -162,13 +262,24 @@ export default class StepsMgrView extends Vue {
         this.add_info.module = "";
         this.showflag = false;
     }
+    private editOk(){
+        (this as any).$refs.editform.validate((valid:any) => {
+            if(valid){
+                // this.loading = true;
+            }
+        });
+    }
+    private editCancel(){
+        (this as any).$refs.caseform.resetFields();
+        this.editflag = false;
+    }
     private getResName(id:any){
         return this.reslist[id];
     }
     private emptyText(){
         return this.actionName.length>1?"暂无数据":"请选择动作";
     }
-    private sendSeq(route:any,job:any,msg:any){
+    private sendReq(route:any,job:any,msg:any){
         let req = {
             type : "toDB",
             route : route,

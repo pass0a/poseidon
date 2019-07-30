@@ -1,6 +1,6 @@
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
-var propSchema=new Schema({
+import * as mongoose from 'mongoose';
+
+let propSchema = new mongoose.Schema({
 	case_num:String,
 	case_dam:String,
 	case_module:String,
@@ -15,7 +15,6 @@ var propSchema=new Schema({
 	case_note:String,
 	case_steps:Array
 });
-function getCaseModel(modelName:any){
+export function getModel(modelName:any){
 	return mongoose.model(modelName, propSchema, modelName);
 }
-exports.getModel=getCaseModel;

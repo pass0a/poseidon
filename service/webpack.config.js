@@ -17,13 +17,20 @@ fs
 	})
 	.catch((err) => {
 		console.error(err);
-	});
+	});  // 调试
 const nodeConfig = {
 	// Change to your "entry-point".
 	entry: {
-		// app: './src/main.js',
-		// test: './src/testop/handler/test/main.js',
-		remote: './src/testop/handler/remote/main.js'
+		// app: './src/main.ts',
+		// test: './src/testop/main.ts',
+		// pic: './src/picop/main.ts'
+
+		link: './src/linkmgr/main.ts',
+		server : './src/server/main.ts',
+		db:'./src/dbop/main.ts',
+		http:'./src/httpop/main.ts',
+		test:'./src/testop/main.ts'
+		
 	},
 	output: {
 		path: path.resolve(__dirname, distfolder),
@@ -77,6 +84,7 @@ const nodeConfig = {
 		'@passoa/img': '@passoa/img',
 		'@passoa/cvip': '@passoa/cvip'
 	},
+	devtool: 'source-map',
 	target: 'node',
 	mode: 'development' //'production'
 };

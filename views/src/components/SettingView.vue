@@ -2,55 +2,25 @@
     <div>
         <el-link v-model="testStatus" v-show="false"></el-link>
         <el-card class="box-card" shadow="never" style="margin:5px 10px 5px 10px">
-            <el-tabs type="border-card" tab-position="left" style="height:300px" height="300">
-                <el-tab-pane label="串口配置">
-                    <el-radio-group v-model="select_uart" @change="selectUart()">
-                        <el-radio :label="0">继电器</el-radio>
-                        <el-radio :label="1">车机MCU</el-radio>
-                        <el-radio :label="2">车机ARM</el-radio>
-                    </el-radio-group>
-                    <el-divider></el-divider>
-                    <SetPort/>
-                </el-tab-pane>
-                <el-tab-pane label="服务器配置">
+            <el-tabs type="border-card" tab-position="left" style="height:450px" height="300" @tab-click="clickTab" v-model="tabName">
+                <el-tab-pane label="硬件配置" name="0">
                     <div>
-                        <el-form :model="dbserverInfo" ref="serverform" label-width="100px">
-                            <el-form-item label="服务器配置:">
-                                <el-radio-group v-model="db_server_info.type" size="small">
-                                    <el-radio :label="0" border>本地服务器</el-radio>
-                                    <el-radio :label="1" border>远程服务器</el-radio>
-                                </el-radio-group>
+                        <el-divider content-position="left">工具板</el-divider>
+                        <SetPort style="margin:0px 0px 0px 80px;"/>
+                    </div>
+                    <div>
+                        <el-divider content-position="left">QG BOX</el-divider>
+                        <el-form :model="boxInfo" ref="boxform" label-width="150px">
+                            <el-form-item label="IP地址:">
+                                <el-input size="small" style="width:220px" v-model="box_info.ip"></el-input>
                             </el-form-item>
-                            <el-form-item label="IP地址:" v-if="db_server_info.type">
-                                <el-input size="small" style="width:220px" v-model="db_server_info.ip"></el-input>
-                            </el-form-item>
-                            <el-form-item label="端口号:" v-if="db_server_info.type">
-                                <el-input size="small" style="width:220px" v-model="db_server_info.port"></el-input>
+                            <el-form-item label="端口号:">
+                                <el-input size="small" style="width:220px" v-model="box_info.port"></el-input>
                             </el-form-item>
                         </el-form>
-                        <el-button type="info" plain size="small" style="margin:0px 0px 0px 100px;width:126px;" @click="connectServer()" v-if="db_server_info.type">连接服务器</el-button>
                     </div>
                 </el-tab-pane>
-                <el-tab-pane label="车机服务配置">
-                    <el-form :model="daserverInfo" ref="daserform" label-width="180px">
-                        <el-form-item label="IP地址:">
-                            <el-input size="small" style="width:235px" v-model="da_server_info.ip"></el-input>
-                        </el-form-item>
-                        <el-form-item label="端口号:">
-                            <el-input size="small" style="width:235px" v-model="da_server_info.port"></el-input>
-                        </el-form-item>
-                        <el-form-item label="服务所在车机路径:">
-                            <el-input size="small" style="width:235px" v-model="da_server_info.path"></el-input>
-                        </el-form-item>
-                        <el-form-item label="车机服务启动方式:">
-                            <el-radio-group v-model="da_server_info.type" size="small">
-                                <el-radio :label="0" border>通过串口</el-radio>
-                                <el-radio :label="1" border>通过ADB</el-radio>
-                            </el-radio-group>
-                        </el-form-item>
-                    </el-form>
-                </el-tab-pane>
-                <el-tab-pane label="测试配置">
+                <el-tab-pane label="软件配置" name="1" disabled>
                     <el-form :model="testInfo" ref="testform" label-width="190px">
                         <el-form-item label="用例失败时是否退出测试:">
                             <el-radio-group v-model="testInfo.error_exit">
@@ -69,18 +39,54 @@
                         </el-form-item>
                     </el-form>
                 </el-tab-pane>
-                <el-tab-pane label="QG BOX配置">
-                    <el-form :model="boxInfo" ref="boxform" label-width="190px">
-                        <el-form-item label="IP地址:">
-                            <el-input size="small" style="width:220px" v-model="box_info.ip"></el-input>
+                <el-tab-pane label="测试设备配置" name="2">
+                    <el-form :model="daserverInfo" ref="daserform" label-width="180px">
+                        <el-form-item label="启动路径:">
+                            <el-input size="small" style="width:235px" v-model="da_server_info.path"></el-input>
                         </el-form-item>
-                        <el-form-item label="端口号:">
-                            <el-input size="small" style="width:220px" v-model="box_info.port"></el-input>
+                        <el-form-item label="启动方式:">
+                            <el-radio-group v-model="da_server_info.type" size="small" @change="selectStartMd">
+                                <el-radio :label="0" border style="width:120px">串口 + Wi-Fi</el-radio>
+                                <el-radio :label="1" border style="width:120px">ADB + Wi-Fi</el-radio>
+                                <el-radio :label="2" border style="width:120px" disabled>仅 ADB</el-radio>
+                            </el-radio-group>
                         </el-form-item>
+                        <div v-show="da_server_info.type<2">
+                            <el-divider content-position="left">Wi-Fi配置</el-divider>
+                            <el-form-item label="设备IP地址:">
+                                <el-input size="small" style="width:235px" v-model="da_server_info.ip"></el-input>
+                            </el-form-item>
+                            <el-form-item label="连接端口号:">
+                                <el-input size="small" style="width:235px" v-model="da_server_info.port"></el-input>
+                            </el-form-item>
+                            <div v-show="da_server_info.type==0">
+                                <el-divider content-position="left">串口配置</el-divider>
+                                <SetPort style="margin:0px 0px 0px 80px;"/>
+                            </div>
+                        </div>
                     </el-form>
                 </el-tab-pane>
+                <el-tab-pane label="服务器配置" name="3">
+                    <div>
+                        <el-form :model="dbserverInfo" ref="serverform" label-width="100px">
+                            <el-form-item label="服务器配置:">
+                                <el-radio-group v-model="db_server_info.type" size="small">
+                                    <el-radio :label="0" border>本地服务器</el-radio>
+                                    <el-radio :label="1" border disabled>远程服务器</el-radio>
+                                </el-radio-group>
+                            </el-form-item>
+                            <el-form-item label="IP地址:" v-if="db_server_info.type">
+                                <el-input size="small" style="width:220px" v-model="db_server_info.ip"></el-input>
+                            </el-form-item>
+                            <el-form-item label="端口号:" v-if="db_server_info.type">
+                                <el-input size="small" style="width:220px" v-model="db_server_info.port"></el-input>
+                            </el-form-item>
+                        </el-form>
+                        <el-button type="info" plain size="small" style="margin:0px 0px 0px 100px;width:126px;" @click="connectServer()" v-if="db_server_info.type">连接服务器</el-button>
+                    </div>
+                </el-tab-pane>
             </el-tabs>
-            <el-button type="info" style="margin:5px 0px 0px 0px;width:100%;" @click="save()">保存配置</el-button>
+            <el-button type="warning" style="margin:5px 0px 0px 0px;width:100%;" @click="save()">保存配置</el-button>
         </el-card>
         <div><LoginView/></div>
         <div><AlertView/></div>
@@ -99,16 +105,16 @@ import AlertView from "./AlertView.vue";
   }
 })
 export default class SettingView extends Vue {
-    private select_uart:any=0;
+    private tabName:any = "0";
     private select_server:any=0;
     private db_server_info:any={};
     private da_server_info:any={};
     private test_info:any={};
     private box_info:any={};
     private test_status:any=false;
-    private uarts:any=["relay","da_mcu","da_arm"];
+    private uarts:any=["relay","da_arm"];
     private created() {
-        this.$store.state.setting_info.select_serial = this.uarts[this.select_uart];
+        this.$store.state.setting_info.select_serial = this.uarts[0];
     }
     get dbserverInfo(){
         if(this.$store.state.setting_info.info.db_server!=undefined)this.db_server_info=this.$store.state.setting_info.info.db_server;
@@ -130,8 +136,20 @@ export default class SettingView extends Vue {
         this.test_status = this.$store.state.test_info.testing;
         return;
     }
-    private selectUart(){
-        this.$store.state.setting_info.select_serial = this.uarts[this.select_uart];
+    private selectStartMd(name:any){
+        if(name==0)this.$store.state.setting_info.select_serial = this.uarts[1];
+    }
+    private clickTab(){
+        switch(this.tabName){
+            case "0":
+                this.$store.state.setting_info.select_serial = this.uarts[0];
+                break;
+            case "2":
+                if(this.da_server_info.type==0){
+                    this.$store.state.setting_info.select_serial = this.uarts[1];
+                }
+                break;
+        }
     }
     private selectServer(){
         this.$store.state.setting_info.info.db_server.type=this.select_server;

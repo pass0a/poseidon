@@ -22,7 +22,6 @@
             </el-form>
         </div>
         <span slot="footer">
-            <el-button type="info" @click="cancel">取消</el-button>
             <el-button type="primary" @click="ok">确定</el-button>
         </span>
     </Modal>
@@ -39,9 +38,6 @@ export default class AuthView extends Vue {
     get AuthInfo(){
         if(!this.$store.state.auth_info.data.status)this.authInfo = this.$store.state.auth_info.data;
         return this.authInfo;
-    }
-    private cancel(){
-        this.$store.state.auth_info.showflag = false;
     }
     private ok(){
         if(this.authnum=="")this.$notify({title: '内容不能为空!',message: '', type: 'error',duration:1500});

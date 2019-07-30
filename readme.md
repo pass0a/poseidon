@@ -12,5 +12,3 @@ test tool for android/arm-linux/window .etc
 ## Getting Started
 nothing to do now
 ## License
-
-poseidon is licensed as [Apache 2.0](https://github.com/libra/libra/blob/master/LICENSE).

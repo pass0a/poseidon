@@ -52,12 +52,12 @@ export default class SetPort extends Vue {
         switch(flag){
             case 0:
                 if(this.initInfo.port%1!=0){
-                    return "请输入整数";
+                    return "请输入正确的端口号";
                 }
                 break;
             case 1:
                 if(this.initInfo.baud_rate%1!=0){
-                    return "请输入整数";
+                    return "请输入正确的波特率";
                 }
                 break;
         }

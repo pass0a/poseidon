@@ -10,7 +10,13 @@ export default new Vuex.Store({
 			refresh_rl : 0
 		},
 		app_info:{
-			pis:{}
+			pis:{},
+			connect_info:{
+				server:0,
+				db:0,
+				link:0
+			},
+			cflag:0
 		},
 		auth_info:{
 			showflag:false,
@@ -65,6 +71,7 @@ export default new Vuex.Store({
 		steps_info:{
 			reslist:{},
 			rulelist:{},
+			buttonlist:{},
 			steplist:[]
 		},
 		screen_info:{
@@ -80,17 +87,18 @@ export default new Vuex.Store({
 		module_info:{
 			enter:0
 		},
-		case_prop:new Map([
-			["case_num","需求编号"],
-			["case_dam","需求名称"],
-			["case_id","用例ID"],
-			["case_name","用例名称"],
-			["case_level","优先级"],
-			["case_pre","前提条件"],
-			["case_op","操作步骤"],
-			["case_exp","预期结果"],
-			["case_note","备注"]
-		]),
+		case_prop_id:["case_num","case_dam","case_id","case_name","case_level","case_pre","case_op","case_exp","case_note"],
+		case_prop_name:{
+			case_num:"需求编号",
+			case_dam:"需求名称",
+			case_id:"用例ID",
+			case_name:"用例名称",
+			case_level:"优先级",
+			case_pre:"前提条件",
+			case_op:"操作步骤",
+			case_exp:"预期结果",
+			case_note:"备注"
+		},
 		init_checkbox:["case_id","case_pre","case_op","case_exp"]
 	},
 	mutations:{}

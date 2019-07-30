@@ -191,6 +191,10 @@ export default class TestView extends Vue {
         return;
     }
     private startTest(){
+        if(this.$store.state.app_info.connect_info.db!=1||this.$store.state.app_info.connect_info.server!=1||this.$store.state.app_info.connect_info.link!=1){
+            this.$notify({title: '请检查连接状态',message: '', type: 'warning',duration:1500});
+            return;
+        };
         if(this.$store.state.project_info.current_prj.length){
             if(!this.screen_status){
                 this.btnMode=1;
@@ -232,6 +236,7 @@ export default class TestView extends Vue {
         let ret = data.ret;
         let reslist = this.$store.state.steps_info.reslist;
         let action = reslist[step.action];
+        if(step.action=="click"&&step.click_skip)action+=" (不判断) ";
         if((step.action=="button"||step.action=="click")&&step.click_type=="1")action+=" [长按:"+step.click_time+"ms]";
         let content:string="";
         switch(step.action){

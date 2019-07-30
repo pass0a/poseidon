@@ -1,5 +1,5 @@
-var Model = require("./model");
-var mongodb = require('mongodb');
+import { getModel } from "./model";
+import * as mongodb from "mongodb";
 
 function add(data:any,pis:any,StatusModel:any){
     let info:any = data.info;
@@ -61,7 +61,7 @@ function createObjectID(id:string){
 }
 
 function disposeData(data:any,pis:any){
-    var StatusModel = Model.getModel(data.info.prjname+"_status");
+    let StatusModel = getModel(data.info.prjname+"_status");
     switch(data.job){
         case "add":
             add(data,pis,StatusModel);
@@ -70,6 +70,9 @@ function disposeData(data:any,pis:any){
             remove(data,pis,StatusModel);
             break;
         case "startTest":
+            getTestList(data,pis,StatusModel);
+            break;
+        case "replayTest":
             getTestList(data,pis,StatusModel);
             break;
         default:

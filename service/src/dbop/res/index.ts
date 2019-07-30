@@ -1,4 +1,4 @@
-var Model = require("./model");
+import { getModel } from "./model";
 
 function getList(data:any,pis:any,ResModel:any){
     ResModel.aggregate([
@@ -7,7 +7,6 @@ function getList(data:any,pis:any,ResModel:any){
         }}
     ],function(err:any,docs:any){
         if(!err){
-            // console.log(JSON.stringify(docs))
             data.info=JSON.stringify(docs);
             pis.push(data);
         }
@@ -15,7 +14,7 @@ function getList(data:any,pis:any,ResModel:any){
 }
 
 function add(data:any,pis:any,ResModel:any){
-    let info:any = data.info;
+    let info:any = data.info.msg;
     let model=new ResModel({
 		id: info.id,
 		name: info.name
@@ -57,13 +56,6 @@ function newPrj(data:any,pis:any,ResModel:any){
         {id:"button-1",name:"面板按键"},
         {id:"button-2",name:"方控按键"},
         {id:"button-1-1",name:"HOME"},
-        {id:"button-1-2",name:"VOL+"},
-        {id:"button-1-3",name:"VOL-"},
-        {id:"button-1-4",name:"POWER"},
-        {id:"button-1-5",name:"前除霜"},
-        {id:"button-1-6",name:"后除霜"},
-        {id:"button-1-7",name:"AUTO"},
-        {id:"button-1-8",name:"OFF"},
         {id:"module-1",name:"System"},
         {id:"module-2",name:"AUX"},
         {id:"module-3",name:"USB"},
@@ -79,7 +71,7 @@ function newPrj(data:any,pis:any,ResModel:any){
 }
 
 function disposeData(data:any,pis:any){
-    var ResModel = Model.getModel(data.info.prjname+"_res");
+    let ResModel = getModel(data.info.prjname+"_res");
     switch(data.job){
         case "list":
             getList(data,pis,ResModel);

@@ -1,4 +1,4 @@
-var Model = require("./model");
+import { getModel } from "./model";
 
 function getList(data:any,pis:any,RuleModel:any){
     RuleModel.aggregate([
@@ -7,7 +7,6 @@ function getList(data:any,pis:any,RuleModel:any){
         }}
     ],function(err:any,docs:any){
         if(!err){
-            // console.log(JSON.stringify(docs))
             data.info=JSON.stringify(docs);
             pis.push(data);
         }
@@ -21,7 +20,7 @@ function add(data:any,pis:any,RuleModel:any){
             let newId = disposeIdInfo(msg.content[msg.content.length-1]);
             RuleModel.updateOne({id:id},{$addToSet:{content:newId}},function(err:any,mg:any){
                 if(!err){
-                    data.info = {id:newId,name:data.info.msg.name};
+                    data.info.msg.id = newId;
                     pis.push(data);
                 }
             });
@@ -74,7 +73,7 @@ function newPrj(data:any,pis:any,RuleModel:any){
         },
         {
             id: "button-1",
-            content: ["button-1-1", "button-1-2","button-1-3","button-1-4","button-1-5","button-1-6","button-1-7","button-1-8"]
+            content: ["button-1-1"]
         },
         {
             id: "module",
@@ -90,7 +89,7 @@ function newPrj(data:any,pis:any,RuleModel:any){
 }
 
 function disposeData(data:any,pis:any){
-    var RuleModel = Model.getModel(data.info.prjname+"_rule");
+    let RuleModel = getModel(data.info.prjname+"_rule");
     switch(data.job){
         case "list":
             getList(data,pis,RuleModel);

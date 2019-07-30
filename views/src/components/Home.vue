@@ -2,9 +2,9 @@
   <div>
     <el-link v-model="enterTestView" v-show="false"></el-link>
     <el-link v-model="testStatus" v-show="false"></el-link>
+    <el-link v-model="ConnectStatus" v-show="false"></el-link>
     <el-container>
-      <el-header v-show="false">
-      </el-header>
+      <el-header v-show="false"></el-header>
       <el-menu :default-active="select_mode" class="el-menu-demo" mode="horizontal" @select="selectMode" background-color="#545c64" text-color="#fff" active-text-color="#fff">
         <el-menu-item index="1"><i class="el-icon-folder-opened"></i>打开项目</el-menu-item>
         <el-menu-item index="2"><i class="el-icon-folder-add"></i>新建项目</el-menu-item>
@@ -20,8 +20,17 @@
         <el-menu-item index="7"><i class="el-icon-setting"></i>系统配置</el-menu-item>
         <el-menu-item index="8"><i class="el-icon-service"></i>关于我们</el-menu-item>
       </el-menu>
-      <div style="background-color: #545c64bb;height:30px">
-        <p style="margin:6px 0px 0px 20px;color:#ffd04b">当前选择项目 : {{ currentProject }}</p>
+      <div style="background-color: #545c64bb;height:31px;">
+        <span style="margin:0px 0px 0px 10px"><font size="1" color="#ffd04b"><i class="el-icon-folder-opened"></i> 当前选择项目 : {{ currentProject }}</font></span>
+        <span style="margin:0px 0px 0px 30px"><font size="1" color="#ffd04b"><i class="el-icon-connection"></i> 连接状态 : </font></span>
+        <span style="margin:0px 0px 0px 10px"><font size="1" color="#ffd04b	"><i class="el-icon-monitor"></i> 服务器</font></span>
+        <span style="margin:0px 0px 0px 0px"><font size="1" :color="showConnectStatus(0,connectStatus.server)">(<i class="el-icon-loading" v-show="!connectStatus.server"></i>{{showConnectStatus(1,connectStatus.server)}})</font></span>
+        <span style="margin:0px 0px 0px 10px"><font size="1" color="#ffd04b"><i class="el-icon-coin"></i> 数据库</font></span>
+        <span style="margin:0px 0px 0px 0px"><font size="1" :color="showConnectStatus(0,connectStatus.db)">(<i class="el-icon-loading" v-show="!connectStatus.db"></i>{{showConnectStatus(1,connectStatus.db)}})</font></span>
+        <span style="margin:0px 0px 0px 10px"><font size="1" color="#ffd04b"><i class="el-icon-link"></i> LINK</font></span>
+        <span style="margin:0px 0px 0px 0px"><font size="1" :color="showConnectStatus(0,connectStatus.link)">(<i class="el-icon-loading" v-show="!connectStatus.link"></i>{{showConnectStatus(1,connectStatus.link)}})</font></span>
+        <span><font size="4"><strong></strong></font></span>
+        <button class="button_rt" style="margin:0px 0px 0px 10px" v-show="connectStatus.server==2||connectStatus.db==2||connectStatus.link==2" @click="reconnect">点击重新连接失败项</button>
       </div>
       <div>
         <ul v-show="select_mode=='3'"><EditCasesView/></ul>
@@ -78,6 +87,7 @@ export default class Home extends Vue {
     private test_status:any=false;
     private needOpenPrj:any=["3","5","6_1","6_2","6_3"];
     private needStopTest:any=["1","2"];
+    private connectStatus:any = {server:0,db:0,link:0};
     get currentProject(){
         if(this.$store.state.project_info.current_prj.length){
             this.select_mode="4";
@@ -95,7 +105,34 @@ export default class Home extends Vue {
         this.test_status = this.$store.state.test_info.testing;
         return;
     }
+    get ConnectStatus(){
+        this.connectStatus = this.$store.state.app_info.connect_info;
+        return;
+    }
+    private showConnectStatus(type:Number,flag:any){
+        if(type){
+            return flag==0?"连接中":(flag==1?"已连接":"连接失败");
+        }else{
+            return flag==0?"#ffd04b":(flag==1?"#53FF53":"#FF9797");
+        }
+    }
+    private reconnect(){
+      let r_req:any = {type:"toSer",job:"reconnect",info:[]};
+      for(let prop in this.connectStatus){
+        if(this.connectStatus[prop]==2){
+          r_req.info.push(prop);
+          this.connectStatus[prop]=0;
+        }
+      }
+      if(r_req.info.indexOf("server")>-1){
+        this.$store.state.app_info.cflag++;        
+      }else this.$store.state.app_info.pis.push(r_req);
+    }
     private selectMode(key:any){
+        if(this.connectStatus.server!=1||this.connectStatus.db!=1||this.connectStatus.link!=1){
+          this.$notify({title: '请检查连接状态!',message: '', type: 'warning',duration:1500});
+          return;
+        }
         this.$store.state.home_info.mode = key;
         if(this.select_mode!=key){
           if(this.warningForAction(key))return;
@@ -139,7 +176,6 @@ export default class Home extends Vue {
               this.select_mode=key;
               break;
           }
-          
         }
     }
     private warningForAction(key:string){
@@ -166,5 +202,18 @@ export default class Home extends Vue {
 	color: #333;
 	margin:0;
   padding:0;
+}
+.button_rt {
+	background-color:#545c64bb;
+	border: none;
+    border-radius: 4px;
+    color: #ffd04b;
+    padding: 3px 12px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 6px;
+    margin: 4px 2px;
+    cursor: pointer;
 }
 </style>

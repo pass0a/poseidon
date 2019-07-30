@@ -1,1 +1,0 @@
-require("./linkmgr/main.js").start();

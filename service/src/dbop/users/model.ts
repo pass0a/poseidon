@@ -1,7 +1,10 @@
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
-var propSchema=new Schema({
+import * as mongoose from 'mongoose';
+
+let propSchema = new mongoose.Schema({
 	name: String,
 	psw : String
 },{ collection: 'users' });
-module.exports= mongoose.model('users', propSchema);
+
+export function getModel(modelName:any){
+	return mongoose.model(modelName, propSchema, modelName);
+}

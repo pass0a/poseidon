@@ -13,28 +13,40 @@ import status from './status/index';
 
 let pis = new pack.inputStream();
 let pos = new pack.outputStream();
+let sv: any;
 let DB_URL = 'mongodb://127.0.0.1/poseidon_data';
 let options = { useNewUrlParser: true, ssl: false };
-let db_status : boolean = false;
+let db_status : number = 0;
+let db_ct = mongoose.connection;
+let req = {type:"toDB",route:"connect",info:0};
+
 createServer();
 
 function createServer() {
-	let sv: any;
 	pis.on('data', (data: any) => {
 		sv.write(data);
 	});
 	pos.on('data', (data: any) => {
-		if(db_status){
-			switch(data.type){
-				case 'toDB':
-					handle(data);
-					break;
-				case 'toSer':
-					buttons.disposeData(data, pis);
-					status.disposeData(data, pis);
-					break;
-			}
+		switch(data.type){
+			case 'toDB':
+				handle(data);
+				break;
+			case 'toSer':
+				buttons.disposeData(data, pis);
+				status.disposeData(data, pis);
+				break;
 		}
+	});
+	db_ct.on('connected', ()=>{
+		console.info('db connected');
+	});
+	db_ct.on('disconnected', ()=>{
+		if(sv&&db_status==1){
+			db_status = 2;
+			req.info = db_status;
+			pis.push(req);
+		}
+		console.error('db disconnected');
 	});
 	net.createServer(function(c) {
 		sv = c;
@@ -42,25 +54,62 @@ function createServer() {
 			pos.push(data);
 		});
 		sv.on('end', function(data: any) {
-			console.log('server end');
+			console.info('db_server end');
 		});
 		sv.on('error', function(data: any) {
-			console.log('server error');
+			console.error('db_server error');
 		});
-		// pis.push({});
 	}).listen(6002);
+	if(db_status != 1)connectDB();
+}
 
-	mongoose.connect(DB_URL, options, function(error) {
-		if (error) console.error(error);
-		else {
-			// pis.push({});
-			db_status = true;
+async function connectDB(){
+	let num = 10;
+	while(num){
+		if(await mongooseConnect()){
+			db_status = 1;
+			break;
 		}
+		num--;
+		if(num==0){
+			db_status = 2;
+			break;
+		}
+		await wait(2000);
+	}
+	req.info = db_status;
+	if(sv)pis.push(req);
+}
+
+async function wait(time:any){
+	return new Promise((resolve) => {
+		setTimeout(function(){
+			resolve(0);
+		},time);
+	});
+}
+
+async function mongooseConnect(){
+	return new Promise((resolve) => {
+		mongoose.connect(DB_URL, options, (error:any) => {
+			if (error){
+				console.error(error);
+				resolve(false);
+			} 
+			else resolve(true);
+		});
 	});
 }
 
 function handle(data: any) {
 	switch (data.route) {
+		case 'connect':
+			data.info = db_status;
+			pis.push(data);
+			break;
+		case 'reconnect':
+			connectDB();
+			break;
 		case 'projects':
 			projects.disposeData(data, pis);
 			break;
