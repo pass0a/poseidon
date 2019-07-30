@@ -5,7 +5,8 @@
 	"main": "index.js",
 	"scripts": {
 		"dev": "parcel index.html",
-		"build": "parcel build index.html",
+		"build": "npm run clean && parcel build index.html",
+		"clean": "rimraf view",
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"author": "",

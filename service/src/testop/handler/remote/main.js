@@ -1,10 +1,10 @@
 var net=require("net");
-var pack=require("pack");
+var pack=require("@passoa/pack");
 var fs=require("fs");
 var util=require("util");
 var os=require("os");
 var Uarts=require("../uarts/com");
-var Remote=require("./index");
+import Remote from "./index";
 var prjpath=process.argv[2];
 var pos,pis,c;
 

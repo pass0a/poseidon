@@ -34,4 +34,4 @@ function QG_BOX(){
     }
 }
 
-module.exports = new QG_BOX();
+exports = new QG_BOX();

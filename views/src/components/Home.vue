@@ -4,7 +4,6 @@
     <el-link v-model="testStatus" v-show="false"></el-link>
     <el-container>
       <el-header v-show="false">
-        <!-- <img style="margin:0;padding:0;" src="/src/assets/pd_name.png" width="200" height="80"> -->
       </el-header>
       <el-menu :default-active="select_mode" class="el-menu-demo" mode="horizontal" @select="selectMode" background-color="#545c64" text-color="#fff" active-text-color="#fff">
         <el-menu-item index="1"><i class="el-icon-folder-opened"></i>打开项目</el-menu-item>
@@ -32,13 +31,16 @@
         <ul v-show="select_mode=='6_2'"><ScreenView/></ul>
         <ul v-show="select_mode=='6_3'"><ModuleView/></ul>
         <ul v-show="select_mode=='7'"><SettingView/></ul>
-        <ul v-show="select_mode=='8'"><About/></ul>
+        <ul v-show="select_mode=='8'"><AboutView/></ul>
       </div>
       <div>
         <OpenPrj/>
       </div>
       <div>
         <NewPrj/>
+      </div>
+      <div>
+        <AuthView/>
       </div>
     </el-container>
   </div>
@@ -54,7 +56,8 @@ import SettingView from "./SettingView.vue";
 import ScreenView from "./ScreenView.vue";
 import StepsMgrView from "./StepsMgrView.vue";
 import ModuleView from "./ModuleView.vue";
-import About from "./About.vue";
+import AboutView from "./AboutView.vue";
+import AuthView from "./AuthView.vue";
 @Component({
   components: {
     OpenPrj,
@@ -66,7 +69,8 @@ import About from "./About.vue";
     ScreenView,
     StepsMgrView,
     ModuleView,
-    About
+    AboutView,
+    AuthView
   }
 })
 export default class Home extends Vue {

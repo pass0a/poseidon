@@ -1,5 +1,5 @@
 function Uart() {
-	var ser = require("serialport"),
+	var ser = require("./serialport"),
 		uart,
 		name;
 	this.openUart = function (data) {

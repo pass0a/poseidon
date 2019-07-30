@@ -21,13 +21,16 @@ fs
 const nodeConfig = {
 	// Change to your "entry-point".
 	entry: {
-		app: './src/main.js'
+		app: './src/main.js',
+		test: './src/testop/handler/test/main.js',
+		remote: './src/testop/handler/remote/main.js'
 	},
 	output: {
 		path: path.resolve(__dirname, distfolder),
 		filename: '[name].js',
 		libraryTarget: 'commonjs2'
 	},
+	// plugins: [ new BundleAnalyzerPlugin() ],  // 打包内容
 	resolve: {
 		extensions: [ '.js', '.json', '.tsx', '.ts' ]
 	},

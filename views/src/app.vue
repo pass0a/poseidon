@@ -24,8 +24,8 @@ export default class App extends Vue {
         this.ws.onopen = () => {
             this.ws.binaryType = "arraybuffer";
             this.$store.state.app_info.pis = pis;
+            pis.push({type:"toSer",job:"getAuth"});
             pis.push({type:"toSer",job:"readConfig"});
-            pis.push({type:"toDB",route:"users",job:"find",info:{name:"admin",psw:"123"}});
         };
         this.ws.onmessage = (frm: any) => {
             pos.push(frm.data);
@@ -54,6 +54,17 @@ export default class App extends Vue {
     }
     private revToSer(data:any){
         switch(data.job){
+            case "getAuth":
+                this.$store.state.auth_info.showflag = !data.info.status;
+                if(!data.info.status)this.$store.state.auth_info.data = data.info;
+                break;
+            case "setAuth":
+                if(data.info==0){
+                    this.$store.state.auth_info.showflag = false;
+                    this.$notify({title: '授权成功!',message: '', type: 'success',duration:1500});
+                }
+                else this.$notify({title: '授权码不正确!',message: '', type: 'error',duration:1500});
+                break;
             case "readConfig":
                 this.$store.state.setting_info.info = data.info;
                 break;
@@ -67,7 +78,6 @@ export default class App extends Vue {
             case "readStopinfo":
                 this.$store.state.test_info.stopflag = 0;
                 this.$store.state.test_info.stopflag = data.info;
-
                 this.$store.state.req_info.refresh_rl = 0;
                 pis.push({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
                 pis.push({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});

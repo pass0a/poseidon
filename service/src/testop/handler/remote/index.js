@@ -1,6 +1,6 @@
 function Remote(){
     var net=require("net"),
-        pack=require("pack"),
+        pack=require("@passoa/pack"),
 		fs=require("fs"),
         c,pos,pis,platform,
 		alive=0;
@@ -88,4 +88,4 @@ function Remote(){
 	}
 }
 
-module.exports = new Remote();
+export default new Remote();

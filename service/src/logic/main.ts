@@ -18,11 +18,8 @@ export class App {
 
 	private findConfig() {
 		let path = os.homedir()+"/data_store";
-		let flag=fs.existsSync(path);
-		if(!flag){
-			fs.mkdirSync(path);
-			fs.copyFileSync(__dirname+"/config.json",path+"/config.json");
-		}
+		if(!fs.existsSync(path))fs.mkdirSync(path);
+		if(!fs.existsSync(path+"/config.json"))fs.writeFileSync(path+"/config.json", JSON.stringify(require("./config")));
 	}
 
 	static create() {
