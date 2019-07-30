@@ -1,10 +1,11 @@
 var net=require("net");
-var pack=require("@passoa/pack");
 var fs=require("fs");
-var Uarts_Mgr=require("../uarts/index");
-var Cvip=require("../cvip/index");
-var Remote=require("../remote/index");
-var QGBox=require("../qgbox/index");
+var pack=require("@passoa/pack");
+var Cvip = require('@passoa/cvip');
+import Remote from "../remote/index";
+import Uarts_Mgr from "../uarts/index";
+import QGBox from "../qgbox/index";
+
 var stepsWaitTime = 1500;
 var toWebServerType = "tolink";
 var pos,pis,c,caseInfo,gid=0;
@@ -219,15 +220,17 @@ async function button(cmd,caseData){
 	for(var i=0;i<buttonCmd.content.length;i++){
 		var ct = buttonCmd.content[i];
 		for(var j=0;j<ct.length;j++){
-			// 串口发送
-			// var info={event:buttonCmd.event,ct:ct[j]};
-			// await Uarts_Mgr.sendDataForUarts("da_arm","button",1,info);
-
-			// adb发送
-			var arr = ct[j].split(" ");
-			arr[1] = parseInt(arr[1],16).toString();
-			var cmd = "adb/adb shell sendevent "+buttonCmd.event+" "+arr.join(" ")+" \n";
-			childprs.execSync(cmd,{windowsHide:true,detached:true});
+			if(caseInfo.config.da_server.type==0){
+				// 串口发送
+				var info={event:buttonCmd.event,ct:ct[j]};
+				await Uarts_Mgr.sendDataForUarts("da_arm","button",1,info);
+			}else{
+				// adb发送
+				var arr = ct[j].split(" ");
+				arr[1] = parseInt(arr[1],16).toString();
+				var cmd = "adb/adb shell sendevent "+buttonCmd.event+" "+arr.join(" ")+" \n";
+				childprs.execSync(cmd,{windowsHide:true,detached:true});
+			}
 		}
 		if(cmd.click_type=="1")await wait({time:cmd.click_time});
 	}
@@ -328,16 +331,19 @@ async function checkRemoteAlive(){
 		if(ret){
 			break;
 		}
-		// 串口启动车机passoa (2次)
-		// await Uarts_Mgr.sendDataForUarts("da_arm","set_arm_lib_path",1,caseInfo.config.da_server.path);
-		// await Uarts_Mgr.sendDataForUarts("da_arm","start_arm_server",1,caseInfo.config.da_server.path);
-		// await wait({time:500});
-
-		// ADB启动车机passoa (1次)
-		if(num==2){
-			var cmd = "adb/adb shell sh /data/app/pack/run.sh \n";
-			childprs.exec(cmd,{windowsHide:true,detached:true});
-			await wait({time:3000});
+		if(caseInfo.config.da_server.type==0){
+			// 串口启动车机passoa (2次)
+			await Uarts_Mgr.sendDataForUarts("da_arm","set_arm_lib_path",1,caseInfo.config.da_server.path);
+			await Uarts_Mgr.sendDataForUarts("da_arm","start_arm_server",1,caseInfo.config.da_server.path);
+			await wait({time:500});
+		}
+		else{
+			// ADB启动车机passoa (1次)
+			if(num==2){
+				var cmd = "adb/adb shell sh /data/app/pack/run.sh \n";
+				childprs.exec(cmd,{windowsHide:true,detached:true});
+				await wait({time:3000});
+			}
 		}
 		num--;
 	}
@@ -434,6 +440,8 @@ async function createdLink(){
     });
 }
 
-exports.startTest=function(data){
-    return startTest(data);
-}
+// exports.startTest=function(data){
+//     return startTest(data);
+// }
+
+export default {startTest};

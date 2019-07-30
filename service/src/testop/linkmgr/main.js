@@ -18,7 +18,7 @@ function Linkmgr() {
 		c.on('data', function(data) {
 			pos.push(data);
 		});
-		c.on('close', function() {});
+		c.on('close', function() {console.log("linkmgr close");});
 		pis.push({ type: 'init' });
 		var handleCmd = function(obj) {
 			if (obj.type != 'info') {

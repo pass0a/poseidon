@@ -39,7 +39,7 @@ export default class OpenPrj extends Vue {
             this.$store.state.project_info.current_prj=prjname;
             this.$store.state.editcase_info.refresh_data=true;
             this.$store.state.app_info.pis.push({type:"toSer",job:"readStopinfo",prjname:this.$store.state.project_info.current_prj});
-            this.$store.state.app_info.pis.push({type:"toDB",route:"users",job:"find",info:{name:"admin",psw:"123"}});
+            
         }
         this.$store.state.project_info.openflag=false;
     }
