@@ -36,6 +36,7 @@ export class ToLink {
 		});
 	}
 	send(obj: any): void {
+		console.log("5656565656");
 		this.pis.push(obj);
 	}
 	private handle(data: any) {

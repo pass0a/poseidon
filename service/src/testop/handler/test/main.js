@@ -1,7 +1,7 @@
 var fs=require("fs");
 var util=require("util");
 var os=require("os");
-var logic=require("./index.js");
+import logic from "./index";
 var prjpath=process.argv[2];
 var caseInfo={};
 var endflag=0;

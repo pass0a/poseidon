@@ -26,6 +26,7 @@ export default class App extends Vue {
             this.$store.state.app_info.pis = pis;
             pis.push({type:"toSer",job:"getAuth"});
             pis.push({type:"toSer",job:"readConfig"});
+            pis.push({type:"toDB",route:"users",job:"find",info:{name:"admin",psw:"123"}});
         };
         this.ws.onmessage = (frm: any) => {
             pos.push(frm.data);

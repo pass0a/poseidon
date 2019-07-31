@@ -21,8 +21,8 @@ fs
 const nodeConfig = {
 	// Change to your "entry-point".
 	entry: {
-		app: './src/main.js',
-		test: './src/testop/handler/test/main.js',
+		// app: './src/main.js',
+		// test: './src/testop/handler/test/main.js',
 		remote: './src/testop/handler/remote/main.js'
 	},
 	output: {
