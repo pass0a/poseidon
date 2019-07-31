@@ -3,7 +3,7 @@
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "Reveal"
 !define PRODUCT_VERSION "1.1"
-!define PRODUCT_PUBLISHER "hsae.auto"
+!define PRODUCT_PUBLISHER "reveal.auto"
 !define PRODUCT_WEB_SITE "https://wool.gitee.io"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\Reveal"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
@@ -61,18 +61,11 @@ Section "主体程序" SEC01
   SetOutPath "$INSTDIR"
   SetOverwrite ifnewer
   File ".\License.txt"
-  File "..\depends\vcredist_x86.exe"
-  File "..\depends\opencv_core320.dll"
-  File "..\depends\opencv_highgui320.dll"
-  File "..\depends\opencv_imgcodecs320.dll"
-  File "..\depends\opencv_imgproc320.dll"
-  File "..\depends\PCANBasic.dll"
-  File /r ".\app\"
-  File /r "..\..\passoa\output\"
-  File /r "..\..\cvip\output\"
-  File /r "..\..\sqlite\output\"
-  File /r "..\depends\browser"
-  File /r "..\depends\db"
+  File ".\depends\vcredist_x86.exe"
+  File /r "service\dist"
+  File /r ".\depends\browser"
+  File /r ".\depends\db"
+  File /r ".\depends\passoa\msvc"
   CreateDirectory "$SMPROGRAMS\Reveal"
   CreateShortCut "$SMPROGRAMS\Reveal\Reveal.lnk" "$INSTDIR\passoa.exe" "$\"$INSTDIR\run.js$\""
   CreateShortCut "$DESKTOP\Reveal.lnk" "$INSTDIR\passoa.exe" "$\"$INSTDIR\run.js$\""
@@ -300,6 +293,7 @@ FunctionEnd
 Section Uninstall
   nsExec::Exec "taskkill /f /IM passoa.exe"
   nsExec::Exec "taskkill /f /IM adb.exe"
+  nsExec::Exec "taskkill /f /IM mongod.exe"
   RMDir /r "$INSTDIR"
   
   Delete "$SMPROGRAMS\Reveal\Uninstall.lnk"
@@ -320,14 +314,14 @@ SectionEnd
 Function .onInit
         # the plugins dir is automatically deleted when the installer exits
         InitPluginsDir
-        File /oname=$PLUGINSDIR\splash.bmp ".\logo.bmp"
+        ;File /oname=$PLUGINSDIR\splash.bmp ".\logo.bmp"
 
-        advsplash::show 1000 600 400 -1 $PLUGINSDIR\splash
+        ;advsplash::show 1000 600 400 -1 $PLUGINSDIR\splash
 
-        Pop $0          ; $0 has '1' if the user closed the splash screen early,
+        ;Pop $0          ; $0 has '1' if the user closed the splash screen early,
                         ; '0' if everything closed normally, and '-1' if some error occurred.
 
-        Delete $PLUGINSDIR\splash.bmp
+        ;Delete $PLUGINSDIR\splash.bmp
   ;禁止多次安装实例 start
   ReadRegDWORD $0 HKLM '${PRODUCT_DIR_REGKEY}' "Installed"
   IntCmp $0 +1 +4
