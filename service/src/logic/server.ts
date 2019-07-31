@@ -21,7 +21,7 @@ export class Server {
 	private tolink: any;
 	private todb: any;
 	private configPath: any = os.homedir()+"/data_store/config.json";
-	private dirPath: any = path.dirname(path.dirname(process.execPath)) + 'data_store/projects/';
+	private dirPath: any = path.dirname(path.dirname(process.execPath)) + '/data_store/projects/';
 	constructor() {
 		this.pis.on('data', (data: any) => {
 			this.inst.write(data);
@@ -138,7 +138,6 @@ export class Server {
 				this.tolink.send(data);
 				break;
 			case 'syncRemote':
-				console.log("888888888888");
 				this.tolink.send(data);
 				break;
 			case 'saveCutImage':

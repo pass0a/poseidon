@@ -8,7 +8,7 @@ import { Server } from './server';
 import { ToLink } from './toLink';
 
 export class ToDB {
-	private prjdir: any = path.dirname(path.dirname(process.execPath)) + 'data_store/projects/';
+	private prjdir: any = path.dirname(path.dirname(process.execPath)) + '/data_store/projects/';
 	private pis = new pack.inputStream();
 	private pos = new pack.outputStream();
 	private inst: any;

@@ -43,7 +43,7 @@ function Web_mgr(c, obj, lk) {
 			case 'saveCutImage':
 				var Cvip = require('@passoa/cvip');
 				var passoaPath = process.execPath;
-				var prjPath = dpath.dirname(dpath.dirname(passoaPath)) + 'data_store/projects/' + obj.info.prjname;
+				var prjPath = dpath.dirname(dpath.dirname(passoaPath)) + '/data_store/projects/' + obj.info.prjname;
 				var screenPath = prjPath + '/screen/screen.png';
 				var imgPath = prjPath + '/img';
 				if (!fs.existsSync(imgPath)) fs.mkdirSync(imgPath);
@@ -66,7 +66,7 @@ function Web_mgr(c, obj, lk) {
 	};
 	var startJS = function(obj, jsPath) {
 		var passoaPath = process.execPath;
-		var prjPath = dpath.dirname(dpath.dirname(passoaPath)) + 'data_store/projects/' + obj.info.prjname;
+		var prjPath = dpath.dirname(dpath.dirname(passoaPath)) + '/data_store/projects/' + obj.info.prjname;
 		var path = '"' + passoaPath + '" ' + jsPath + ' "' + prjPath + '"';
 		console.log(path);
 		childprs.exec(path, { windowsHide: testcfg.windowsHide, detached: testcfg.detached });
