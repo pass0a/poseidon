@@ -84,6 +84,7 @@ const nodeConfig = {
 		'@passoa/img': '@passoa/img',
 		'@passoa/cvip': '@passoa/cvip'
 	},
+	devtool: 'source-map',
 	target: 'node',
 	mode: 'development' //'production'
 };

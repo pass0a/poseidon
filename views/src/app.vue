@@ -22,6 +22,7 @@ export default class App extends Vue {
         pos.on("data", (data: any) => {
             this.revHandle(data);
         });
+<<<<<<< HEAD
         this.$store.state.app_info.cflag++;
     }
     get notifyToConnect(){
@@ -79,6 +80,22 @@ export default class App extends Vue {
                 resolve(0);
             },time);
         });
+=======
+        this.ws = new WebSocket("ws://127.0.0.1:6001");
+        this.ws.onopen = () => {
+            this.ws.binaryType = "arraybuffer";
+            this.$store.state.app_info.pis = pis;
+            pis.push({type:"toSer",job:"getAuth"});
+            pis.push({type:"toSer",job:"readConfig"});
+            pis.push({type:"toDB",route:"users",job:"find",info:{name:"admin",psw:"123"}});
+        };
+        this.ws.onmessage = (frm: any) => {
+            pos.push(frm.data);
+        };
+        this.ws.onclose = () => {
+            console.log("close websocket!!!");
+        };
+>>>>>>> 34f4941093642cec9b8a354d71bfef066e850832
     }
     private revHandle(data:any){
         switch(data.type){
