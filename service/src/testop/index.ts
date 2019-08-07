@@ -97,7 +97,7 @@ async function readStopInfo(){
 }
 
 function notifyWebView(info:any){
-	pis.push(info);// 0: 初始化失败 1:初始化成功 2:开始测试 3: 测试完成 4: 步骤执行结果 5: 步骤开始执行 6: 暂停测试
+	pis.push(info);// 0: 初始化失败 1:初始化成功 2:用例开始测试 3: 测试完成 4: 步骤执行结果 5: 步骤开始执行 6: 暂停测试
 }
 
 async function runTest(data:any,toContinue:any){// 执行用例
@@ -106,7 +106,7 @@ async function runTest(data:any,toContinue:any){// 执行用例
     for(let i=start_idx;i<data.caselist.length;i++){
 		let ret:any=await runSteps(data.caselist[i]);
 		if(!ret.ret){
-			caseInfo.stopinfo.idx = ret.finish&&i<data.caselist.length-1?i+1:i;
+			caseInfo.stopinfo.idx = ret.finish&&i==(data.caselist.length-1)?i+1:i;
 			caseInfo.stopinfo.gid = gid++;
 			stopflag = true;
 			break;// 暂停退出

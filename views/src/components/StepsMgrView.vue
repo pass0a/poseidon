@@ -5,10 +5,11 @@
         <el-link v-model="updateShowflage" v-show="false"></el-link>
         <el-tabs type="border-card" style="margin:5px 10px 10px 10px;" v-model="actionName" @tab-click="clickAction()">
 			<el-tab-pane v-for="it in actionList" :name="it" :key="it" :label="getResName(it)"></el-tab-pane>
-            <el-button-group style="margin:0px 0px 10px 0px;" v-show="actionName.length>1">
+            <el-button-group style="margin:0px 0px 10px 0px;" v-show="actionName.length>1&&actionName!='button'">
                 <el-button plain icon="el-icon-plus" size="small" @click="addID(0)">添加二级选项</el-button>
                 <el-button plain icon="el-icon-plus" size="small" @click="addID(1)">添加三级选项</el-button>
             </el-button-group>
+            <el-button style="margin:0px 0px 10px 0px;" plain icon="el-icon-plus" size="small" @click="addID(2)" v-show="actionName.length>1&&actionName=='button'" disabled>添加硬按键</el-button>
             <el-tabs tab-position="left" v-model="moduleName" @tab-click="clickModule()">
 				<el-tab-pane v-for="it in Module" :name="it" :key="it" :label="getResName(it)"></el-tab-pane>
                 <el-table :data="TableData" style="width: 100%" height="370" size="mini" stripe border ref="stepsTable" :empty-text="emptyText()">
@@ -23,27 +24,42 @@
         </el-tabs>
         <Modal
             v-model="showflag"
-            width="450"
+            width="500"
             :closable="false"
             :mask-closable="false">
             <p slot="header">
                 <i class="el-icon-warning"></i>
                 <span>{{ title }}</span>
             </p>
-            <el-form :inline="true" label-position="right" ref="caseform" :model="add_info" :rules="idValidate" label-width="110px" size="small">
-                <el-form-item label="所属动作" prop="action">
+            <el-form label-position="right" ref="caseform" :model="add_info" :rules="idValidate" label-width="115px" size="small">
+                <el-form-item label="所属动作 :" prop="action">
                     <el-select style="width:180px" v-model="add_info.action" @change="changeAction()">
                         <el-option v-for="val in actionList" :label="getResName(val)" :value="val" :key="val"></el-option>
                     </el-select>
                 </el-form-item>
-                <el-form-item label="所属二级选项" prop="module" v-if="add_type">
+                <el-form-item label="所属二级选项 :" prop="module" v-if="add_type">
                     <el-select style="width:180px" v-model="add_info.module">
                         <el-option v-for="val in moduleList" :label="getResName(val)" :value="val" :key="val"></el-option>
                     </el-select>
                 </el-form-item>
-                <el-form-item label="名称" prop="name">
+                <el-form-item label="名称 :" prop="name">
                     <el-input style="width:180px" placeholder="请输入" v-model="add_info.name"></el-input>
                 </el-form-item>
+                <div v-if="add_info.action=='button'">
+                    <el-form-item label="Event :">
+                        <el-input style="width:180px" placeholder="请输入" v-model="add_info.event"></el-input>
+                    </el-form-item>
+                    <el-form-item label="按下事件 :">
+                        <el-input style="width:230px" placeholder="请输入">
+                            <el-button slot="append">加入</el-button>
+                        </el-input>
+                    </el-form-item>
+                    <el-form-item label="抬起事件 :">
+                        <el-input style="width:230px" placeholder="请输入">
+                            <el-button slot="append">加入</el-button>
+                        </el-input>
+                    </el-form-item>
+                </div>
             </el-form>
             <span slot="footer">
                 <el-button type="info" @click="cancel">取消</el-button>
@@ -57,7 +73,7 @@
 import { Component, Prop, Vue } from "vue-property-decorator";
 @Component
 export default class StepsMgrView extends Vue {
-    private actionList:any=["click","assert_pic"];
+    private actionList:any=["click","assert_pic","button"];
     private actionName:any=this.actionList[0];
     private moduleName:any="";
     private reslist:any;
@@ -68,7 +84,7 @@ export default class StepsMgrView extends Vue {
     private title:any="";
     private count:any=0;
     private loading:Boolean = false;
-    private add_info:any={action:"",module:"",name:""};
+    private add_info:any={action:"",module:"",name:"",event:"/dev/input/event1"};
     private idValidate:any={
         action:[{ required: true, message: '所属动作不能为空', trigger: 'blur' }],
         name:[{ required: true, message: '名称不能为空', trigger: 'blur' }],
@@ -143,6 +159,11 @@ export default class StepsMgrView extends Vue {
                 this.title="添加二级选项";
                 break;
             case 1:
+                this.add_info.action = this.actionName;
+                this.add_info.module = this.moduleName;
+                this.title="添加三级选项";
+                break;
+            case 2:
                 this.add_info.action = this.actionName;
                 this.add_info.module = this.moduleName;
                 this.title="添加三级选项";

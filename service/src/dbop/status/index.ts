@@ -72,6 +72,9 @@ function disposeData(data:any,pis:any){
         case "startTest":
             getTestList(data,pis,StatusModel);
             break;
+        case "replayTest":
+            getTestList(data,pis,StatusModel);
+            break;
         default:
             break;
     }

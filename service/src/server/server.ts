@@ -192,9 +192,9 @@ export class Server {
 				this.tolink.send(data);
 				break;
 			case 'replayTest':
-				let stopPath = this.dirPath + data.prjname + '/stopinfo.json';
+				let stopPath = this.dirPath + data.info.prjname + '/stopinfo.json';
 				fs.writeFileSync(stopPath, JSON.stringify({idx:-1,gid:-1}));
-				this.tolink.send(data);
+				this.todb.send(data);
 				break;
 			case 'syncRemote':
 				this.tolink.send(data);

@@ -51,11 +51,6 @@ export default class AlertView extends Vue {
                 this.alertInfo.btn="确定";
                 break;
             case 3:
-                this.alertInfo.title="下载用例";
-                this.alertInfo.content="是否确定下载已开启的测试用例 ?";
-                this.alertInfo.btn="确定";
-                break;
-            case 4:
                 this.alertInfo.title="重新测试";
                 this.alertInfo.content="是否确定重新开始测试?";
                 this.alertInfo.btn="确定";
@@ -94,7 +89,7 @@ export default class AlertView extends Vue {
                 this.sendReq("toDB","status","delete",s_info);
                 break;
             case 3:
-                this.$store.state.app_info.pis.push({type:"toSer",job:"replayTest",info:{prjname:this.$store.state.project_info.current_prj}});
+                this.$store.state.app_info.pis.push({type:"toSer",job:"replayTest",info:{prjname:this.$store.state.project_info.current_prj,uid:this.$store.state.login_info._id}});
                 this.$store.state.test_info.count++;
                 this.$store.state.alert_info.showflag = false;
                 break;

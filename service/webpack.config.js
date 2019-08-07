@@ -25,10 +25,10 @@ const nodeConfig = {
 		// test: './src/testop/main.ts',
 		// pic: './src/picop/main.ts'
 
-		// link: './src/linkmgr/main.ts',
-		// server : './src/server/main.ts',
-		// db:'./src/dbop/main.ts',
-		// http:'./src/httpop/main.ts',
+		link: './src/linkmgr/main.ts',
+		server : './src/server/main.ts',
+		db:'./src/dbop/main.ts',
+		http:'./src/httpop/main.ts',
 		test:'./src/testop/main.ts'
 		
 	},
