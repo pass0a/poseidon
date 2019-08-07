@@ -191,6 +191,10 @@ export default class TestView extends Vue {
         return;
     }
     private startTest(){
+        if(this.$store.state.app_info.connect_info.db!=1||this.$store.state.app_info.connect_info.server!=1||this.$store.state.app_info.connect_info.link!=1){
+            this.$notify({title: '请检查连接状态',message: '', type: 'warning',duration:1500});
+            return;
+        };
         if(this.$store.state.project_info.current_prj.length){
             if(!this.screen_status){
                 this.btnMode=1;

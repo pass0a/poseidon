@@ -9,11 +9,11 @@
         <el-tabs type="border-card" tab-position="bottom" style="margin:5px 10px 10px 10px;" v-model="current_case_module" @tab-click="select_module">
             <el-tab-pane v-for="it of ModuleData" :label="getResName(it)" :key="it" :name="it"></el-tab-pane>
             <el-checkbox-group style="margin:0px 0px 5px 0px" v-model="select_prop">
-                <el-checkbox v-for="it of case_prop.keys()" :label="it" :key="it">{{case_prop.get(it)}}</el-checkbox>
+                <el-checkbox v-for="it in case_prop_id" :label="it" :key="it">{{case_prop_name[it]}}</el-checkbox>
             </el-checkbox-group>
             <el-table v-loading="tableLoading" :data="current_data" style="width: 100%" height="370" size="mini" stripe border ref="CasesTable">
                 <el-table-column type="index" label="No." width="50"></el-table-column>
-                <el-table-column v-for="it in isShowRow" :label="case_prop.get(it)" :key="it" :prop="it" resizable></el-table-column>
+                <el-table-column v-for="it in isShowRow" :label="case_prop_name[it]" :key="it" :prop="it" resizable></el-table-column>
                 <el-table-column prop="c_status" width="80" label="状态">
 					<template slot-scope="scope">
 						<el-button type="text" @click="changeCaseStatus(scope.$index)"><font size="2" :color="scope.row.c_status.length?'#67C23A':'#909399'">{{scope.row.c_status.length?'开启':'关闭'}}</font></el-button>
@@ -41,7 +41,8 @@ import CaseInfoView from "./CaseInfoView.vue";
 })
 export default class EditCasesView extends Vue {
     private case_module:any=this.$store.state.case_module;
-    private case_prop:any=this.$store.state.case_prop;
+    private case_prop_id:any=this.$store.state.case_prop_id;
+    private case_prop_name:any=this.$store.state.case_prop_name;
     private select_prop:any=this.$store.state.init_checkbox;
     private current_data:any=[];
     private current_case_module:any="";
@@ -51,10 +52,10 @@ export default class EditCasesView extends Vue {
     private test_status:any=false;
     get isShowRow(){
         let rows:any=[];
-        for(let item of this.case_prop.keys()){
-            if(this.select_prop.indexOf(item)>-1)rows.push(item);
+        for(let i=0;i<this.case_prop_id.length;i++){
+            if(this.select_prop.indexOf(this.case_prop_id[i])>-1)rows.push(this.case_prop_id[i]);
         }
-        return rows; 
+        return rows;  
     }
     get tableLoading(){
         return this.$store.state.editcase_info.refresh_data;
@@ -64,7 +65,7 @@ export default class EditCasesView extends Vue {
         if(data.length>0){
             this.caselist=[];
             let firstModule;
-            for(var i=0;i<data.length;i++){
+            for(let i=0;i<data.length;i++){
                 if(this.caselist[data[i].case_module]==undefined)this.caselist[data[i].case_module]=[];
                 if(i==0)firstModule=data[i].case_module;
                 this.caselist[data[i].case_module].push(data[i]);

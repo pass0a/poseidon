@@ -1,4 +1,4 @@
-var Model = require("./model");
+import { getModel } from "./model";
 
 function getList(data:any,pis:any,BtnModel:any){
     BtnModel.aggregate([
@@ -7,7 +7,6 @@ function getList(data:any,pis:any,BtnModel:any){
         }}
     ],function(err:any,docs:any){
         if(!err){
-            // console.log(JSON.stringify(docs))
             data.route="buttons";
             data.info.data=JSON.stringify(docs);
             pis.push(data);
@@ -35,7 +34,7 @@ function newPrj(data:any,pis:any,BtnModel:any){
 }
 
 function disposeData(data:any,pis:any){
-    let BtnModel = Model.getModel(data.info.prjname+"_btn");
+    let BtnModel = getModel(data.info.prjname+"_btn");
     switch(data.job){
         case "new":
             newPrj(data,pis,BtnModel);

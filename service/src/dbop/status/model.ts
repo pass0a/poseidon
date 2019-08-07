@@ -1,15 +1,15 @@
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
-var propSchema=new Schema({
+import * as mongoose from 'mongoose';
+
+let propSchema = new mongoose.Schema({
 	type: Number,
 	module: {
 		type : String,
 		default: ""
 	},
-	cid: Schema.Types.ObjectId,
-	uid: Schema.Types.ObjectId
+	cid: mongoose.Schema.Types.ObjectId,
+	uid: mongoose.Schema.Types.ObjectId
 });
-function getStatus(modelName:any){
+
+export function getModel(modelName:any){
 	return mongoose.model(modelName, propSchema, modelName);
 }
-exports.getModel = getStatus;

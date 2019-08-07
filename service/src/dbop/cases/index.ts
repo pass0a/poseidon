@@ -1,5 +1,5 @@
-var Model = require("./model");
-var mongodb = require('mongodb');
+import { getModel } from "./model";
+import * as mongodb from "mongodb";
 
 function getList(data:any,pis:any,CaseModel:any){
     CaseModel.aggregate([
@@ -10,7 +10,6 @@ function getList(data:any,pis:any,CaseModel:any){
             as:"c_status"
         }},
         {$match:{
-            
         }},
         {$project:{
             "__v":0,"c_status._id":0,"c_status.__v":0,"c_status.cid":0,"c_status.uid":0
@@ -20,7 +19,6 @@ function getList(data:any,pis:any,CaseModel:any){
         }}
     ],function(err:any,docs:any){
         if(!err){
-            // console.log(JSON.stringify(docs));
             for(let ca of docs){
                 ca._id = objectIDtoString(ca._id.id);
             }
@@ -31,8 +29,8 @@ function getList(data:any,pis:any,CaseModel:any){
 }
 
 function addCases(data:any, pis:any, CaseModel:any){
-    var info = data.info.casedata;
-    var model = new CaseModel({
+    let info = data.info.casedata;
+    let model = new CaseModel({
 		case_num:info.case_num,
 		case_dam:info.case_dam,
 		case_module:info.case_module,
@@ -56,7 +54,7 @@ function addCases(data:any, pis:any, CaseModel:any){
 }
 
 function checkIDAndAdd(data:any,pis:any,CaseModel:any){
-    var info = data.info.casedata;
+    let info = data.info.casedata;
     CaseModel.findOne({case_id:info.case_id},{__v:0,_id:0},function(err:any,msg:any){
 		if(msg){
             data.info=false;
@@ -68,7 +66,7 @@ function checkIDAndAdd(data:any,pis:any,CaseModel:any){
 }
 
 function modifyCase(data:any,pis:any,CaseModel:any){
-    var info = data.info.casedata;
+    let info = data.info.casedata;
     CaseModel.updateOne({_id:createObjectID(info._id)},{$set: {
 		case_num:info.case_num,
 		case_dam:info.dam_name,
@@ -113,7 +111,7 @@ function createObjectID(id:string){
 }
 
 function disposeData(data:any,pis:any){
-    var CaseModel = Model.getModel(data.info.prjname+"_cases");
+    let CaseModel = getModel(data.info.prjname+"_cases");
     switch(data.job){
         case "list":
             getList(data,pis,CaseModel);

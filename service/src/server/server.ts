@@ -16,10 +16,11 @@ export class Server {
 	private pis = new pack.inputStream();
 	private pos = new pack.outputStream();
 	private hp: http.Server;
-	private inst: any;
+	public inst: any;
 	private wss: ws.websocket;
-	private tolink: any;
-	private todb: any;
+	private tolink = new ToLink();
+	private todb = new ToDB();
+	public connect_status = {db:0,link:0};
 	private configPath: any = os.homedir()+"/data_store/config.json";
 	private dirPath: any = path.dirname(path.dirname(process.execPath)) + '/data_store/projects/';
 	constructor() {
@@ -30,37 +31,80 @@ export class Server {
 			this.handle(data);
 		});
 	}
-	run(port: number, tolink: ToLink, todb: ToDB, fn: () => void) {
-		return new Promise((resolve) => {
-			this.tolink = tolink;
-			this.todb = todb;
-			this.wss = ws.createServer((c: any) => {
-				this.inst = c;
-				c.on('data', (frm: any) => {
-					console.log(frm.PayloadData);
-					this.pos.push(frm.PayloadData);
-				});
-				fn();
+	run(port: number) {
+		this.wss = ws.createServer((c: any) => {
+			this.inst = c;
+			this.inst.on('data', (frm: any) => {
+				this.pos.push(frm.PayloadData);
 			});
-			this.hp = http.createServer((req: any, res: any) => {
-				let body = '';
-				req.on('data', function(buf: string) {
-					if (body == undefined) {
-						body = buf;
-					} else {
-						body += buf;
-					}
-				});
-				req.on('end', () => {
-					this.wss.filter(req, res);
-				});
-			});
-			this.hp.listen(port);
 		});
+		this.hp = http.createServer((req: any, res: any) => {
+			let body = '';
+			req.on('data', (buf: string) => {
+				if (body == undefined) {
+					body = buf;
+				} else {
+					body += buf;
+				}
+			});
+			req.on('end', () => {
+				this.wss.filter(req, res);
+			});
+		});
+		this.hp.listen(port);
+		this.connectLink();
+		this.connectDB();
+	}
+	async connectLink(){
+		let link_status = {type:'toSer',job:"linkStatus",info:0};
+		let num = 10;
+		while(num){
+			if(await this.tolink.connect(this)){
+				this.connect_status.link = 1;
+				link_status.info = 1;
+				break;
+			}
+			else num--;
+			if(num==0){
+				this.connect_status.link = 2;
+				link_status.info = 2;
+				break;
+			}
+			await this.wait(1000);
+		}
+		if(this.inst)this.send(link_status);
+	}
+	async connectDB(){
+		let db_status = {type:'toSer',job:"dbStatus",info:0};
+		let num = 10;
+		while(num){
+			if(this.todb.inst){
+				this.todb.send({type:"toDB",route:"reconnect"});
+				break;
+			}else if(await this.todb.connect(this,this.tolink)){
+				this.todb.send({type:"toDB",route:"connect"});
+				break;
+			}
+			else num--;
+			if(num==0){
+				db_status.info = 2;
+				this.connect_status.db = 2;
+				if(this.inst)this.send(db_status);
+				break;
+			}
+			await this.wait(1000);
+		}
 	}
 	send(obj: any) {
 		this.pis.push(obj);
 	}
+	private wait(time:any){
+        return new Promise((resolve) => {
+            setTimeout(function(){
+                resolve(0);
+            },time);
+        });
+    }
 	private handle(data: any) {
 		// console.log('server_rev:', data);
 		switch (data.type) {
@@ -76,7 +120,6 @@ export class Server {
 				break;
 		}
 	}
-
 	private execJob(data:any){
 		switch(data.job){
 			case 'getAuth':
@@ -92,6 +135,22 @@ export class Server {
 			case 'setAuth':
 				data.info =	__passoa_auth_setsn(data.info);
 				this.send(data);
+				break;
+			case 'connectStatus':
+				data.info = {db:this.connect_status.db,link:this.connect_status.link};
+				this.send(data);
+				break;
+			case 'reconnect':
+				for(let re of data.info){
+					switch(re){
+						case 'db':	
+							this.connectDB();
+							break;
+						case 'link':
+							this.connectLink();
+							break;
+					}
+				}
 				break;
 			case 'readConfig':
 				let cj = new util.TextDecoder().decode(fs.readFileSync(this.configPath));

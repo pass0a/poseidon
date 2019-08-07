@@ -1,8 +1,11 @@
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
-var propSchema=new Schema({
+import * as mongoose from 'mongoose';
+
+let propSchema = new mongoose.Schema({
 	name:String,
 	date: { type: Date, default: Date.now },
-	uid: Schema.Types.ObjectId
-},{ collection: 'projects' });
-module.exports= mongoose.model('projects', propSchema);
+	uid: mongoose.Schema.Types.ObjectId
+});
+
+export function getModel(modelName:any){
+	return mongoose.model(modelName, propSchema, modelName);
+}

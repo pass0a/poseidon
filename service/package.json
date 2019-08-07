@@ -6,16 +6,12 @@
 	"scripts": {
 		"build": "npm run clean && webpack",
 		"clean": "rimraf dist",
+
 		"btest": "webpack",
-		"jst": "babel src/testop --out-dir dist/testop",
-		"jsh": "babel packages/httpop --out-dir dist/httpop",
-		"cfg": "babel packages/config --out-dir dist/config",
-		"dep": "babel packages/node_modules --out-dir dist/node_modules --copy-files",
-		"ts": "tsc",
-		"dev": "passoa dist/logic/main.js",
-		"dop": "passoa dist/dbop/main.js",
-		"dlp": "passoa dist/testop/main.js",
-		"dhp": "passoa dist/httpop/main.js"
+		"dop": "passoa dist/db.js",
+		"dlp": "passoa dist/link.js",
+		"dhp": "passoa dist/http.js",
+		"dev": "passoa dist/server.js"
 	},
 	"author": "",
 	"license": "ISC",

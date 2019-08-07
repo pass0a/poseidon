@@ -1,8 +1,8 @@
-var Model = require("./model");
-var mongodb = require('mongodb');
+import { getModel } from "./model";
+import * as mongodb from "mongodb";
 
-function addproject(data:any,pis:any){
-    var model=new Model({
+function addproject(data:any,pis:any,Projects:any){
+    let model=new Projects({
 		name:data.info.name,
         uid: createObjectID(data.info.uid)
 	});
@@ -15,22 +15,22 @@ function addproject(data:any,pis:any){
     });
 }
 
-function existInList(data:any,pis:any){
-    Model.findOne({name:data.info.name},{__v:0,_id:0},function(err:any,info:any){
+function existInList(data:any,pis:any,Projects:any){
+    Projects.findOne({name:data.info.name},{__v:0,_id:0},function(err:any,info:any){
         if(info){
             data.info.state=false;
             pis.push(data);
         }else{
-            addproject(data,pis);
+            addproject(data,pis,Projects);
         }
 	});
 }
 
-function getList(data:any,pis:any){
-    Model.find({},{__v:0},function(err:any, info:any){
-        var list=[];
-        for(var i=0;i<info.length;i++){
-            var obj:any={};
+function getList(data:any,pis:any,Projects:any){
+    Projects.find({},{__v:0},function(err:any, info:any){
+        let list=[];
+        for(let i=0;i<info.length;i++){
+            let obj:any={};
             obj["name"]=info[i].name;
             list.push(obj);
         }
@@ -44,12 +44,13 @@ function createObjectID(id:string){
 }
 
 function disposeData(data:any,pis:any){
+    let Projects = getModel("projects");
     switch(data.job){
         case "list":
-            getList(data,pis);
+            getList(data,pis,Projects);
             break;
         case "add":
-            existInList(data,pis);
+            existInList(data,pis,Projects);
             break;
         default:
             break;

@@ -1,11 +1,12 @@
-var fs=require("fs");
-var util=require("util");
-var os=require("os");
+import * as fs from "fs";
+import * as util from "util";
+import * as os from "os";
 import logic from "./index";
-var prjpath=process.argv[2];
-var caseInfo={};
-var endflag=0;
-var fileList=new Map([
+
+let prjpath:any=process.argv[2];
+let caseInfo:any={};
+let endflag=0;
+let fileList=new Map([
 	["caselist","caselist.json"],
 	["stopinfo","stopinfo.json"],
 	["buttons","buttons.json"]
@@ -14,8 +15,8 @@ fileList.forEach(function(value,key){
 	readFile(key,value,fileList.size);
 })
 
-function readFile(name,path,len){
-	var isExitst = fs.existsSync(prjpath+"/"+path);
+function readFile(name:any,path:any,len:any){
+	let isExitst = fs.existsSync(prjpath+"/"+path);
 	if(!isExitst){
 		endflag++;
 		if(endflag==len){
@@ -27,16 +28,15 @@ function readFile(name,path,len){
 		}
 		return;
 	}
-	var f=new fs.ReadStream(prjpath+"/"+path);
-	var caseInfoStr="";
-	f.on("open",function(){
-	});
-	f.on("data",function(data){
-		var str=new util.TextDecoder().decode(data);
+	let f=fs.createReadStream(prjpath+"/"+path);
+	let caseInfoStr="";
+	f.on("open",() => {});
+	f.on("data",function(data:any){
+		let str=new util.TextDecoder().decode(data);
 		caseInfoStr+=str;
 	})
 	f.on("end",function(){
-		disposeData(name, Duktape.dec('jc',caseInfoStr));
+		disposeData(name, JSON.parse(caseInfoStr));
 		endflag++;
 		if(endflag==len){
 			caseInfo["path"]=prjpath;
@@ -52,34 +52,34 @@ function readFile(name,path,len){
 }
 
 function readConfig(){
-	var path = os.homedir() + "/data_store/config.json";
+	let path = os.homedir() + "/data_store/config.json";
 	caseInfo["config"]=JSON.parse(new util.TextDecoder().decode(fs.readFileSync(path)));
 }
 
-function readReport(prjpath){
+function readReport(prjpath:any){
 	if(caseInfo["stopinfo"]!=undefined&&caseInfo["stopinfo"].idx>-1){
 		caseInfo["report"]=JSON.parse(new util.TextDecoder().decode(fs.readFileSync(prjpath+"/report.json")));
 	}
 }
 
 function checkTmpDir(){
-	var isExitst = fs.existsSync(prjpath+"/tmp");
+	let isExitst = fs.existsSync(prjpath+"/tmp");
 	if(!isExitst){
 		fs.mkdirSync(prjpath+"/tmp");
 	}
 }
 
-function disposeData(name,data){
+function disposeData(name:any,data:any){
 	if(name == "buttons"){
-		caseInfo[name]={};
-		for(var i=0;i<data.length;i++){
+		caseInfo[name] = {};
+		for(let i=0;i<data.length;i++){
 			caseInfo[name][data[i].id] = {
 				content : data[i].content,
 				event : data[i].event
 			}
 		}
 	}else{
-		caseInfo[name]=data;
+		caseInfo[name] = data;
 	}
 }
 

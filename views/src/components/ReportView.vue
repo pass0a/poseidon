@@ -19,11 +19,11 @@
         <el-tabs type="border-card" tab-position="bottom" style="margin:5px 10px 5px 10px;" v-model="current_case_module" @tab-click="select_module">
             <el-tab-pane v-for="it of ModuleData" :label="getResName(it)" :key="it" :name="it"></el-tab-pane>
             <el-checkbox-group v-model="select_prop">
-                <el-checkbox v-for="it of case_prop.keys()" :label="it" :key="it">{{case_prop.get(it)}}</el-checkbox>
+                <el-checkbox v-for="it in case_prop_id" :label="it" :key="it">{{case_prop_name[it]}}</el-checkbox>
             </el-checkbox-group>
             <el-table :data="current_data" style="width: 100%" height="365" size="mini" stripe border ref="reportTable">
                 <el-table-column type="index" label="No." width="50"></el-table-column>
-                <el-table-column v-for="it in isShowRow" :label="case_prop.get(it)" :key="it" :prop="it" resizable></el-table-column>
+                <el-table-column v-for="it in isShowRow" :label="case_prop_name[it]" :key="it" :prop="it" resizable></el-table-column>
                 <el-table-column width="150" label="测试结果" prop="briefResl">
 					<template slot-scope="scope">
 						<span><strong><font size="2" :color="scope.row.briefResl!=undefined?(scope.row.briefResl!=-1?(scope.row.briefResl==0?'#67C23A':'#F56C6C'):'#bbbec4'):'#bbbec4'">{{ scope.row.briefResl!=undefined?(scope.row.briefResl!=-1?(scope.row.briefResl==0?'OK':'NG'):'NotTest'):'NotTest' }}</font></strong></span>
@@ -52,7 +52,8 @@ export default class ReportView extends Vue {
     private current_case_module:any="";
     private report_data:any={};
     private current_data:any=[];
-    private case_prop:any=this.$store.state.case_prop;
+    private case_prop_id:any=this.$store.state.case_prop_id;
+    private case_prop_name:any=this.$store.state.case_prop_name;
     private select_prop:any=this.$store.state.init_checkbox;
     private test_status:any=false;
     get report(){
@@ -64,8 +65,8 @@ export default class ReportView extends Vue {
     }
     get isShowRow(){
         let rows:any=[];
-        for(let item of this.case_prop.keys()){
-            if(this.select_prop.indexOf(item)>-1)rows.push(item);
+        for(let i=0;i<this.case_prop_id.length;i++){
+            if(this.select_prop.indexOf(this.case_prop_id[i])>-1)rows.push(this.case_prop_id[i]);
         }
         return rows; 
     }
@@ -98,7 +99,7 @@ export default class ReportView extends Vue {
         }
     }
     private disposedTestTime(data:any){
-        var time_str="";
+        let time_str="";
         time_str+=data.days?data.days+"天":"";
         time_str+=data.hours?data.hours+"小时":"";
         time_str+=data.minutes?data.minutes+"分钟":"";

@@ -8,6 +8,7 @@ export class ToLink {
 	private inst: any;
 	private proCall:any;
 	private ser: any;
+	private c_flag:boolean = false;
 	constructor() {
 		this.pis.on('data', (data: any) => {
 			this.inst.write(data);
@@ -19,18 +20,22 @@ export class ToLink {
 	connect(ser: Server) {
 		return new Promise((resolve) => {
 			this.ser = ser;
-			let that: any = this;
-			that.inst = net.connect(6000, '127.0.0.1', function() {
-				console.info('web_server connect!!!');
-				that.inst.on('data', function(data: any) {
-					that.pos.push(data);
+			this.inst = net.connect(6000, '127.0.0.1', () => {
+				console.info('Web_server_connect!');
+				this.inst.on('data', (data: any) => {
+					this.pos.push(data);
 				});
-				that.inst.on('close', function() {
-					console.info('close web_server!!!');
+				this.inst.on('close', () => {
+					console.info('close Web_server_connect!');
 				});
-				that.proCall=resolve;
+				this.proCall=resolve;
 			});
-			that.inst.on('error', () => {
+			this.inst.on('error', () => {
+				if(this.c_flag){
+					this.c_flag = false;
+					if(this.ser.inst)this.ser.send({type:'toSer',job:"linkStatus",info:2});
+				}
+				console.error('Web_server_connect error!');
 				resolve(false);
 			});
 		});
@@ -44,6 +49,7 @@ export class ToLink {
 				this.send({type:"info",class:"web",name:"web"});
 				break;
 			case "auth":
+				this.c_flag = true;
 				this.proCall(data.state=="ok");
 				break;
 			default:

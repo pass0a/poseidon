@@ -1,46 +1,44 @@
-var net=require("net");
-var pack=require("@passoa/pack");
-var fs=require("fs");
-var util=require("util");
-var os=require("os");
-var Uarts=require("../uarts/com");
-import Remote from "./index";
-var prjpath=process.argv[2];
-var pos,pis,c;
+import * as net from "net";
+import * as fs from "fs";
+import * as util from "util";
+import * as os from "os";
+import * as childprs from "child_process";
+import * as pack from "@passoa/pack";
+import Remote from "./remote";
+import { Uart } from "./com";
 
-//adb need
-var childprs = require("child_process");
-
+let prjpath = process.argv[2];
+let pis:any;
+let pos:any;
+let intc:any;
 main();
 
 async function main(){
     if(await createdLink()){
-        var path = os.homedir() + "/data_store/config.json";
-        var cfg=JSON.parse(new util.TextDecoder().decode(fs.readFileSync(path)));
-        var isExitst = fs.existsSync(prjpath+"/screen");
-        if(!isExitst){
-            fs.mkdirSync(prjpath+"/screen");
-        }
-        var screenPath = prjpath+"/screen/screen.png";
-        var ret=await Remote.connectDev(cfg.da_server);
+        let path = os.homedir() + "/data_store/config.json";
+        let cfg=JSON.parse(new util.TextDecoder().decode(fs.readFileSync(path)));
+        let isExitst = fs.existsSync(prjpath+"/screen");
+        if(!isExitst)fs.mkdirSync(prjpath+"/screen");
+        let screenPath = prjpath+"/screen/screen.png";
+        let ret=await Remote.connectDev(cfg.da_server);
         if(ret){
             await Remote.sendCmd({type:"cutScreen",filepath:screenPath});
             await sendInfoByLink({type:"toSer",job:"syncRemote",status:ret,path:screenPath});
         }else{
             if(cfg.da_server.type==0){
                 // 串口启动车机Passoa
-                var arm_uart=Uarts.create();
-                var arm_info={port:"",info:{}};
-                for(var prop in cfg.uarts.da_arm){
+                let arm_uart = new Uart();
+                let arm_info:any = {port:"",info:{}};
+                for(let prop in cfg.uarts.da_arm){
                     if(prop == "port")arm_info.port="COM"+cfg.uarts.da_arm[prop];
                     else arm_info.info[prop]=cfg.uarts.da_arm[prop];
                 }
-                var u_ret = await arm_uart.openUart({"port":arm_info.port,"info":arm_info.info});
+                let u_ret = await arm_uart.openUart({"port":arm_info.port,"info":arm_info.info});
                 if(u_ret){
                     await arm_uart.sendData("export LD_LIBRARY_PATH="+cfg.da_server.path+":$LD_LIBRARY_PATH"+" \n",null,1);
                     await arm_uart.sendData(cfg.da_server.path+"/passoa "+cfg.da_server.path+"/robot/index.js& \n",null,1);
                     await wait(500);
-                    var r_ret=await Remote.connectDev(cfg.da_server);
+                    let r_ret=await Remote.connectDev(cfg.da_server);
                     if(r_ret){
                         await Remote.sendCmd({type:"cutScreen",filepath:screenPath});
                     }
@@ -51,10 +49,10 @@ async function main(){
                 }
             }else{
                 // ADB启动车机Passoa
-                var cmd = "adb/adb shell sh /data/app/pack/run.sh \n";
-                childprs.exec(cmd,{windowsHide:true,detached:true});
+                let cmd = "adb/adb shell sh /data/app/pack/run.sh \n";
+                childprs.exec(cmd,{windowsHide:true});
                 await wait(3000);
-                var r_ret=await Remote.connectDev(cfg.da_server);
+                let r_ret=await Remote.connectDev(cfg.da_server);
                 if(r_ret){
                     await Remote.sendCmd({type:"cutScreen",filepath:screenPath});
                 }
@@ -65,7 +63,7 @@ async function main(){
     }
 }
 
-async function wait(w_time){
+async function wait(w_time:any){
     return new Promise(resolve => {
 		setTimeout(function(){
 			resolve(0);
@@ -73,11 +71,11 @@ async function wait(w_time){
     });
 }
 
-async function sendInfoByLink(cmd){
+async function sendInfoByLink(cmd:any){
     return new Promise(resolve => {
-        var flag=1;
-		var tm;
-        pos.on("data",function(data){
+        let flag=1;
+		let tm:any;
+        pos.on("data",(data:any) => {
             if(flag){
                 if(data.type==cmd.type){
                     flag=0;
@@ -98,17 +96,17 @@ async function sendInfoByLink(cmd){
 
 function endTest(){
     Remote.disconnectDev();
-    c.end();
+    intc.end();
 }
 
 async function createdLink(){
     return new Promise(resolve => {
         pos=new pack.outputStream();
         pis=new pack.inputStream();
-        c=net.connect(6000,"127.0.0.1",function(){
-            console.info("test_client connect!!!");
+        intc=net.connect(6000,"127.0.0.1",() => {
+            console.info("pic_client connect!!!");
         });
-        pos.on("data",function(data){
+        pos.on("data",(data:any) => {
             switch(data.type){
                 case "init":
                     pis.push({type:"info",class:"test",name:"remote"});
@@ -118,16 +116,16 @@ async function createdLink(){
                     break;
             }
         });
-        pis.on("data",function(data){
-            c.write(data);
+        pis.on("data",(data:any) => {
+            intc.write(data);
         });
-        c.on("data",function(data){
+        intc.on("data",(data:any) => {
             pos.push(data);
         });
-        c.on("close",function(){
-            console.info("close test_client socket!!!");
+        intc.on("close",function(){
+            console.info("close pic_client socket!!!");
         });
-        c.on("error",function(){
+        intc.on("error",function(){
             console.error("error");
             resolve(0);
         });

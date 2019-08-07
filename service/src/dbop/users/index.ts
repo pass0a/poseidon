@@ -1,12 +1,12 @@
-let Model = require("./model");
+import { getModel } from "./model";
 
-function finduser(data:any, pis:any){
-    Model.findOne({name:data.info.name,psw:data.info.psw},{__v:0},function(err:any,info:any){
+function finduser(data:any, pis:any,Users:any){
+    Users.findOne({name:data.info.name,psw:data.info.psw},{__v:0},function(err:any,info:any){
         if(info){
             data.info = objectIDtoString(info._id.id);
             pis.push(data);
         }else{
-            let model=new Model({
+            let model=new Users({
                 name: "admin",
                 psw: "123"
             });
@@ -30,9 +30,10 @@ function objectIDtoString(buffer:any){
 }
 
 function disposeData(data:any, pis:any){
+    let Users = getModel("users");
     switch(data.job){
         case "find":
-            finduser(data,pis);
+            finduser(data,pis,Users);
             break;
         default:
             break;

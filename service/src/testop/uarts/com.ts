@@ -1,32 +1,29 @@
-function Uart() {
-	var ser = require("./serialport"),
-		uart,
-		name;
-	this.openUart = function (data) {
-		return new Promise(function (resolve) {
-			uart = ser.connect(data.port, data.info, function () {
-				name=data.port;
+export class Uart{
+	private serialport = require("./serialport");
+	private uart:any;
+	private name:any;
+	openUart(data:any) {
+		return new Promise((resolve) => {
+			this.uart = this.serialport.connect(data.port, data.info, () => {
+				this.name = data.port;
 				console.info("serialport: " + data.port + " open!!!");
 				resolve(1);
 			});
-			uart.on("data", function (data) {
+			this.uart.on("data", (data:any) => {
 				console.info(data);
 			});
-			uart.on("end", function () {
+			this.uart.on("end", () => {
 				console.info("serialport: " + data.port + " close!!!");
 				resolve(0);
 			});
-			uart.on("error", function (error, msg) {
-				// console.log(error);
-				// console.log(msg);
+			this.uart.on("error", (error:any, msg:any) => {
 				console.error(data.port+" Error!!!");
 				resolve(0);
 			});
 		});
-	};
-
-	this.sendData = function (buf,parse_data,send_type,timeout) {
-		var data_buf={
+	}
+	sendData(buf:any,parse_data:any,send_type:any,timeout?:any) {
+		let data_buf={
 			uartbuf:new Uint8Array(0),
 			ubuf:new Uint8Array(0),
 			udatalen:0,
@@ -34,32 +31,30 @@ function Uart() {
 			revResult:{},
 			revDone:0
 		}
-		if (timeout == undefined) {
-			timeout = 2000;
-		}
-		return new Promise(function (resolve) {
+		if (timeout == undefined) timeout = 2000;
+		return new Promise((resolve) => {
 			if(send_type){
 				switch(buf.constructor.name){
 					case "String":
-						uart.write(buf);
+						this.uart.write(buf);
 						break;
 					default:
-						uart.write(new Uint8Array(buf));
+						this.uart.write(new Uint8Array(buf));
 						break;
 				}
 				resolve({ ret: 1, data: 1 });
 			}else{
-				var tm = null;
-				uart.on("data", function (data) {
+				let tm :any = null;
+				this.uart.on("data", (data:any) => {
 					if (data_buf.uflag == 1) {
 						data_buf.uartbuf = data;
 					} else {
-						var tmp = new Uint8Array(data.length + data_buf.uartbuf.length);
+						let tmp = new Uint8Array(data.length + data_buf.uartbuf.length);
 						tmp.set(data_buf.uartbuf);
 						tmp.set(data, data_buf.uartbuf.length);
 						data_buf.uartbuf = tmp;
 					}
-					while (dealReceivedData(data_buf,buf,parse_data)); // 接收超出部分需保留
+					while (this.dealReceivedData(data_buf,buf,parse_data)); // 接收超出部分需保留
 					if (data_buf.revDone) {
 						if (tm) {
 							clearTimeout(tm);
@@ -69,9 +64,7 @@ function Uart() {
 						resolve({ ret: 1, data: data_buf.revResult });
 					}
 				});
-				uart.on("error", function (error, msg) {
-					// console.log(error);
-					// console.log(msg);
+				this.uart.on("error", (error:any, msg:any) => {
 					console.error(name+" Error!!!");
 					if (tm) {
 						clearTimeout(tm);
@@ -79,24 +72,22 @@ function Uart() {
 					}
 					resolve({ ret: 0 });
 				});
-				uart.write(new Uint8Array(buf));
-				tm = setTimeout(function () {
+				this.uart.write(new Uint8Array(buf));
+				tm = setTimeout(() => {
 					resolve({ ret: 0 });
 				}, timeout);
 			}
 		});
-	};
-
-	this.closeUart = function () {
-		uart.end();
-	};
-	
-	function dealReceivedData(data_buf,send_buf,parse_data){
+	}
+	closeUart = () => {
+		this.uart.end();
+	}
+	dealReceivedData(data_buf:any,send_buf:any,parse_data:any){
 		switch (data_buf.uflag) {
 			case 0:
-				var hty=parse_data.header_data(data_buf.uartbuf);
+				let hty=parse_data.header_data(data_buf.uartbuf);
 				if(hty==1){
-					var len = parse_data.length_data(data_buf.uartbuf);
+					let len = parse_data.length_data(data_buf.uartbuf);
 					data_buf.ubuf = new Uint8Array(len);
 					if (data_buf.uartbuf.length < len) {
 						data_buf.ubuf.set(data_buf.uartbuf.subarray(0));
@@ -137,13 +128,4 @@ function Uart() {
 		}
 		return 0;
 	}
-
-	function consoleData_16(data) {
-		var val = Duktape.enc('hex', data);
-		console.info("[uart]rev buf:" + val);
-	}
 }
-
-exports.create = function () {
-	return new Uart();
-};

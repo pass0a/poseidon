@@ -1,4 +1,4 @@
-var Model = require("./model");
+import { getModel } from "./model";
 
 function getList(data:any,pis:any,ResModel:any){
     ResModel.aggregate([
@@ -7,7 +7,6 @@ function getList(data:any,pis:any,ResModel:any){
         }}
     ],function(err:any,docs:any){
         if(!err){
-            // console.log(JSON.stringify(docs))
             data.info=JSON.stringify(docs);
             pis.push(data);
         }
@@ -79,7 +78,7 @@ function newPrj(data:any,pis:any,ResModel:any){
 }
 
 function disposeData(data:any,pis:any){
-    var ResModel = Model.getModel(data.info.prjname+"_res");
+    let ResModel = getModel(data.info.prjname+"_res");
     switch(data.job){
         case "list":
             getList(data,pis,ResModel);

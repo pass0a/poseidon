@@ -1,5 +1,6 @@
 <template>
   <div id="app">
+    <el-link v-model="notifyToConnect" v-show="false"></el-link>
     <router-view></router-view>
   </div>
 </template>
@@ -9,31 +10,75 @@ let pis = new pack.inputStream();
 let pos = new pack.outputStream();
 
 import { Component, Prop, Vue } from "vue-property-decorator";
+import { truncate } from 'fs';
 @Component
 export default class App extends Vue {
     private ws: any = null;
-    private count:any=0;
-    private created() {
+    private idn:number = 0;
+    created() {
         pis.on("data", (data: any) => {
             this.ws.send(data);
         });
         pos.on("data", (data: any) => {
             this.revHandle(data);
         });
-        this.ws = new WebSocket("ws://127.0.0.1:6001");
-        this.ws.onopen = () => {
-            this.ws.binaryType = "arraybuffer";
-            this.$store.state.app_info.pis = pis;
-            pis.push({type:"toSer",job:"getAuth"});
-            pis.push({type:"toSer",job:"readConfig"});
-            pis.push({type:"toDB",route:"users",job:"find",info:{name:"admin",psw:"123"}});
-        };
-        this.ws.onmessage = (frm: any) => {
-            pos.push(frm.data);
-        };
-        this.ws.onclose = () => {
-            console.log("close websocket!!!");
-        };
+        this.$store.state.app_info.cflag++;
+    }
+    get notifyToConnect(){
+        if(this.$store.state.app_info.cflag>this.idn){
+            this.idn = this.$store.state.app_info.cflag
+            this.connectServer();
+        }
+        return;
+    }
+    private async connectServer(){
+        let num:any = 5;
+        while(num){
+            if(await this.createWebSocket())break;
+            else await this.wait(1000);
+            num--;
+            if(num==0){
+                this.$store.state.app_info.connect_info.server = 2;
+                this.$store.state.app_info.connect_info.db = 2;
+                this.$store.state.app_info.connect_info.link = 2;
+            }
+        }
+    }
+    private createWebSocket(){
+        return new Promise((resolve) => {
+            let flag = false;
+            this.ws = new WebSocket("ws://127.0.0.1:6001");
+            this.ws.onopen = () => {
+                this.ws.binaryType = "arraybuffer";
+                this.$store.state.app_info.connect_info.server = 1;
+                this.$store.state.app_info.pis = pis;
+                pis.push({type:"toSer",job:"getAuth"});
+                pis.push({type:"toSer",job:"connectStatus"});
+                pis.push({type:"toSer",job:"readConfig"});
+                flag = true;
+                resolve(true);
+            };
+            this.ws.onmessage = (frm: any) => {
+                pos.push(frm.data);
+            };
+            this.ws.onclose = () => {
+                console.log("close websocket!!!");
+                if(flag){
+                    this.$store.state.app_info.connect_info.server = 2;
+                    this.$store.state.app_info.connect_info.db = 2;
+                    this.$store.state.app_info.connect_info.link = 2;
+                    flag = false;
+                }
+                resolve(false);
+            };
+        });
+    }
+    private wait(time:any){
+        return new Promise((resolve) => {
+            setTimeout(function(){
+                resolve(0);
+            },time);
+        });
     }
     private revHandle(data:any){
         switch(data.type){
@@ -65,6 +110,18 @@ export default class App extends Vue {
                     this.$notify({title: '授权成功!',message: '', type: 'success',duration:1500});
                 }
                 else this.$notify({title: '授权码不正确!',message: '', type: 'error',duration:1500});
+                break;
+            case "connectStatus":
+                this.$store.state.app_info.connect_info.link = data.info.link;
+                this.$store.state.app_info.connect_info.db = data.info.db;
+                if(data.info.db==1)pis.push({type:"toDB",route:"users",job:"find",info:{name:"admin",psw:"123"}});
+                break;
+            case "dbStatus":
+                this.$store.state.app_info.connect_info.db = data.info;
+                if(data.info==1)pis.push({type:"toDB",route:"users",job:"find",info:{name:"admin",psw:"123"}});
+                break;
+            case "linkStatus":
+                this.$store.state.app_info.connect_info.link = data.info;
                 break;
             case "readConfig":
                 this.$store.state.setting_info.info = data.info;

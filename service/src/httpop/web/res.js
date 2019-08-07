@@ -1,6 +1,6 @@
 var url=require("url"),
     fs=require("fs"),
-    mime=require('./web/mime')(),
+    mime=require('./mime')(),
     path=require("path");
 
 function formatPath(dir,ext){

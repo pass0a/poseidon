@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "outDir": "./view",  
-    "target": "esnext",
-    "module": "esnext",
+    "target": "es5",
+    "module": "commonjs",
     "strict": true,
     "jsx": "preserve",
     "importHelpers": true,

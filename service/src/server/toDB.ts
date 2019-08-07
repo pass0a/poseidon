@@ -11,10 +11,11 @@ export class ToDB {
 	private prjdir: any = path.dirname(path.dirname(process.execPath)) + '/data_store/projects/';
 	private pis = new pack.inputStream();
 	private pos = new pack.outputStream();
-	private inst: any;
+	public inst: any;
 	private ser: any;
 	private tolink: any;
 	private req_start_flag : any = 0;
+	private ctflag:boolean = false;
 	constructor() {
 		this.pis.on('data', (data: any) => {
 			this.inst.write(data);
@@ -28,18 +29,25 @@ export class ToDB {
 			this.ser = ser;
 			this.tolink = toLink;
 			let config_info = this.readConfig();
-			let that: any = this;
-			that.inst = net.connect(config_info.port, config_info.ip, function() {
-				that.inst.on('data', function(data: any) {
-					that.pos.push(data);
+			this.inst = net.connect(config_info.port, config_info.ip,() => {
+				this.inst.on('data', (data: any) => {
+					this.pos.push(data);
 				});
-				that.inst.on('close', function() {
-					console.info('close DB_Server_connect!!!');
-				});
-				console.info('connect DB_Server success!!!');
+				console.info('connect DB_Server success!');
+				this.ctflag = true;
 				resolve(true);
 			});
-			that.inst.on('error', () => {
+			this.inst.on('close', () => {
+				console.info('close DB_Server_connect!');
+			});
+			this.inst.on('error', () => {
+				this.inst = null;
+				if(this.ctflag){
+					this.ctflag = false;
+					this.ser.connect_status.db = 2;
+					if(this.ser.inst)this.ser.send({type:'toSer',job:"dbStatus",info:2});
+				}
+				console.error('DB_Server_connect error!');
 				resolve(false);
 			});
 		});
@@ -60,13 +68,17 @@ export class ToDB {
 		// console.log('toDB_rev:', data);
 		if(data.type=='toDB'){
 			switch(data.route){
+				case 'connect':
+					this.ser.connect_status.db = data.info;
+					data = {type:'toSer',job:"dbStatus",info:data.info};
+					break;
 				case 'projects':
 					if(data.job == 'add' && data.info.state)fs.mkdirSync(this.prjdir + data.info.name);
 					break;
 				default:
 					break;
 			}
-			this.ser.send(data);
+			if(this.ser.inst)this.ser.send(data);
 		}else if(data.type=='toSer'){
 			let filename = this.prjdir + data.info.prjname + '/'+ data.route +'.json';
 			fs.writeFileSync(filename, data.info.data);
