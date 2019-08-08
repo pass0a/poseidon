@@ -71,6 +71,7 @@ export default new Vuex.Store({
 		steps_info:{
 			reslist:{},
 			rulelist:{},
+			buttonlist:{},
 			steplist:[]
 		},
 		screen_info:{

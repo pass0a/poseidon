@@ -130,7 +130,7 @@ export default class Home extends Vue {
     }
     private selectMode(key:any){
         if(this.connectStatus.server!=1||this.connectStatus.db!=1||this.connectStatus.link!=1){
-          this.$notify({title: '请检查连接状态!',message: '', type: 'error',duration:1500});
+          this.$notify({title: '请检查连接状态!',message: '', type: 'warning',duration:1500});
           return;
         }
         this.$store.state.home_info.mode = key;

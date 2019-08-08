@@ -22,7 +22,6 @@ export default class App extends Vue {
         pos.on("data", (data: any) => {
             this.revHandle(data);
         });
-<<<<<<< HEAD
         this.$store.state.app_info.cflag++;
     }
     get notifyToConnect(){
@@ -80,22 +79,6 @@ export default class App extends Vue {
                 resolve(0);
             },time);
         });
-=======
-        this.ws = new WebSocket("ws://127.0.0.1:6001");
-        this.ws.onopen = () => {
-            this.ws.binaryType = "arraybuffer";
-            this.$store.state.app_info.pis = pis;
-            pis.push({type:"toSer",job:"getAuth"});
-            pis.push({type:"toSer",job:"readConfig"});
-            pis.push({type:"toDB",route:"users",job:"find",info:{name:"admin",psw:"123"}});
-        };
-        this.ws.onmessage = (frm: any) => {
-            pos.push(frm.data);
-        };
-        this.ws.onclose = () => {
-            console.log("close websocket!!!");
-        };
->>>>>>> 34f4941093642cec9b8a354d71bfef066e850832
     }
     private revHandle(data:any){
         switch(data.type){
@@ -156,6 +139,7 @@ export default class App extends Vue {
                 this.$store.state.req_info.refresh_rl = 0;
                 pis.push({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
                 pis.push({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                pis.push({type:"toDB",route:"buttons",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
                 break;
             case "syncRemote":
                 this.$store.state.screen_info.status = data.status;
@@ -280,6 +264,7 @@ export default class App extends Vue {
                     this.$store.state.req_info.refresh_rl = 0;
                     pis.push({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
                     pis.push({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                    pis.push({type:"toDB",route:"buttons",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
                     this.$store.state.project_info.newflag=false;
                     this.$store.state.editcase_info.refresh_data=true;
                     this.$notify({title: '项目创建成功!',message: '', type: 'success',duration:1500});
@@ -319,7 +304,10 @@ export default class App extends Vue {
                         name : data.info.name
                     }
                 }
-                pis.push(a_req);
+                pis.push({type:"toDB",route:"res",job:"add",info:data.info});
+                if(data.info.msg.id.indexOf('button')>-1){
+                    pis.push({type:"toDB",route:"buttons",job:"add",info:data.info});
+                }
                 break;
             case "new":
                 this.$store.state.req_info.new_prj++;
@@ -327,6 +315,7 @@ export default class App extends Vue {
                     this.$store.state.req_info.refresh_rl = 0;
                     pis.push({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
                     pis.push({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                    pis.push({type:"toDB",route:"buttons",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
 
                     this.$store.state.project_info.newflag=false;
                     this.$store.state.editcase_info.refresh_data=true;
@@ -343,11 +332,30 @@ export default class App extends Vue {
                     this.$store.state.req_info.refresh_rl = 0;
                     pis.push({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
                     pis.push({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
-
+                    pis.push({type:"toDB",route:"buttons",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                    
                     this.$store.state.project_info.newflag=false;
                     this.$store.state.editcase_info.refresh_data=true;
                     this.$notify({title: '项目创建成功!',message: '', type: 'success',duration:1500});
                 }
+                break;
+            case "list":
+                let list=JSON.parse(data.info.data);
+                let buttonlist:any={};
+                for(let i=0;i<list.length;i++){
+                    let id=list[i].id;
+                    buttonlist[id]={
+                        event:list[i].event,
+                        event_down_1:list[i].content[0][0],
+                        event_down_2:list[i].content[0][1],
+                        event_up_1:list[i].content[1][0],
+                        event_up_2:list[i].content[1][1],
+                    }
+                }
+                this.$store.state.steps_info.buttonlist=buttonlist;
+                break;
+            case "add":
+                pis.push({type:"toDB",route:"buttons",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
                 break;
         }
     }
