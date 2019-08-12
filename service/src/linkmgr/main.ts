@@ -5,8 +5,8 @@ import { Web_mgr } from "./mgr_web";
 
 class Linkmgr {
 	private ints:any;
-	private pos:any = new pack.outputStream();
-	private pis:any = new pack.inputStream();
+	private pos:any = new pack.unpackStream();
+	private pis:any = new pack.packStream();
 	private lk:any = [];
 	private app = net.createServer((c:any) =>{
 		this.ints = c;

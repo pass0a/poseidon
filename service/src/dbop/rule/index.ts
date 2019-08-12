@@ -17,7 +17,7 @@ function add(data:any,pis:any,RuleModel:any){
     let id:any = data.info.msg.id;
     RuleModel.findOne({id:id},{__v:0,_id:0},function(err:any,msg:any){
         if(msg){
-            let newId = disposeIdInfo(msg.content[msg.content.length-1]);
+            let newId = msg.content.length>0?disposeIdInfo(msg.content[msg.content.length-1]):id+"-1";
             RuleModel.updateOne({id:id},{$addToSet:{content:newId}},function(err:any,mg:any){
                 if(!err){
                     data.info.msg.id = newId;
@@ -32,7 +32,7 @@ function add(data:any,pis:any,RuleModel:any){
             });
             model.save(function (err:any,mg:any){
                 if(!err){
-                    data.info = {id:newId,name:data.info.msg.name};
+                    data.info.msg.id = newId;
                     pis.push(data);
                 }
             });
@@ -60,14 +60,6 @@ function newPrj(data:any,pis:any,RuleModel:any){
             content: ["operate_tool-1","operate_tool-2"]
         },
         {
-            id: "operate_tool-1",
-            content: ["operate_tool-1-1","operate_tool-1-2"]
-        },
-        {
-            id: "operate_tool-2",
-            content: ["operate_tool-2-1","operate_tool-2-2"]
-        },
-        {
             id: "button",
             content: ["button-1", "button-2"]
         },
@@ -77,13 +69,44 @@ function newPrj(data:any,pis:any,RuleModel:any){
         },
         {
             id: "module",
-            content: ["module-1","module-2","module-3","module-4","module-5"]
+            content: ["module-1","module-2","module-3"]
         }
     ];
+    // 工具板
+    for(let i=1;i<3;i++){
+        let opt:any = {
+            id : "operate_tool-"+i,
+            content : []
+        };
+        for(let j=1;j<17;j++){
+            opt.content.push(opt.id+"-"+j);
+        }
+        new_arr.push(opt);
+    }
+
     RuleModel.insertMany(new_arr, function(err:any, msg:any) {
         if(!err){
             data.info = true;
             pis.push(data);
+        }
+    });
+}
+
+function removeID(data:any,pis:any,RuleModel:any){
+    let info = data.info.msg;
+    RuleModel.updateOne({id:info.pid},{$pull:{content:info.id}},(err:any,msg:any) => {
+        if(!err){
+            if(info.type){
+                RuleModel.deleteOne({id:info.id},(error:any) => {
+                    if(!error){
+                        data.info = true;
+                        pis.push(data);
+                    }
+                });
+            }else{
+                data.info = true;
+                pis.push(data);
+            }
         }
     });
 }
@@ -99,6 +122,9 @@ function disposeData(data:any,pis:any){
             break;
         case "new":
             newPrj(data,pis,RuleModel);
+            break;
+        case "remove_id":
+            removeID(data,pis,RuleModel);
             break;
         default:
             break;

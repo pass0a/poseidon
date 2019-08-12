@@ -11,8 +11,8 @@ import status from './status/index';
 
 //config.logmode('rotating', 'passoa', __dirname + '/passoa.log', 1024 * 1024 * 5, 1);
 
-let pis = new pack.inputStream();
-let pos = new pack.outputStream();
+let pis = new pack.packStream();
+let pos = new pack.unpackStream();
 let sv: any;
 let DB_URL = 'mongodb://127.0.0.1/poseidon_data';
 let options = { useNewUrlParser: true, ssl: false };

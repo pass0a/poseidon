@@ -5,8 +5,8 @@ import * as path from "path";
 import * as fs from "fs";
 
 export class Web_mgr {
-	private pos:any = new pack.outputStream();
-	private pis:any = new pack.inputStream();
+	private pos:any = new pack.unpackStream();
+	private pis:any = new pack.packStream();
 	private intc:any;
 	private link:any;
 	constructor() {

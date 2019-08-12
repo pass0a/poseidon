@@ -55,9 +55,22 @@ export default class AlertView extends Vue {
                 this.alertInfo.content="是否确定重新开始测试?";
                 this.alertInfo.btn="确定";
                 break;
+            case 4:
+                this.alertInfo.title="删除选项";
+                this.alertInfo.content="是否确定删除选项 : " + this.getResName(this.$store.state.alert_info.info.id) +" ?注意:确定后将自动在所有用例的自动化步骤中删除此选项!";
+                this.alertInfo.btn="确定";
+                break;
+            case 5:
+                this.alertInfo.title="删除模块";
+                this.alertInfo.content="是否确定删除整个模块 : " + this.getResName(this.$store.state.alert_info.info.id) +" ?注意:确定后将自动删除该模块的所有用例!请谨慎操作!";
+                this.alertInfo.btn="确定";
+                break;
             default:
                 break;
         }
+    }
+    private getResName(id:string){
+        return this.$store.state.steps_info.reslist[id];
     }
     private cancel(){
         this.$store.state.alert_info.showflag=false;
@@ -92,6 +105,35 @@ export default class AlertView extends Vue {
                 this.$store.state.app_info.pis.push({type:"toSer",job:"replayTest",info:{prjname:this.$store.state.project_info.current_prj,uid:this.$store.state.login_info._id}});
                 this.$store.state.test_info.count++;
                 this.$store.state.alert_info.showflag = false;
+                break;
+            case 4:
+                let di_info = {
+                    prjname:this.$store.state.project_info.current_prj,
+                    msg:{
+                        type: this.$store.state.alert_info.info.type,
+                        id: this.$store.state.alert_info.info.id,
+                        pid: this.$store.state.alert_info.info.pid
+                    }
+                };
+                this.$store.state.req_info.remove_id = 0;
+                this.sendReq("toDB","cases","remove_id",di_info);
+                this.sendReq("toDB","res","remove_id",di_info);
+                this.sendReq("toDB","rule","remove_id",di_info);
+                if(di_info.msg.id.indexOf("button")>-1)this.sendReq("toDB","buttons","remove_id",di_info);
+                break;
+            case 5:
+                let dmo_info = {
+                    prjname:this.$store.state.project_info.current_prj,
+                    msg:{
+                        type: this.$store.state.alert_info.info.type,
+                        id: this.$store.state.alert_info.info.id,
+                        pid: this.$store.state.alert_info.info.pid
+                    }
+                };
+                this.$store.state.req_info.remove_id = 0;
+                this.sendReq("toDB","cases","remove_module",dmo_info);
+                this.sendReq("toDB","res","remove_id",dmo_info);
+                this.sendReq("toDB","rule","remove_id",dmo_info);
                 break;
         }
     }

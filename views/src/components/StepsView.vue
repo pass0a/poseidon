@@ -1,8 +1,7 @@
 <template>
     <div style="margin:5px 5px 0px 0px;">
         <el-link v-model="clearInfo" v-show="false"></el-link>
-        <el-link v-model="ResList" v-show="false"></el-link>
-        <el-link v-model="RuleList" v-show="false"></el-link>
+        <el-link v-model="ActList" v-show="false"></el-link>
         <el-link v-model="StepList" v-show="false"></el-link>
         <ul v-for="(it,idx) in steplist" :key="idx">
             <div v-show="idx==s_idx&&(s_op>1&&s_op<4)">
@@ -71,8 +70,6 @@
 import { Component, Prop, Vue } from "vue-property-decorator";
 @Component
 export default class StepsView extends Vue {
-    private reslist:any;
-    private rulelist:any;
     private Action:any=[];
     private s_action:string="";
     private s_module:string="";
@@ -95,12 +92,7 @@ export default class StepsView extends Vue {
         }
         return;
     }
-    get ResList(){
-        this.reslist=this.$store.state.steps_info.reslist;
-        return;
-    }
-    get RuleList(){
-        this.rulelist=this.$store.state.steps_info.rulelist;
+    get ActList(){
         this.Action=this.$store.state.steps_info.rulelist.action;
         return;
     }
@@ -109,13 +101,13 @@ export default class StepsView extends Vue {
         return;
     }
     get Module(){
-        return this.rulelist[this.s_action]!=undefined?this.rulelist[this.s_action]:[];
+        return this.$store.state.steps_info.rulelist[this.s_action]!=undefined?this.$store.state.steps_info.rulelist[this.s_action]:[];
     }
     get Clid(){
-        return this.rulelist[this.s_module]!=undefined?this.rulelist[this.s_module]:[];
+        return this.$store.state.steps_info.rulelist[this.s_module]!=undefined?this.$store.state.steps_info.rulelist[this.s_module]:[];
     }
     private getResName(id:any){
-        return this.reslist[id];
+        return this.$store.state.steps_info.reslist[id];
     }
     private changeSel(flag:Number){
         switch(flag){

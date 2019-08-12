@@ -41,6 +41,30 @@ function add(data:any,pis:any,BtnModel:any){
 	});
 }
 
+function modify(data:any,pis:any,BtnModel:any){
+    let info:any = data.info.msg;
+    BtnModel.updateOne({id:info.id},{$set: {
+		event:info.event,
+		content:info.content
+		}},function(err:any){
+			if(!err){
+                data.info=true;
+                pis.push(data);
+			}
+        }
+    );
+}
+
+function removeID(data:any,pis:any,BtnModel:any){
+    let info = data.info.msg;
+    BtnModel.deleteOne({id:info.id},function(err:any){
+        if(!err){
+            data.info = true;
+            pis.push(data);
+        }
+    });
+}
+
 function disposeData(data:any,pis:any){
     let BtnModel = getModel(data.info.prjname+"_btn");
     switch(data.job){
@@ -52,6 +76,12 @@ function disposeData(data:any,pis:any){
             break;
         case "add":
             add(data,pis,BtnModel);
+            break;
+        case "modify":
+            modify(data,pis,BtnModel);
+            break;
+        case "remove_id":
+            removeID(data,pis,BtnModel);
             break;
         case "startTest":
             getList(data,pis,BtnModel);

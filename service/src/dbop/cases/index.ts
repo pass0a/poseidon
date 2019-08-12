@@ -97,6 +97,35 @@ function deleteCase(data:any,pis:any,CaseModel:any){
     });
 }
 
+function removeStepID(data:any,pis:any,CaseModel:any){
+    let info = data.info.msg;
+    if(info.type == 0){
+        CaseModel.updateMany({},{$pull:{case_steps:{id:info.id}}},(err:any,msg:any) => {
+            if(!err){
+                data.info = true;
+                pis.push(data);
+            }
+        });
+    }else{
+        CaseModel.updateMany({},{$pull:{case_steps:{module:info.id}}},(err:any,msg:any) => {
+            if(!err){
+                data.info = true;
+                pis.push(data);
+            }
+        });
+    }
+}
+
+function removeModule(data:any,pis:any,CaseModel:any){
+    let info = data.info.msg;
+    CaseModel.deleteMany({case_module:info.id},(err:any) => {
+        if(!err){
+            data.info = true;
+            pis.push(data);
+        }
+    });
+}
+
 function objectIDtoString(buffer:any){
     let str:string = "";
     for(let buf of buffer){
@@ -124,6 +153,12 @@ function disposeData(data:any,pis:any){
             break;
         case "delete":
             deleteCase(data,pis,CaseModel);
+            break;
+        case "remove_id":
+            removeStepID(data,pis,CaseModel);
+            break;
+        case "remove_module":
+            removeModule(data,pis,CaseModel);
             break;
         default:
             break;
