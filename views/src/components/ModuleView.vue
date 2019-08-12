@@ -1,7 +1,5 @@
 <template>
     <div>
-        <el-link v-model="ResList" v-show="false"></el-link>
-        <el-link v-model="RuleList" v-show="false"></el-link>
         <el-link v-model="updateModule" v-show="false"></el-link>
         <el-button-group style="margin:10px 0px 5px 10px;">
             <el-button plain icon="el-icon-plus" size="small" @click="addModule">新增模块</el-button>
@@ -9,10 +7,15 @@
         <el-card class="box-card" shadow="never" style="margin:5px 10px 10px 10px;">
             <el-table :data="data" style="width: 100%" height="370" size="mini" stripe border ref="ModuleTable" @cell-dblclick="cellDbClick" @cell-click="cellClick">
                 <el-table-column prop="id" label="ID [ 不可修改 ]"></el-table-column>
-                <el-table-column prop="name" label="名称 [ 可修改 ]">
+                <el-table-column prop="name" label="名称 [ 双击可修改 ]">
                     <template slot-scope="{row}">
                         <span v-if="row.idx!=idx">{{row.name}}</span>
                         <el-input v-if="row.idx==idx" @blur="saveEdit(row)" v-model="row.name" placeholder="请输入内容" style="width:220px"></el-input>
+                    </template>
+                </el-table-column>
+                <el-table-column label="操作" width="100">
+                    <template slot-scope="scope">
+                        <button class="button" style="background-color:#F56C6C" @click="deleteModule(scope.row.id)">删除</button>
                     </template>
                 </el-table-column>
             </el-table>
@@ -38,28 +41,20 @@
 import { Component, Prop, Vue } from "vue-property-decorator";
 @Component
 export default class ModuleView extends Vue {
-    private reslist:any={};
-    private rulelist:any={};
     private data:any=[];
     private isEdit:any=[];
     private idx:any=-1;
     private name:string="";
     private new_name:string="";
     private showflag:boolean=false;
-    get ResList(){
-        this.reslist=this.$store.state.steps_info.reslist;
-        return;
-    }
-    get RuleList(){
-        this.rulelist=this.$store.state.steps_info.rulelist;
-        return;
-    }
     get updateModule(){
         if(this.$store.state.module_info.enter>0){
             this.data = [];
             let m_idx = 0;
-            for(let it of this.rulelist.module){
-                this.data.push({id:it,name:this.reslist[it],idx:m_idx++});
+            if(this.$store.state.steps_info.rulelist.module&&this.$store.state.steps_info.rulelist.module.length){
+                for(let it of this.$store.state.steps_info.rulelist.module){
+                    this.data.push({id:it,name:this.$store.state.steps_info.reslist[it],idx:m_idx++});
+                }
             }
         }
         return;
@@ -93,6 +88,13 @@ export default class ModuleView extends Vue {
     private ok(){
         this.sendSeq("rule","add",{id:"module",name:this.new_name});
         this.showflag = false;
+    }
+    private deleteModule(id:any){
+        this.$store.state.alert_info.showflag = true;
+        this.$store.state.alert_info.type = 5;
+        this.$store.state.alert_info.info.type = 0;
+        this.$store.state.alert_info.info.id = id;
+        this.$store.state.alert_info.info.pid = "module";
     }
     private sendSeq(route:any,job:any,msg:any){
         let req = {

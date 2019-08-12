@@ -49,20 +49,34 @@ function newPrj(data:any,pis:any,ResModel:any){
         {id:"button",name:"硬按键"},
         {id:"operate_tool-1",name:"打开"},
         {id:"operate_tool-2",name:"关闭"},
-        {id:"operate_tool-1-1",name:"继电器_1"},
-        {id:"operate_tool-1-2",name:"继电器_2"},
-        {id:"operate_tool-2-1",name:"继电器_1"},
-        {id:"operate_tool-2-2",name:"继电器_2"},
         {id:"button-1",name:"面板按键"},
         {id:"button-2",name:"方控按键"},
         {id:"button-1-1",name:"HOME"},
         {id:"module-1",name:"System"},
-        {id:"module-2",name:"AUX"},
-        {id:"module-3",name:"USB"},
-        {id:"module-4",name:"IPOD"},
-        {id:"module-5",name:"Radio"}
+        {id:"module-2",name:"Radio"},
+        {id:"module-3",name:"USB"}
     ];
+    // 工具板
+    for(let i=1;i<3;i++){
+        for(let j=1;j<17;j++){
+            let opt:any = {
+                id : "operate_tool-"+i+"-"+j,
+                name : "继电器_"+j
+            };
+            new_arr.push(opt);
+        }
+    }
     ResModel.insertMany(new_arr, function(err:any, msg:any) {
+        if(!err){
+            data.info = true;
+            pis.push(data);
+        }
+    });
+}
+
+function removeID(data:any,pis:any,ResModel:any){
+    let info:any = data.info.msg;
+    ResModel.deleteOne({id:info.id},function(err:any){
         if(!err){
             data.info = true;
             pis.push(data);
@@ -84,6 +98,10 @@ function disposeData(data:any,pis:any){
             break;
         case "new":
             newPrj(data,pis,ResModel);
+            break;
+        case "remove_id":
+            removeID(data,pis,ResModel);
+            break;
         default:
             break;
     }

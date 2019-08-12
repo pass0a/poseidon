@@ -30,7 +30,7 @@ const nodeConfig = {
 		db:'./src/dbop/main.ts',
 		http:'./src/httpop/main.ts',
 		test:'./src/testop/main.ts'
-		
+
 	},
 	output: {
 		path: path.resolve(__dirname, distfolder),

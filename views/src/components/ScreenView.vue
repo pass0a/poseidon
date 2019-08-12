@@ -8,6 +8,7 @@
         <el-link v-model="RuleList" v-show="false"></el-link>
         <el-button style="margin:5px 0px 0px 10px;" plain icon="el-icon-picture" @click="onSync" v-show="!btnStatus">同步车机</el-button>
         <el-button style="margin:5px 0px 0px 10px;" plain icon="el-icon-loading" v-show="btnStatus">同步中...</el-button>
+        <span style="margin:0px 0px 0px 10px;"><font size="3">当前同步模式 : {{ readSyncMode }}</font></span>
         <el-card  style="margin:5px 10px 0px 10px;" shadow="never">
             <img id="screen" src="/src/assets/none.png" :draggable="false">
         </el-card>
@@ -97,6 +98,23 @@ export default class ScreenView extends Vue {
     }
     get Clid(){
         return this.rulelist[this.s_module]!=undefined?this.rulelist[this.s_module]:[];
+    }
+    get readSyncMode(){
+        let mode = "";
+        if(this.$store.state.setting_info.info.da_server!=undefined){
+            switch(this.$store.state.setting_info.info.da_server.type){
+                case 0:
+                    mode = "Wi-Fi";
+                    break;
+                case 1:
+                    mode = "Wi-Fi";
+                    break;
+                case 2:
+                    mode = "ADB";
+                    break;
+            }
+        }
+        return mode;
     }
     private getResName(id:any){
         return this.reslist[id];

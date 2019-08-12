@@ -7,6 +7,7 @@ export default new Vuex.Store({
 	state:{
 		req_info:{
 			new_prj : 0,
+			remove_id : 0,
 			refresh_rl : 0
 		},
 		app_info:{
@@ -51,7 +52,7 @@ export default new Vuex.Store({
 		alert_info:{
 			showflag:false,
 			type: 0,
-			info:""
+			info:{}
 		},
 		report_info:{
 			data:"",

@@ -76,7 +76,7 @@ export default class EditCasesView extends Vue {
             let module_data = this.$store.state.steps_info.rulelist.module;
             if(module_data&&module_data.length){
                 this.current_case_module=module_data[0];
-                this.caselist[module_data[0]]=[];
+                if(this.caselist[module_data[0]]==undefined)this.caselist[module_data[0]]=[];
                 this.current_data=this.caselist[module_data[0]];
             }else{
                 this.current_case_module="";
@@ -92,6 +92,8 @@ export default class EditCasesView extends Vue {
                 case 0:
                     if(this.caselist[module_op]==undefined)this.caselist[module_op]=[];
                     this.caselist[module_op].push(JSON.parse(JSON.stringify(this.$store.state.case_info.data)));
+                    this.current_case_module = module_op;
+                    this.current_data=this.caselist[module_op];
                     break;
                 case 1:
                     let data_op=JSON.parse(JSON.stringify(this.$store.state.case_info.data));
@@ -122,6 +124,7 @@ export default class EditCasesView extends Vue {
     }
     private select_module(){
         this.current_data=this.caselist[this.current_case_module];
+        if(this.current_data==undefined)this.current_data=[];
     }
     private addCase(){
         this.$store.state.case_info.type=0;

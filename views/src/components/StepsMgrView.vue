@@ -1,7 +1,5 @@
 <template>
     <div>
-        <el-link v-model="ResList" v-show="false"></el-link>
-        <el-link v-model="RuleList" v-show="false"></el-link>
         <el-link v-model="ButtonList" v-show="false"></el-link>
         <el-link v-model="updateShowflage" v-show="false"></el-link>
         <el-tabs type="border-card" style="margin:5px 10px 10px 10px;" v-model="actionName" @tab-click="clickAction()">
@@ -12,7 +10,17 @@
             </el-button-group>
             <el-button style="margin:0px 0px 10px 0px;" plain icon="el-icon-plus" size="small" @click="addID(2)" v-show="actionName.length>1&&actionName=='button'">添加硬按键</el-button>
             <el-tabs tab-position="left" v-model="moduleName" @tab-click="clickModule()">
-				<el-tab-pane v-for="it in Module" :name="it" :key="it" :label="getResName(it)"></el-tab-pane>
+				<el-tab-pane v-for="it in Module" :name="it" :key="it">
+                    <span slot="label">
+                        {{getResName(it)}}  
+                        <a @click.prevent="editID(it)" v-if="showEditIcon(it)">
+                            <i class="el-icon-edit"></i>
+                        </a>
+                        <a @click.prevent="deleteID(1,it)" v-if="showEditIcon(it)">
+                            <i class="el-icon-delete"></i>
+                        </a>
+                    </span>
+                </el-tab-pane>
                 <el-table :data="TableData" style="width: 100%" height="370" size="mini" stripe border ref="stepsTable" :empty-text="emptyText()">
                     <el-table-column prop="id" label="名称">
                         <template slot-scope="scope">
@@ -20,9 +28,10 @@
                         </template>
                     </el-table-column>
                     <el-table-column prop="id" label="ID"></el-table-column>
-                    <el-table-column label="操作" width="100">
+                    <el-table-column label="操作" width="150">
                         <template slot-scope="scope">
-                            <button class="button" @click="edit(scope.row.id)">修改</button>
+                            <button class="button" @click="editID(scope.row.id)">修改</button>
+                            <button class="button" style="background-color:#F56C6C" @click="deleteID(0,scope.row.id)">删除</button>
                         </template>
                     </el-table-column>
                 </el-table>
@@ -113,7 +122,6 @@ export default class StepsMgrView extends Vue {
     private actionList:any=["click","assert_pic","button"];
     private actionName:any=this.actionList[0];
     private moduleName:any="";
-    private reslist:any;
     private rulelist:any;
     private buttonlist:any;
     private current_data:any=[];
@@ -135,19 +143,12 @@ export default class StepsMgrView extends Vue {
         name:[{ required: true, message: '名称不能为空', trigger: 'blur' }],
         event:[{ required: true, message: 'Event不能为空', trigger: 'blur' }]
     }
-    get ResList(){
-        this.reslist=this.$store.state.steps_info.reslist;
-        return;
-    }
-    get RuleList(){
-        this.rulelist=this.$store.state.steps_info.rulelist;
-        return;
-    }
     get ButtonList(){
         this.buttonlist=this.$store.state.steps_info.buttonlist;
         return;
     }
     get Module(){
+        this.rulelist=this.$store.state.steps_info.rulelist;
         if(this.moduleName==""||this.moduleName==0){
             if(this.rulelist[this.actionName]!=undefined&&this.rulelist[this.actionName].length){
                 this.moduleName = this.rulelist[this.actionName][0];
@@ -160,7 +161,7 @@ export default class StepsMgrView extends Vue {
     }
     get TableData(){
         if(this.moduleName.length>1){
-            let rl = this.rulelist[this.moduleName];
+            let rl = this.$store.state.steps_info.rulelist[this.moduleName];
             if(rl!=undefined){
                 let content=[];
                 for(let i=0;i<rl.length;i++){
@@ -184,6 +185,9 @@ export default class StepsMgrView extends Vue {
         }
         return;
     }
+    private showEditIcon(id:any){
+        return id.indexOf("button")>-1?false:true;
+    }
     private clickAction(){
         let rl = this.rulelist[this.actionName];
         if(rl!=undefined){
@@ -197,7 +201,7 @@ export default class StepsMgrView extends Vue {
     private changeAction(){
         this.add_info.module = "";
     }
-    private edit(id:any){
+    private editID(id:any){
         this.edit_info.id = id;
         this.edit_info.name = this.getResName(id);
         if(id.indexOf("button")>-1){
@@ -209,6 +213,13 @@ export default class StepsMgrView extends Vue {
             this.edit_info.event_up_2 =btn.event_up_2;
         }
         this.editflag = true;
+    }
+    private deleteID(type:number,id:any){
+        this.$store.state.alert_info.showflag = true;
+        this.$store.state.alert_info.type = 4;
+        this.$store.state.alert_info.info.type = type;
+        this.$store.state.alert_info.info.id = id;
+        this.$store.state.alert_info.info.pid = type?this.actionName:this.moduleName;
     }
     private addID(type:number){
         this.count = this.$store.state.id_info.count;
@@ -246,11 +257,7 @@ export default class StepsMgrView extends Vue {
                     case 2:
                         req.id = this.add_info.module;
                         req.event = this.add_info.event;
-                        req.content = [[],[]];
-                        req.content[0].push(this.add_info.event_down_1);
-                        req.content[0].push(this.add_info.event_down_2);
-                        req.content[1].push(this.add_info.event_up_1);
-                        req.content[1].push(this.add_info.event_up_2);
+                        req.content = [[this.add_info.event_down_1,this.add_info.event_down_2],[this.add_info.event_up_1,this.add_info.event_up_2]];
                         break;
                 }
                 this.sendReq("rule","add",req);
@@ -265,7 +272,17 @@ export default class StepsMgrView extends Vue {
     private editOk(){
         (this as any).$refs.editform.validate((valid:any) => {
             if(valid){
-                // this.loading = true;
+                this.loading = true;
+                this.sendReq("res","modify",{id:this.edit_info.id,name:this.edit_info.name});
+                if(this.edit_info.id.indexOf("button")>-1){
+                    let msg = {
+                        id : this.edit_info.id,
+                        event : this.edit_info.event,
+                        content : [[this.edit_info.event_down_1,this.edit_info.event_down_2],[this.edit_info.event_up_1,this.edit_info.event_up_2]]
+                    }
+                    this.sendReq("buttons","modify",msg);
+                }
+                this.editflag = false;
             }
         });
     }
@@ -274,7 +291,7 @@ export default class StepsMgrView extends Vue {
         this.editflag = false;
     }
     private getResName(id:any){
-        return this.reslist[id];
+        return this.$store.state.steps_info.reslist[id];
     }
     private emptyText(){
         return this.actionName.length>1?"暂无数据":"请选择动作";
