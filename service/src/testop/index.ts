@@ -411,8 +411,8 @@ async function sendInfoByLink(cmd:any){
 
 async function createdLink(){
     return new Promise(resolve => {
-        pos=new pack.outputStream();
-        pis=new pack.inputStream();
+        pos=new pack.unpackStream();
+        pis=new pack.packStream();
         c=net.connect(6000,"127.0.0.1",function(){
             console.info("test_client connect!!!");
         });

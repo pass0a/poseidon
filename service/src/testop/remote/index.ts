@@ -3,8 +3,8 @@ import * as fs from "fs";
 import * as pack from "@passoa/pack";
 
 class Remote{
-    private pos:any = new pack.outputStream();
-    private pis:any = new pack.inputStream();
+    private pos:any = new pack.unpackStream();
+    private pis:any = new pack.packStream();
     private intc:any;
     private platform:any;
     private alive:any = 0;

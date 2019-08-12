@@ -3,8 +3,8 @@ import * as pack from '@passoa/pack';
 import { Server } from './server';
 
 export class ToLink {
-	private pis = new pack.inputStream();
-	private pos = new pack.outputStream();
+	private pis = new pack.packStream();
+	private pos = new pack.unpackStream();
 	private inst: any;
 	private proCall:any;
 	private ser: any;

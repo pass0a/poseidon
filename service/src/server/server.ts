@@ -13,8 +13,8 @@ declare function __passoa_auth_gethwid(): any;
 declare function __passoa_auth_setsn(authnum:any): any;
 
 export class Server {
-	private pis = new pack.inputStream();
-	private pos = new pack.outputStream();
+	private pis = new pack.packStream();
+	private pos = new pack.unpackStream();
 	private hp: http.Server;
 	public inst: any;
 	private wss: ws.websocket;

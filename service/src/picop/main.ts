@@ -101,8 +101,8 @@ function endTest(){
 
 async function createdLink(){
     return new Promise(resolve => {
-        pos=new pack.outputStream();
-        pis=new pack.inputStream();
+        pos=new pack.unpackStream();
+        pis=new pack.packStream();
         intc=net.connect(6000,"127.0.0.1",() => {
             console.info("pic_client connect!!!");
         });
