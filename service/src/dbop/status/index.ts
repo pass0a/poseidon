@@ -11,7 +11,7 @@ function add(data:any,pis:any,StatusModel:any){
 	model.save(function (err:any,msg:any){
 		if(!err){
             data.info = true;
-            pis.push(data);
+            pis.write(data);
 		}
 	});
 }
@@ -21,7 +21,7 @@ function remove(data:any,pis:any,StatusModel:any){
     StatusModel.deleteOne({type:info.type,cid:createObjectID(info.cid),uid:createObjectID(info.uid)},function(err:any){
         if(!err){
             data.info = true;
-            pis.push(data);
+            pis.write(data);
 		}
     });
 }
@@ -51,7 +51,7 @@ function getTestList(data:any,pis:any,StatusModel:any){
             }
             data.route = "caselist";
             data.info.data = JSON.stringify(testlist);
-            pis.push(data);
+            pis.write(data);
         }
     });
 }

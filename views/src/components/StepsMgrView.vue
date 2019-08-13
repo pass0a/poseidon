@@ -306,7 +306,7 @@ export default class StepsMgrView extends Vue {
                 msg : msg
             }
         }
-        this.$store.state.app_info.pis.push(req);
+        this.$store.state.app_info.pis.write(req);
     }
 }
 </script>

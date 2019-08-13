@@ -31,7 +31,7 @@ export class ToDB {
 			let config_info = this.readConfig();
 			this.inst = net.connect(config_info.port, config_info.ip,() => {
 				this.inst.on('data', (data: any) => {
-					this.pos.push(data);
+					this.pos.write(data);
 				});
 				console.info('connect DB_Server success!');
 				this.ctflag = true;
@@ -54,7 +54,7 @@ export class ToDB {
 	}
 	send(cmd: any) {
 		if(cmd.type=="toSer"&&cmd.job=="startTest")this.req_start_flag = 0;
-		this.pis.push(cmd);
+		this.pis.write(cmd);
 	}
 	close() {
 		return new Promise((resolve) => {

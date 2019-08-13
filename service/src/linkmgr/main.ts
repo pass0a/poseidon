@@ -17,22 +17,22 @@ class Linkmgr {
 			c.write(data);
 		});
 		this.ints.on('data', (data:any) => {
-			this.pos.push(data);
+			this.pos.write(data);
 		});
 		this.ints.on('close', () => {
 			console.log("linkmgr close");
 		});
-		this.pis.push({ type: 'init' });
+		this.pis.write({ type: 'init' });
 	});
 
 	handleCmd(obj:any){
 		if(obj.type != 'info') {
-			this.pis.push({ type: 'auth', state: 'fail', msg: 'it is not info cmd!!!' });
+			this.pis.write({ type: 'auth', state: 'fail', msg: 'it is not info cmd!!!' });
 			this.ints.end();
 		}else{
 			if(!this.lk[obj.class])this.lk[obj.class] = [];
 			if(this.lk[obj.class][obj.name]){
-				this.pis.push({ type: 'auth', state: 'fail', msg: 'your name is already login!!!' });
+				this.pis.write({ type: 'auth', state: 'fail', msg: 'your name is already login!!!' });
 				this.ints.end();
 			}else{
 				let link_obj:any;
@@ -44,7 +44,7 @@ class Linkmgr {
 						link_obj = new Web_mgr();
 						break;
 					default:
-						this.pis.push({ type: 'auth', state: 'fail', msg: 'Unknow object!!!' });
+						this.pis.write({ type: 'auth', state: 'fail', msg: 'Unknow object!!!' });
 						return;
 				}
 				this.lk[obj.class][obj.name] = link_obj;

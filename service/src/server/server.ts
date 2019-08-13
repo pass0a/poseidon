@@ -35,7 +35,7 @@ export class Server {
 		this.wss = ws.createServer((c: any) => {
 			this.inst = c;
 			this.inst.on('data', (frm: any) => {
-				this.pos.push(frm.PayloadData);
+				this.pos.write(frm.PayloadData);
 			});
 		});
 		this.hp = http.createServer((req: any, res: any) => {
@@ -96,7 +96,7 @@ export class Server {
 		}
 	}
 	send(obj: any) {
-		this.pis.push(obj);
+		this.pis.write(obj);
 	}
 	private wait(time:any){
         return new Promise((resolve) => {

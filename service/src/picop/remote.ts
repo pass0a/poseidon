@@ -28,10 +28,10 @@ class Remote{
             this.pacall = resolve;
             this.intc=net.connect(parseInt(cfg.port),cfg.ip,() => {
                 console.info("remote connect!!!");
-                this.pis.push({type:"auth"});
+                this.pis.write({type:"auth"});
             });
             this.intc.on("data",(data:any) => {
-                this.pos.push(data);
+                this.pos.write(data);
             });
             this.intc.on("close",() => {
 				this.alive=0;
@@ -69,16 +69,16 @@ class Remote{
 			});
             switch(cmd.type){
                 case "click":
-                    this.pis.push({type:cmd.type,x:cmd.x,y:cmd.y,time:cmd.time});
+                    this.pis.write({type:cmd.type,x:cmd.x,y:cmd.y,time:cmd.time});
                     break;
                 case "slide":
-                    this.pis.push({type:cmd.type,x1:cmd.x1,y1:cmd.y1,x2:cmd.x2,y2:cmd.y2,time:cmd.time});
+                    this.pis.write({type:cmd.type,x1:cmd.x1,y1:cmd.y1,x2:cmd.x2,y2:cmd.y2,time:cmd.time});
                     break;
                 case "cutScreen":
-                    this.pis.push({type:cmd.type});
+                    this.pis.write({type:cmd.type});
                     break;
                 case "alive":
-                    this.pis.push({type:cmd.type});
+                    this.pis.write({type:cmd.type});
                     break;
             }
             tm=setTimeout(()=>{

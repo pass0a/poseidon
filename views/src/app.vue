@@ -52,14 +52,14 @@ export default class App extends Vue {
                 this.ws.binaryType = "arraybuffer";
                 this.$store.state.app_info.connect_info.server = 1;
                 this.$store.state.app_info.pis = pis;
-                pis.push({type:"toSer",job:"getAuth"});
-                pis.push({type:"toSer",job:"connectStatus"});
-                pis.push({type:"toSer",job:"readConfig"});
+                pis.write({type:"toSer",job:"getAuth"});
+                pis.write({type:"toSer",job:"connectStatus"});
+                pis.write({type:"toSer",job:"readConfig"});
                 flag = true;
                 resolve(true);
             };
             this.ws.onmessage = (frm: any) => {
-                pos.push(frm.data);
+                pos.write(frm.data);
             };
             this.ws.onclose = () => {
                 console.log("close websocket!!!");
@@ -114,11 +114,11 @@ export default class App extends Vue {
             case "connectStatus":
                 this.$store.state.app_info.connect_info.link = data.info.link;
                 this.$store.state.app_info.connect_info.db = data.info.db;
-                if(data.info.db==1)pis.push({type:"toDB",route:"users",job:"find",info:{name:"admin",psw:"123"}});
+                if(data.info.db==1)pis.write({type:"toDB",route:"users",job:"find",info:{name:"admin",psw:"123"}});
                 break;
             case "dbStatus":
                 this.$store.state.app_info.connect_info.db = data.info;
-                if(data.info==1)pis.push({type:"toDB",route:"users",job:"find",info:{name:"admin",psw:"123"}});
+                if(data.info==1)pis.write({type:"toDB",route:"users",job:"find",info:{name:"admin",psw:"123"}});
                 break;
             case "linkStatus":
                 this.$store.state.app_info.connect_info.link = data.info;
@@ -137,9 +137,9 @@ export default class App extends Vue {
                 this.$store.state.test_info.stopflag = 0;
                 this.$store.state.test_info.stopflag = data.info;
                 this.$store.state.req_info.refresh_rl = 0;
-                pis.push({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
-                pis.push({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
-                pis.push({type:"toDB",route:"buttons",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                pis.write({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                pis.write({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                pis.write({type:"toDB",route:"buttons",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
                 break;
             case "syncRemote":
                 this.$store.state.screen_info.status = data.status;
@@ -188,9 +188,9 @@ export default class App extends Vue {
                 if(data.info.state){
                     this.$store.state.req_info.new_prj=0;
                     this.$store.state.project_info.current_prj=data.info.name;
-                    pis.push({type:"toDB",route:"res",job:"new",info:{prjname:data.info.name}});
-                    pis.push({type:"toDB",route:"rule",job:"new",info:{prjname:data.info.name}});
-                    pis.push({type:"toDB",route:"buttons",job:"new",info:{prjname:data.info.name}});
+                    pis.write({type:"toDB",route:"res",job:"new",info:{prjname:data.info.name}});
+                    pis.write({type:"toDB",route:"rule",job:"new",info:{prjname:data.info.name}});
+                    pis.write({type:"toDB",route:"buttons",job:"new",info:{prjname:data.info.name}});
                 }else{
                     this.$notify({title: '项目已存在',message: '', type: 'error',duration:1500});
                 }
@@ -257,8 +257,8 @@ export default class App extends Vue {
                 if(data.info){
                     this.$notify({title: '添加成功!',message: '', type: 'success',duration:1500});
                     this.$store.state.req_info.refresh_rl = 0;
-                    pis.push({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
-                    pis.push({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                    pis.write({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                    pis.write({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
                 }
                 break;
             case "new":
@@ -266,9 +266,9 @@ export default class App extends Vue {
                 if(this.$store.state.req_info.new_prj==3){
                     
                     this.$store.state.req_info.refresh_rl = 0;
-                    pis.push({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
-                    pis.push({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
-                    pis.push({type:"toDB",route:"buttons",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                    pis.write({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                    pis.write({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                    pis.write({type:"toDB",route:"buttons",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
                     this.$store.state.alert_info.showflag=false;
                     this.$store.state.project_info.newflag=false;
                     this.$store.state.editcase_info.refresh_data=true;
@@ -278,16 +278,16 @@ export default class App extends Vue {
             case "modify":
                 if(data.info){
                     this.$store.state.req_info.refresh_rl = 0;
-                    pis.push({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
-                    pis.push({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                    pis.write({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                    pis.write({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
                     this.$notify({title: '修改成功!',message: '', type: 'success',duration:1500});
                 }
                 break;
             case "remove_id":
                 this.$store.state.req_info.remove_id++;
                 if(this.$store.state.req_info.remove_id == 2){
-                    pis.push({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
-                    pis.push({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                    pis.write({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                    pis.write({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
                 }
                 break;
         }
@@ -317,18 +317,18 @@ export default class App extends Vue {
                         name : data.info.name
                     }
                 }
-                pis.push({type:"toDB",route:"res",job:"add",info:data.info});
+                pis.write({type:"toDB",route:"res",job:"add",info:data.info});
                 if(data.info.msg.id.indexOf('button')>-1){
-                    pis.push({type:"toDB",route:"buttons",job:"add",info:data.info});
+                    pis.write({type:"toDB",route:"buttons",job:"add",info:data.info});
                 }
                 break;
             case "new":
                 this.$store.state.req_info.new_prj++;
                 if(this.$store.state.req_info.new_prj==3){
                     this.$store.state.req_info.refresh_rl = 0;
-                    pis.push({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
-                    pis.push({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
-                    pis.push({type:"toDB",route:"buttons",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                    pis.write({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                    pis.write({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                    pis.write({type:"toDB",route:"buttons",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
                     this.$store.state.alert_info.showflag=false;
                     this.$store.state.project_info.newflag=false;
                     this.$store.state.editcase_info.refresh_data=true;
@@ -338,8 +338,8 @@ export default class App extends Vue {
             case "remove_id":
                 this.$store.state.req_info.remove_id++;
                 if(this.$store.state.req_info.remove_id == 2){
-                    pis.push({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
-                    pis.push({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                    pis.write({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                    pis.write({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
                     this.$store.state.alert_info.showflag=false;
                 }
                 break;
@@ -351,9 +351,9 @@ export default class App extends Vue {
                 this.$store.state.req_info.new_prj++;
                 if(this.$store.state.req_info.new_prj==3){
                     this.$store.state.req_info.refresh_rl = 0;
-                    pis.push({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
-                    pis.push({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
-                    pis.push({type:"toDB",route:"buttons",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                    pis.write({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                    pis.write({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                    pis.write({type:"toDB",route:"buttons",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
                     this.$store.state.alert_info.showflag=false;
                     this.$store.state.project_info.newflag=false;
                     this.$store.state.editcase_info.refresh_data=true;
@@ -376,13 +376,13 @@ export default class App extends Vue {
                 this.$store.state.steps_info.buttonlist=buttonlist;
                 break;
             case "add":
-                pis.push({type:"toDB",route:"buttons",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                pis.write({type:"toDB",route:"buttons",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
                 break;
             case "modify":
-                pis.push({type:"toDB",route:"buttons",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                pis.write({type:"toDB",route:"buttons",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
                 break;
             case "remove_id":
-                pis.push({type:"toDB",route:"buttons",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                pis.write({type:"toDB",route:"buttons",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
                 break;
         }
     }
