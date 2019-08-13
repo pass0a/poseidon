@@ -5,19 +5,19 @@ const distfolder = 'dist'; //'../output/node_modules';
 fs
 	.copy('node_modules/mongodb/package.json', path.resolve(__dirname, distfolder + '/package.json'))
 	.then(() => {
-		// fs
-		// 	.copy('node_modules/core-js-bundle/index.js', path.resolve(__dirname, `${distfolder}/core.js`))
-		// 	.then(() => {
-		// 		console.log('copy core success!');
-		// 	})
-		// 	.catch((err) => {
-		// 		console.error(err);
-		// 	});
+		fs
+			.copy('src/run.js', path.resolve(__dirname, `${distfolder}/run.js`))
+			.then(() => {
+				console.log('copy run.js success!');
+			})
+			.catch((err) => {
+				console.error(err);
+			});
 		console.log('copy builtin success!');
 	})
 	.catch((err) => {
 		console.error(err);
-	});  // 调试
+	}); // 调试
 const nodeConfig = {
 	// Change to your "entry-point".
 	entry: {
@@ -30,7 +30,6 @@ const nodeConfig = {
 		// db:'./src/dbop/main.ts',
 		// http:'./src/httpop/main.ts',
 		// test:'./src/testop/main.ts'
-
 	},
 	output: {
 		path: path.resolve(__dirname, distfolder),
@@ -77,8 +76,8 @@ const nodeConfig = {
 		tty: false,
 		module: false,
 		zlib: false,
-		__dirname:false,
-		__filename:false
+		__dirname: false,
+		__filename: false
 	},
 	externals: {
 		'@passoa/img': '@passoa/img',
