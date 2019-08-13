@@ -156,7 +156,7 @@ export default class EditCasesView extends Vue {
                 uid:this.$store.state.login_info._id
             }
         }
-        this.$store.state.app_info.pis.push(req);
+        this.$store.state.app_info.pis.write(req);
         this.current_data[idx].c_status=this.current_data[idx].c_status.length?[]:[{type:1}];
     }
 }

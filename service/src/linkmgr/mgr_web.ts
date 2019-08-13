@@ -58,7 +58,7 @@ export class Web_mgr {
 					icon_info.info.w,
 					icon_info.info.h
 				);
-				this.pis.push({ type: obj.type, job: obj.job, ret: ret });
+				this.pis.write({ type: obj.type, job: obj.job, ret: ret });
 				break;
 			default:
 				break;
@@ -69,9 +69,9 @@ export class Web_mgr {
 		this.intc = c;
 		this.link = link;
 		this.intc.on('data', (data:any) => {
-			this.pos.push(data);
+			this.pos.write(data);
 		});
-		this.pis.push({ type: 'auth', state: 'ok' });
+		this.pis.write({ type: 'auth', state: 'ok' });
 	}
 
 	startJS(obj:any, jsPath:any) {
@@ -84,6 +84,6 @@ export class Web_mgr {
 	};
 
 	sendToWebServer(data:any) {
-		this.pis.push(data);
+		this.pis.write(data);
 	};
 }

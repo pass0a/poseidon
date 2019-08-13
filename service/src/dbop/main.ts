@@ -44,14 +44,14 @@ function createServer() {
 		if(sv&&db_status==1){
 			db_status = 2;
 			req.info = db_status;
-			pis.push(req);
+			pis.write(req);
 		}
 		console.error('db disconnected');
 	});
 	net.createServer(function(c) {
 		sv = c;
 		sv.on('data', function(data: any) {
-			pos.push(data);
+			pos.write(data);
 		});
 		sv.on('end', function(data: any) {
 			console.info('db_server end');
@@ -78,7 +78,7 @@ async function connectDB(){
 		await wait(2000);
 	}
 	req.info = db_status;
-	if(sv)pis.push(req);
+	if(sv)pis.write(req);
 }
 
 async function wait(time:any){
@@ -105,7 +105,7 @@ function handle(data: any) {
 	switch (data.route) {
 		case 'connect':
 			data.info = db_status;
-			pis.push(data);
+			pis.write(data);
 			break;
 		case 'reconnect':
 			connectDB();

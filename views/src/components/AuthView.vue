@@ -41,7 +41,7 @@ export default class AuthView extends Vue {
     }
     private ok(){
         if(this.authnum=="")this.$notify({title: '内容不能为空!',message: '', type: 'error',duration:1500});
-        else this.$store.state.app_info.pis.push({type:"toSer",job:"setAuth",info:this.authnum});
+        else this.$store.state.app_info.pis.write({type:"toSer",job:"setAuth",info:this.authnum});
     }
 }
 </script>

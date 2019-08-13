@@ -87,7 +87,7 @@ async function sendInfoByLink(cmd:any){
                 }
             }
         });
-        pis.push(cmd);
+        pis.write(cmd);
 		tm=setTimeout(()=>{
 			resolve({ret:0});
 		},1500);
@@ -109,7 +109,7 @@ async function createdLink(){
         pos.on("data",(data:any) => {
             switch(data.type){
                 case "init":
-                    pis.push({type:"info",class:"test",name:"remote"});
+                    pis.write({type:"info",class:"test",name:"remote"});
                     break;
                 case "auth":
                     resolve(1);
@@ -120,7 +120,7 @@ async function createdLink(){
             intc.write(data);
         });
         intc.on("data",(data:any) => {
-            pos.push(data);
+            pos.write(data);
         });
         intc.on("close",function(){
             console.info("close pic_client socket!!!");

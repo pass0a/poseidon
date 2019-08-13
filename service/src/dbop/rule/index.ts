@@ -8,7 +8,7 @@ function getList(data:any,pis:any,RuleModel:any){
     ],function(err:any,docs:any){
         if(!err){
             data.info=JSON.stringify(docs);
-            pis.push(data);
+            pis.write(data);
         }
     });
 }
@@ -21,7 +21,7 @@ function add(data:any,pis:any,RuleModel:any){
             RuleModel.updateOne({id:id},{$addToSet:{content:newId}},function(err:any,mg:any){
                 if(!err){
                     data.info.msg.id = newId;
-                    pis.push(data);
+                    pis.write(data);
                 }
             });
         }else{
@@ -33,7 +33,7 @@ function add(data:any,pis:any,RuleModel:any){
             model.save(function (err:any,mg:any){
                 if(!err){
                     data.info.msg.id = newId;
-                    pis.push(data);
+                    pis.write(data);
                 }
             });
         }
@@ -87,7 +87,7 @@ function newPrj(data:any,pis:any,RuleModel:any){
     RuleModel.insertMany(new_arr, function(err:any, msg:any) {
         if(!err){
             data.info = true;
-            pis.push(data);
+            pis.write(data);
         }
     });
 }
@@ -100,12 +100,12 @@ function removeID(data:any,pis:any,RuleModel:any){
                 RuleModel.deleteOne({id:info.id},(error:any) => {
                     if(!error){
                         data.info = true;
-                        pis.push(data);
+                        pis.write(data);
                     }
                 });
             }else{
                 data.info = true;
-                pis.push(data);
+                pis.write(data);
             }
         }
     });

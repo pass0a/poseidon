@@ -23,7 +23,7 @@ export class ToLink {
 			this.inst = net.connect(6000, '127.0.0.1', () => {
 				console.info('Web_server_connect!');
 				this.inst.on('data', (data: any) => {
-					this.pos.push(data);
+					this.pos.write(data);
 				});
 				this.inst.on('close', () => {
 					console.info('close Web_server_connect!');
@@ -41,7 +41,7 @@ export class ToLink {
 		});
 	}
 	send(obj: any): void {
-		this.pis.push(obj);
+		this.pis.write(obj);
 	}
 	private handle(data: any) {
 		switch(data.type){
@@ -53,7 +53,7 @@ export class ToLink {
 				this.proCall(data.state=="ok");
 				break;
 			default:
-				this.ser.send(data);
+				if(this.ser.inst)this.ser.send(data);
 				break;
 		}
 	}

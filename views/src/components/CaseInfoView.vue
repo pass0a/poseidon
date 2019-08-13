@@ -110,7 +110,7 @@ export default class CaseInfoView extends Vue {
                         casedata:this.case_info
                     }
                 }
-                this.$store.state.app_info.pis.push(req);
+                this.$store.state.app_info.pis.write(req);
             }
         });
     }

@@ -10,7 +10,7 @@ function addproject(data:any,pis:any,Projects:any){
 		if(!err){
             data.info.state=true;
             data.info.name=info.name;
-            pis.push(data);
+            pis.write(data);
 		}
     });
 }
@@ -19,7 +19,7 @@ function existInList(data:any,pis:any,Projects:any){
     Projects.findOne({name:data.info.name},{__v:0,_id:0},function(err:any,info:any){
         if(info){
             data.info.state=false;
-            pis.push(data);
+            pis.write(data);
         }else{
             addproject(data,pis,Projects);
         }
@@ -35,7 +35,7 @@ function getList(data:any,pis:any,Projects:any){
             list.push(obj);
         }
         data.info=list;
-        pis.push(data);
+        pis.write(data);
 	});
 }
 

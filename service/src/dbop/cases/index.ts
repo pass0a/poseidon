@@ -23,7 +23,7 @@ function getList(data:any,pis:any,CaseModel:any){
                 ca._id = objectIDtoString(ca._id.id);
             }
             data.info=JSON.stringify(docs);
-            pis.push(data);
+            pis.write(data);
         }
     });
 }
@@ -48,7 +48,7 @@ function addCases(data:any, pis:any, CaseModel:any){
 	model.save(function (err:any,msg:any){
 		if(!err){
             data.info=objectIDtoString(msg._id.id);
-            pis.push(data);
+            pis.write(data);
 		}
 	});
 }
@@ -58,7 +58,7 @@ function checkIDAndAdd(data:any,pis:any,CaseModel:any){
     CaseModel.findOne({case_id:info.case_id},{__v:0,_id:0},function(err:any,msg:any){
 		if(msg){
             data.info=false;
-            pis.push(data);
+            pis.write(data);
         }else{
             addCases(data,pis,CaseModel);
         }
@@ -82,7 +82,7 @@ function modifyCase(data:any,pis:any,CaseModel:any){
 		}},function(err:any){
 			if(!err){
                 data.info=true;
-                pis.push(data);
+                pis.write(data);
 			}
         }
     );
@@ -92,7 +92,7 @@ function deleteCase(data:any,pis:any,CaseModel:any){
     CaseModel.deleteOne({_id:createObjectID(data.info._id)},function(err:any){
         if(!err){
             data.info=true;
-            pis.push(data);
+            pis.write(data);
         }
     });
 }
@@ -103,14 +103,14 @@ function removeStepID(data:any,pis:any,CaseModel:any){
         CaseModel.updateMany({},{$pull:{case_steps:{id:info.id}}},(err:any,msg:any) => {
             if(!err){
                 data.info = true;
-                pis.push(data);
+                pis.write(data);
             }
         });
     }else{
         CaseModel.updateMany({},{$pull:{case_steps:{module:info.id}}},(err:any,msg:any) => {
             if(!err){
                 data.info = true;
-                pis.push(data);
+                pis.write(data);
             }
         });
     }
@@ -121,7 +121,7 @@ function removeModule(data:any,pis:any,CaseModel:any){
     CaseModel.deleteMany({case_module:info.id},(err:any) => {
         if(!err){
             data.info = true;
-            pis.push(data);
+            pis.write(data);
         }
     });
 }
