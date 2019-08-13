@@ -62,6 +62,7 @@ steps:
     workingDir: views
     verbose: false
     customCommand: 'run build'
+
 - task: nsis@1
   inputs:
     scriptFile: 'install.nsi'
@@ -70,10 +71,20 @@ steps:
   condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
 
 - task: ArchiveFiles@2
-  displayName: 'Archive RevealSetup.exe'
   inputs:
-    rootFolderOrFile: RevealSetup.exe
-    archiveType: 7z
-    archiveFile: 'Reveal-$(Build.SourceBranchName)-$(Build.BuildId).7z'
+    rootFolderOrFile: 'RevealSetup.exe'
+    includeRootFolder: false
+    archiveType: '7z'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/Reveal-$(Build.SourceBranchName)-$(Build.BuildId).7z'
+    replaceExistingArchive: true
   condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
 
+- task: GitHubRelease@0
+  inputs:
+    gitHubConnection: 'GitHub connection 1'
+    repositoryName: '$(Build.Repository.Name)'
+    action: 'create'
+    target: '$(Build.SourceVersion)'
+    tagSource: 'auto'
+    releaseNotesFile: 'ChangeLog'
+    addChangeLog: false
