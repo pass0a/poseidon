@@ -1,14 +1,14 @@
-import * as pack from "@passoa/pack";
-import cvip from "@passoa/cvip";
-import * as childprs from "child_process";
-import * as path from "path";
-import * as fs from "fs";
+import * as pack from '@passoa/pack';
+import * as cvip from '@passoa/cvip';
+import * as childprs from 'child_process';
+import * as path from 'path';
+import * as fs from 'fs';
 
 export class Web_mgr {
-	private pos:any = new pack.unpackStream();
-	private pis:any = new pack.packStream();
-	private intc:any;
-	private link:any;
+	private pos: any = new pack.unpackStream();
+	private pis: any = new pack.packStream();
+	private intc: any;
+	private link: any;
 	constructor() {
 		this.pis.on('data', (data: any) => {
 			this.intc.write(data);
@@ -65,25 +65,25 @@ export class Web_mgr {
 		}
 	}
 
-	create(c:any,obj:any,link:any){
+	create(c: any, obj: any, link: any) {
 		this.intc = c;
 		this.link = link;
-		this.intc.on('data', (data:any) => {
+		this.intc.on('data', (data: any) => {
 			this.pos.write(data);
 		});
 		this.pis.write({ type: 'auth', state: 'ok' });
 	}
 
-	startJS(obj:any, jsPath:any) {
-		let testcfg:any = require('./testcfg.json');
+	startJS(obj: any, jsPath: any) {
+		let testcfg: any = require('./testcfg.json');
 		let passoaPath = process.execPath;
 		let prjpath = path.dirname(path.dirname(passoaPath)) + '/data_store/projects/' + obj.info.prjname;
 		let execpath = '"' + passoaPath + '" ' + jsPath + ' "' + prjpath + '"';
 		console.log(execpath);
-		childprs.exec(execpath, { windowsHide: testcfg.windowsHide});
-	};
+		childprs.exec(execpath, { windowsHide: testcfg.windowsHide });
+	}
 
-	sendToWebServer(data:any) {
+	sendToWebServer(data: any) {
 		this.pis.write(data);
-	};
+	}
 }
