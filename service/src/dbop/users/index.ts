@@ -4,7 +4,7 @@ function finduser(data:any, pis:any,Users:any){
     Users.findOne({name:data.info.name,psw:data.info.psw},{__v:0},function(err:any,info:any){
         if(info){
             data.info = objectIDtoString(info._id.id);
-            pis.push(data);
+            pis.write(data);
         }else{
             let model=new Users({
                 name: "admin",
@@ -13,7 +13,7 @@ function finduser(data:any, pis:any,Users:any){
             model.save(function (err:any,mg:any){
                 if(!err){
                     data.info = objectIDtoString(mg._id.id);
-                    pis.push(data);
+                    pis.write(data);
                 }
             });
         }

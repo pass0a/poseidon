@@ -126,7 +126,7 @@ export default class Home extends Vue {
       }
       if(r_req.info.indexOf("server")>-1){
         this.$store.state.app_info.cflag++;        
-      }else this.$store.state.app_info.pis.push(r_req);
+      }else this.$store.state.app_info.pis.write(r_req);
     }
     private selectMode(key:any){
         if(this.connectStatus.server!=1||this.connectStatus.db!=1||this.connectStatus.link!=1){
@@ -143,7 +143,7 @@ export default class Home extends Vue {
                   route : "projects",
                   job : "list"
               }
-              this.$store.state.app_info.pis.push(p_req);
+              this.$store.state.app_info.pis.write(p_req);
               break;
             case "2":
               this.$store.state.project_info.newflag=true;
@@ -156,7 +156,7 @@ export default class Home extends Vue {
                     job : "list",
                     info : {prjname:this.$store.state.project_info.current_prj}
                 }
-                this.$store.state.app_info.pis.push(l_req);
+                this.$store.state.app_info.pis.write(l_req);
               }
               this.select_mode=key;
               break;
@@ -165,11 +165,11 @@ export default class Home extends Vue {
               this.select_mode=key;
               break;
             case "5":
-              this.$store.state.app_info.pis.push({type:"toSer",job:"readReport",prjname:this.$store.state.project_info.current_prj});
+              this.$store.state.app_info.pis.write({type:"toSer",job:"readReport",prjname:this.$store.state.project_info.current_prj});
               this.select_mode=key;
               break;
             case "7":
-              this.$store.state.app_info.pis.push({type:"toSer",job:"readConfig"});
+              this.$store.state.app_info.pis.write({type:"toSer",job:"readConfig"});
               this.select_mode=key;
               break;
             default:

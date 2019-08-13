@@ -9,7 +9,7 @@ function getList(data:any,pis:any,BtnModel:any){
         if(!err){
             data.route="buttons";
             data.info.data=JSON.stringify(docs);
-            pis.push(data);
+            pis.write(data);
         }
     });
 }
@@ -21,7 +21,7 @@ function newPrj(data:any,pis:any,BtnModel:any){
     BtnModel.insertMany(new_arr, function(err:any, msg:any) {
         if(!err){
             data.info = true;
-            pis.push(data);
+            pis.write(data);
         }
     });
 }
@@ -36,7 +36,7 @@ function add(data:any,pis:any,BtnModel:any){
 	model.save(function (err:any,msg:any){
 		if(!err){
             data.info = true;
-            pis.push(data);
+            pis.write(data);
 		}
 	});
 }
@@ -49,7 +49,7 @@ function modify(data:any,pis:any,BtnModel:any){
 		}},function(err:any){
 			if(!err){
                 data.info=true;
-                pis.push(data);
+                pis.write(data);
 			}
         }
     );
@@ -60,7 +60,7 @@ function removeID(data:any,pis:any,BtnModel:any){
     BtnModel.deleteOne({id:info.id},function(err:any){
         if(!err){
             data.info = true;
-            pis.push(data);
+            pis.write(data);
         }
     });
 }

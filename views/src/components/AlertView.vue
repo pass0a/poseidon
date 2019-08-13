@@ -78,7 +78,7 @@ export default class AlertView extends Vue {
     private ok(){
         switch(this.$store.state.alert_info.type){
             case 0:
-                this.$store.state.app_info.pis.push({type:"toSer",job:"saveConfig",info:this.$store.state.setting_info.info});
+                this.$store.state.app_info.pis.write({type:"toSer",job:"saveConfig",info:this.$store.state.setting_info.info});
                 break;
             case 1:
                 let p_info = {
@@ -102,7 +102,7 @@ export default class AlertView extends Vue {
                 this.sendReq("toDB","status","delete",s_info);
                 break;
             case 3:
-                this.$store.state.app_info.pis.push({type:"toSer",job:"replayTest",info:{prjname:this.$store.state.project_info.current_prj,uid:this.$store.state.login_info._id}});
+                this.$store.state.app_info.pis.write({type:"toSer",job:"replayTest",info:{prjname:this.$store.state.project_info.current_prj,uid:this.$store.state.login_info._id}});
                 this.$store.state.test_info.count++;
                 this.$store.state.alert_info.showflag = false;
                 break;
@@ -145,7 +145,7 @@ export default class AlertView extends Vue {
             job : job,
             info : info
         }
-        this.$store.state.app_info.pis.push(req);
+        this.$store.state.app_info.pis.write(req);
     }
 }
 </script>

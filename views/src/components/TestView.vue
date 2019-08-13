@@ -205,7 +205,7 @@ export default class TestView extends Vue {
                     job:"startTest",
                     info:{prjname:this.$store.state.project_info.current_prj,uid:this.$store.state.login_info._id}
                 }
-                this.$store.state.app_info.pis.push(req);
+                this.$store.state.app_info.pis.write(req);
             }else{
                 this.$notify({title: '当前正在同步车机屏幕无法进行测试',message: '', type: 'warning',duration:1500});
             }
@@ -214,7 +214,7 @@ export default class TestView extends Vue {
         }
     }
     private stopTest(){
-        this.$store.state.app_info.pis.push({type:"toSer",job:"stopTest"});
+        this.$store.state.app_info.pis.write({type:"toSer",job:"stopTest"});
         this.btnMode=3;
         this.updateLogCmd(1,"暂停中...等待当前步骤执行完");
     }
@@ -225,7 +225,7 @@ export default class TestView extends Vue {
             job:"continueTest",
             info:{prjname:this.$store.state.project_info.current_prj}
         }
-        this.$store.state.app_info.pis.push(req);
+        this.$store.state.app_info.pis.write(req);
     }
     private replayTest(){
         this.$store.state.alert_info.showflag = true;

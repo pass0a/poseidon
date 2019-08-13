@@ -126,7 +126,7 @@ export default class ScreenView extends Vue {
             this.btnStatus = true;
             this.stopDraw = true;
             this.$store.state.screen_info.running = true;
-            this.$store.state.app_info.pis.push({type:"toSer",job:"syncRemote",info:{prjname:this.$store.state.project_info.current_prj}});
+            this.$store.state.app_info.pis.write({type:"toSer",job:"syncRemote",info:{prjname:this.$store.state.project_info.current_prj}});
         }
     }
     private showImage(){
@@ -151,7 +151,7 @@ export default class ScreenView extends Vue {
                     cut_info : {id : this.s_clid, info : this.info}
                 }
             }
-            this.$store.state.app_info.pis.push(s_req);
+            this.$store.state.app_info.pis.write(s_req);
         }else{
             this.$notify({title: '请绑定步骤',message: '', type: 'warning',duration:1500});
         }

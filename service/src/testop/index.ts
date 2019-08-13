@@ -97,7 +97,7 @@ async function readStopInfo(){
 }
 
 function notifyWebView(info:any){
-	pis.push(info);// 0: 初始化失败 1:初始化成功 2:用例开始测试 3: 测试完成 4: 步骤执行结果 5: 步骤开始执行 6: 暂停测试
+	pis.write(info);// 0: 初始化失败 1:初始化成功 2:用例开始测试 3: 测试完成 4: 步骤执行结果 5: 步骤开始执行 6: 暂停测试
 }
 
 async function runTest(data:any,toContinue:any){// 执行用例
@@ -402,7 +402,7 @@ async function sendInfoByLink(cmd:any){
                 }
             }
         });
-        pis.push(cmd);
+        pis.write(cmd);
 		tm=setTimeout(()=>{
 			resolve({ret:0});
 		},1500);
@@ -419,7 +419,7 @@ async function createdLink(){
         pos.on("data",function(data:any){
             switch(data.type){
                 case "init":
-                    pis.push({type:"info",class:"test",name:"test"});
+                    pis.write({type:"info",class:"test",name:"test"});
                     break;
                 case "auth":
                     resolve(1);
@@ -430,7 +430,7 @@ async function createdLink(){
             c.write(data);
         });
         c.on("data",function(data:any){
-            pos.push(data);
+            pos.write(data);
         });
         c.on("close",function(){
             console.info("close test_client socket!!!");

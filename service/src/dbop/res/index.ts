@@ -8,7 +8,7 @@ function getList(data:any,pis:any,ResModel:any){
     ],function(err:any,docs:any){
         if(!err){
             data.info=JSON.stringify(docs);
-            pis.push(data);
+            pis.write(data);
         }
     });
 }
@@ -22,7 +22,7 @@ function add(data:any,pis:any,ResModel:any){
 	model.save(function (err:any,msg:any){
 		if(!err){
             data.info = true;
-            pis.push(data);
+            pis.write(data);
 		}
 	});
 }
@@ -34,7 +34,7 @@ function modify(data:any,pis:any,ResModel:any){
 		}},function(err:any){
 			if(!err){
                 data.info=true;
-                pis.push(data);
+                pis.write(data);
 			}
         }
     );
@@ -69,7 +69,7 @@ function newPrj(data:any,pis:any,ResModel:any){
     ResModel.insertMany(new_arr, function(err:any, msg:any) {
         if(!err){
             data.info = true;
-            pis.push(data);
+            pis.write(data);
         }
     });
 }
@@ -79,7 +79,7 @@ function removeID(data:any,pis:any,ResModel:any){
     ResModel.deleteOne({id:info.id},function(err:any){
         if(!err){
             data.info = true;
-            pis.push(data);
+            pis.write(data);
         }
     });
 }

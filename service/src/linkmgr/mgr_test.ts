@@ -36,16 +36,16 @@ export class Test_mgr{
 	};
 
 	private disposedCompleted(type:any, data:any) {
-		this.pis.push({ type: type, data: data });
+		this.pis.write({ type: type, data: data });
 	};
 
 	create(c:any,obj:any,link:any){
 		this.intc = c;
 		this.link = link;
 		this.intc.on('data', (data:any) => {
-			this.pos.push(data);
+			this.pos.write(data);
 		});
-		this.pis.push({ type: 'auth', state: 'ok' });
+		this.pis.write({ type: 'auth', state: 'ok' });
 	}
 
 	stopTest() {
