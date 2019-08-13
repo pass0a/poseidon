@@ -4,20 +4,19 @@ pool:
 
 steps:
 - task: DownloadGitHubRelease@0
-  displayName: 'Download GitHub Release'
   inputs:
     connection: 'GitHub connection 1'
-    userRepository: losper/passoa
+    userRepository: 'losper/passoa'
+    defaultVersionType: 'latest'
     itemPattern: 'passoa-msvc*'
-    downloadPath: ./
-
+    downloadPath: './'
 - task: DownloadGitHubRelease@0
-  displayName: 'Download GitHub Release'
   inputs:
     connection: 'GitHub connection 1'
-    userRepository: pass0a/package
+    userRepository: 'pass0a/package'
+    defaultVersionType: 'latest'
     itemPattern: '*.7z'
-    downloadPath: ./
+    downloadPath: './'
 
 - script: |
    mkdir depends
@@ -63,9 +62,11 @@ steps:
     workingDir: views
     verbose: false
     customCommand: 'run build'
-
-- task: ThomasP.nsis-task.796c90b1-9f8c-424a-b03b-b789bb5945d3.nsis@1
-  displayName: Nsis
+- task: nsis@1
+  inputs:
+    scriptFile: 'install.nsi'
+    justInclude: 'no'
+    includeMorePlugins: 'no'
   condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
 
 - task: ArchiveFiles@2
