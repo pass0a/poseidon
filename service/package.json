@@ -5,6 +5,7 @@
 	"main": "main.js",
 	"scripts": {
 		"build": "npm run clean && webpack",
+		"postinstall": "node node_modules/@passoa/pm -t msvc",
 		"clean": "rimraf dist",
 		"btest": "webpack",
 		"dop": "passoa dist/db.js",
@@ -21,6 +22,7 @@
 		"@babel/preset-env": "^7.5.5",
 		"@types/mongoose": "^5.5.12",
 		"babel-loader": "^8.0.6",
+		"@passoa/pm": "^1.0.2",
 		"cross-env": "^5.2.0",
 		"fs-extra": "^8.1.0",
 		"ts-loader": "^6.0.4",
