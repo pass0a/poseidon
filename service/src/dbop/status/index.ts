@@ -5,6 +5,7 @@ function add(data:any,pis:any,StatusModel:any){
     let info:any = data.info;
     let model=new StatusModel({
         type: info.type,
+        module: info.module,
         cid: createObjectID(info.cid),
         uid: createObjectID(info.uid)
 	});
@@ -56,6 +57,16 @@ function getTestList(data:any,pis:any,StatusModel:any){
     });
 }
 
+function removeModule(data:any,pis:any,StatusModel:any){
+    let info = data.info.msg;
+    StatusModel.deleteMany({module:info.id},(err:any)=>{
+        if(!err){
+            data.info = true;
+            pis.write(data);
+        }
+    });
+}
+
 function createObjectID(id:string){
     return mongodb.ObjectId.createFromHexString(id);
 }
@@ -68,6 +79,9 @@ function disposeData(data:any,pis:any){
             break;
         case "delete":
             remove(data,pis,StatusModel);
+            break;
+        case "remove_module":
+            removeModule(data,pis,StatusModel);
             break;
         case "startTest":
             getTestList(data,pis,StatusModel);

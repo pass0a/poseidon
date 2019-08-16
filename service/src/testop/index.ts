@@ -19,7 +19,8 @@ let actionList:any={
 	assert_pic : assertPic,
 	operate_tool: operateTool,
 	button : button,
-	qg_box : qgBox
+	qg_box : qgBox,
+	group : group
 };
 
 async function startTest(data:any){
@@ -148,8 +149,8 @@ async function disposeStepLoop(idx:any,caseData:any){ // 执行步骤循环
     let cmdStep=caseData.case_steps[idx];
     let stepLoop=cmdStep.loop!=undefined?cmdStep.loop:1;
     for(let i=0;i<stepLoop;i++){
-		let ret=await actionList[cmdStep.action](cmdStep,caseData); // 0: 成功 1: 失败 2: 连接错误
-		caseData.briefResl=ret;
+		let ret=await actionList[cmdStep.action](cmdStep,caseData); // 0: 成功 1: 失败 2: 连接错误 3: 组合步骤进行暂停
+		if(ret!=3)caseData.briefResl=ret;
 		let stat:any=await sendInfoByLink({type:"get_status"});
 		if(stat.ret){
 			if(!stat.data){
@@ -235,6 +236,30 @@ async function button(cmd:any,caseData?:any){
 			}
 		}
 		if(cmd.click_type=="1")await wait({time:cmd.click_time});
+	}
+	return new Promise(resolve => {
+		resolve(0);
+	});
+}
+
+async function group(cmd:any,caseData?:any){
+	let groupContent = caseInfo.group[cmd.id].content;
+	for(let j=0;j<groupContent.length;j++){
+		let cmdStep=groupContent[j];
+		let stepLoop=cmdStep.loop!=undefined?cmdStep.loop:1;
+		for(let i=0;i<stepLoop;i++){
+			let ret=await actionList[cmdStep.action](cmdStep,caseData); // 0: 成功 1: 失败 2: 连接错误 3: 组合步骤进行暂停
+			// caseData.briefResl=ret;
+			if(ret){
+				return new Promise(resolve => {resolve(ret);});
+			}
+			let stat:any=await sendInfoByLink({type:"get_status"});
+			if(stat.ret){
+				if(!stat.data){
+					return new Promise(resolve => {resolve(3);});
+				}
+			}
+		}
 	}
 	return new Promise(resolve => {
 		resolve(0);
@@ -433,7 +458,7 @@ async function createdLink(){
             pos.write(data);
         });
         c.on("close",function(){
-            console.info("close test_client socket!!!");
+			console.info("close test_client socket!!!");
         });
         c.on("error",function(){
             console.error("error");

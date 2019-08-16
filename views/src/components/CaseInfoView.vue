@@ -87,7 +87,8 @@ export default class CaseInfoView extends Vue {
         return [];
     }
     private getResName(id:any){
-        return this.$store.state.steps_info.reslist[id];
+        let name = this.$store.state.steps_info.reslist[id];
+        return name!=undefined?name:id+"(已删除)";
     }
     private initCaseData(){
         return {case_id:"",case_name:"",case_dam:"",case_num:"",case_module:"",case_mode:1,case_status:true,case_pre:"",case_op:"",case_exp:"",case_note:"",case_level:"",case_steps:[]};

@@ -123,7 +123,7 @@ export default class StepsView extends Vue {
                 this.s_clid="";
                 break;
             case 2:
-                if(this.s_clid!=undefined){
+                if(this.s_clid!=undefined&&this.s_clid.length>0){
                     let obj:any = {action:this.s_action,module:this.s_module,id:this.s_clid};
                     if(this.s_action=="button"||this.s_action=="click"){
                         obj["click_type"]=this.s_clicktype;

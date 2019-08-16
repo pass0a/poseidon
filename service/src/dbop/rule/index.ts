@@ -53,7 +53,7 @@ function newPrj(data:any,pis:any,RuleModel:any){
     let new_arr = [
         {
             id: "action",
-            content: ["click","assert_pic","wait","operate_tool","button"]
+            content: ["click","assert_pic","wait","operate_tool","button","group"]
         },
         {
             id: "operate_tool",
@@ -96,17 +96,12 @@ function removeID(data:any,pis:any,RuleModel:any){
     let info = data.info.msg;
     RuleModel.updateOne({id:info.pid},{$pull:{content:info.id}},(err:any,msg:any) => {
         if(!err){
-            if(info.type){
-                RuleModel.deleteOne({id:info.id},(error:any) => {
-                    if(!error){
-                        data.info = true;
-                        pis.write(data);
-                    }
-                });
-            }else{
-                data.info = true;
-                pis.write(data);
-            }
+            RuleModel.deleteOne({id:info.id},(error:any) => {
+                if(!error){
+                    data.info = true;
+                    pis.write(data);
+                }
+            });
         }
     });
 }

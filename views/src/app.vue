@@ -139,7 +139,6 @@ export default class App extends Vue {
                 this.$store.state.req_info.refresh_rl = 0;
                 pis.write({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
                 pis.write({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
-                pis.write({type:"toDB",route:"buttons",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
                 break;
             case "syncRemote":
                 this.$store.state.screen_info.status = data.status;
@@ -173,6 +172,9 @@ export default class App extends Vue {
             case "buttons":
                 this.revToDB_buttons(data);
                 break;
+            case "group":
+                this.revToDB_group(data);
+                break;
         }
     }
     private revToDB_users(data:any){
@@ -192,6 +194,7 @@ export default class App extends Vue {
                     pis.write({type:"toDB",route:"rule",job:"new",info:{prjname:data.info.name}});
                     pis.write({type:"toDB",route:"buttons",job:"new",info:{prjname:data.info.name}});
                 }else{
+                    this.$store.state.alert_info.showflag=false;
                     this.$notify({title: '项目已存在',message: '', type: 'error',duration:1500});
                 }
                 break;
@@ -234,8 +237,11 @@ export default class App extends Vue {
                 break;
             case "remove_id":
                 this.$store.state.editcase_info.refresh_data=true;
-                this.$store.state.alert_info.showflag=false;
                 this.$notify({title: '选项删除成功!',message: '', type: 'success',duration:1500});
+                break;
+            case "remove_module":
+                this.$store.state.editcase_info.refresh_data=true;
+                this.$notify({title: '模块删除成功!',message: '', type: 'success',duration:1500});
                 break;
         }
     }
@@ -284,10 +290,9 @@ export default class App extends Vue {
                 }
                 break;
             case "remove_id":
-                this.$store.state.req_info.remove_id++;
-                if(this.$store.state.req_info.remove_id == 2){
-                    pis.write({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
-                    pis.write({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                this.$store.state.req_info.remove_id--;
+                if(this.$store.state.req_info.remove_id == 0){
+                    pis.write({type:"toDB",route:"rule",job:"remove_id",info:data.info});
                 }
                 break;
         }
@@ -321,6 +326,9 @@ export default class App extends Vue {
                 if(data.info.msg.id.indexOf('button')>-1){
                     pis.write({type:"toDB",route:"buttons",job:"add",info:data.info});
                 }
+                else if(data.info.msg.grouplist&&data.info.msg.id.indexOf('group')>-1){
+                    pis.write({type:"toDB",route:"group",job:"add",info:data.info});
+                }
                 break;
             case "new":
                 this.$store.state.req_info.new_prj++;
@@ -336,12 +344,9 @@ export default class App extends Vue {
                 }
                 break;
             case "remove_id":
-                this.$store.state.req_info.remove_id++;
-                if(this.$store.state.req_info.remove_id == 2){
-                    pis.write({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
-                    pis.write({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
-                    this.$store.state.alert_info.showflag=false;
-                }
+                pis.write({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                pis.write({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                this.$store.state.alert_info.showflag=false;
                 break;
         }
     }
@@ -383,6 +388,34 @@ export default class App extends Vue {
                 break;
             case "remove_id":
                 pis.write({type:"toDB",route:"buttons",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                break;
+        }
+    }
+    private revToDB_group(data:any){
+        switch(data.job){
+            case "list":
+                let list=JSON.parse(data.info.data);
+                let grouplist:any={};
+                for(let i=0;i<list.length;i++){
+                    let id=list[i].id;
+                    grouplist[id]=list[i].content;
+                }
+                this.$store.state.steps_info.grouplist=grouplist;
+                break;
+            case "add":
+                if(data.info){
+                    pis.write({type:"toDB",route:"group",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                }
+                break;
+            case "remove_id":
+                this.$store.state.req_info.remove_id--;
+                if(this.$store.state.req_info.remove_id == 0){
+                    pis.write({type:"toDB",route:"rule",job:"remove_id",info:data.info});
+                    pis.write({type:"toDB",route:"group",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                }
+                break;
+            case "modify":
+                pis.write({type:"toDB",route:"group",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
                 break;
         }
     }

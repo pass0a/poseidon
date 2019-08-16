@@ -19,8 +19,8 @@
             </el-table-column>
             <el-table-column label="操作" width="200">
                 <template slot-scope="scope">
-                    <button class="button" @click="replayCase(scope.$index)">重新执行</button>
-                    <button class="button" @click="replayCase(scope.$index)">重新截图</button>
+                    <button class="button" @click="replayCase(scope.$index)" disabled>重新执行</button>
+                    <button class="button" @click="replayCase(scope.$index)" disabled>重新截图</button>
                 </template>
             </el-table-column>
         </el-table>
@@ -99,8 +99,7 @@ export default class CaseResultView extends Vue {
         }
     }
     private showStep(it:any){
-        let reslist = this.$store.state.steps_info.reslist;
-        let action = reslist[it.action];
+        let action = this.getResName(it.action);
         if(it.action=="click"&&it.click_skip)action+=" (不判断) ";
         if((it.action=="button"||it.action=="click")&&it.click_type=="1")action+=" [长按:"+it.click_time+"ms]";
         let content:string="";
@@ -109,14 +108,18 @@ export default class CaseResultView extends Vue {
                 content = it.time+"毫秒";
                 break;
             case "qg_box":
-                content = " ["+reslist[it.module]+"] "+it.b_volt + " V";
+                content = " ["+this.getResName(it.module)+"] "+it.b_volt + " V";
                 break;
             default:
-                content = " ["+reslist[it.module]+"] "+reslist[it.id];
+                content = " ["+this.getResName(it.module)+"] "+this.getResName(it.id);
                 break;
         }
         if(it.loop!=undefined)content += "<循环 "+it.loop+" 次>";
         return action+" ==> "+content;
+    }
+    private getResName(id:any){
+        let name = this.$store.state.steps_info.reslist[id];
+        return name!=undefined?name:id+"(已删除)";
     }
     private getColor(){
         if(this.caseData.length==0)return "";

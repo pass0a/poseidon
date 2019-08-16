@@ -47,6 +47,7 @@ function newPrj(data:any,pis:any,ResModel:any){
         {id:"wait",name:"等待"},
         {id:"operate_tool",name:"控制工具板"},
         {id:"button",name:"硬按键"},
+        {id:"group",name:"组合步骤"},
         {id:"operate_tool-1",name:"打开"},
         {id:"operate_tool-2",name:"关闭"},
         {id:"button-1",name:"面板按键"},
@@ -76,10 +77,38 @@ function newPrj(data:any,pis:any,ResModel:any){
 
 function removeID(data:any,pis:any,ResModel:any){
     let info:any = data.info.msg;
-    ResModel.deleteOne({id:info.id},function(err:any){
+    ResModel.aggregate([
+        {$lookup:{
+            from:data.info.prjname+"_rule",
+            localField:"id",
+            foreignField:"id",
+            as:"rule"
+        }},
+        {$match:{
+            id:info.id
+        }},
+        {$project:{
+            "__v":0,"_id":0,"rule._id":0,"rule.__v":0
+        }}
+    ],function(err:any,docs:any){
         if(!err){
-            data.info = true;
-            pis.write(data);
+            if(docs.length&&docs[0].rule.length){
+                let content:any = docs[0].rule[0].content;
+                content.push(info.id);
+                ResModel.deleteMany({ id: { $in: content } },(err:any,msg:any)=>{
+                    if(!err){
+                        data.info.status = true;
+                        pis.write(data);
+                    }
+                });
+            }else{
+                ResModel.deleteOne({id:info.id},function(err:any){
+                    if(!err){
+                        data.info.status = true;
+                        pis.write(data);
+                    }
+                });
+            }
         }
     });
 }

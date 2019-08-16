@@ -79,7 +79,8 @@ export default class ReportView extends Vue {
         return [];
     }
     private getResName(id:any){
-        return this.$store.state.steps_info.reslist[id];
+        let name = this.$store.state.steps_info.reslist[id];
+        return name!=undefined?name:id+"(已删除)";
     }
     private setReportInfo(data:any){
         if(data!=null){

@@ -48,7 +48,6 @@ export class Web_mgr {
 				if (!fs.existsSync(imgPath)) fs.mkdirSync(imgPath);
 				let icon_info = obj.info.cut_info;
 				let iconPath = imgPath + '/' + icon_info.id + '.png';
-				console.log(cvip);
 				let ret = cvip.imageCut(
 					screenPath,
 					iconPath,
@@ -71,6 +70,10 @@ export class Web_mgr {
 		this.intc.on('data', (data:any) => {
 			this.pos.write(data);
 		});
+		this.intc.on('close', () => {
+			console.info('[link close]' + obj.class + '-' + obj.name + ':' + 'exit!!!');
+			this.link.closeLink(obj.class,obj.name);
+		});
 		this.pis.write({ type: 'auth', state: 'ok' });
 	}
 
@@ -80,7 +83,7 @@ export class Web_mgr {
 		let prjpath = path.dirname(path.dirname(passoaPath)) + '/data_store/projects/' + obj.info.prjname;
 		let execpath = '"' + passoaPath + '" ' + jsPath + ' "' + prjpath + '"';
 		console.log(execpath);
-		childprs.exec(execpath, { windowsHide: testcfg.windowsHide});
+		childprs.exec(execpath, { windowsHide: testcfg.windowsHide });
 	};
 
 	sendToWebServer(data:any) {
