@@ -24,6 +24,7 @@
 *.doc
 dist
 \#*
+tmp
 output/*
 stage/*
 *build*
@@ -43,3 +44,4 @@ GPATH
 GRTAGS
 lib
 package-lock.json
+depends/
