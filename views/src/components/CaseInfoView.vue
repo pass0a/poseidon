@@ -77,6 +77,7 @@ export default class CaseInfoView extends Vue {
             this.title=this.$store.state.case_info.type?"修改用例":"新建用例";
             this.case_info=this.$store.state.case_info.type?JSON.parse(JSON.stringify(this.$store.state.case_info.data)):this.initCaseData();
             this.$store.state.steps_info.steplist=JSON.parse(JSON.stringify(this.case_info.case_steps));
+            this.$store.state.steps_info.op_date = {type:0};
         }else{
             if((this as any).$refs.caseform)(this as any).$refs.caseform.resetFields();
         }

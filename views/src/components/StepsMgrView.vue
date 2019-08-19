@@ -228,6 +228,7 @@ export default class StepsMgrView extends Vue {
             this.edit_info.event_up_1 =btn.event_up_1;
             this.edit_info.event_up_2 =btn.event_up_2;
         }else if(id.indexOf("group")>-1){
+            this.$store.state.steps_info.op_data = {type:1, id:id};
             this.$store.state.steps_info.steplist=JSON.parse(JSON.stringify(this.$store.state.steps_info.grouplist[id]));
         }
         this.editflag = true;
@@ -252,7 +253,10 @@ export default class StepsMgrView extends Vue {
                 break;
             case 1:
                 this.add_info.action = this.actionName;
-                if(this.actionName=="group")this.$store.state.steps_info.steplist=[];
+                if(this.actionName=="group"){
+                    this.$store.state.steps_info.steplist=[];
+                    this.$store.state.steps_info.op_data = {type:1};
+                }
                 this.title="添加三级选项";
                 break;
             case 2:

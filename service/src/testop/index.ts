@@ -2,7 +2,7 @@ import * as net from 'net';
 import * as fs from 'fs';
 import * as childprs from 'child_process';
 import * as pack from '@passoa/pack';
-import * as cvip from '@passoa/cvip';
+import Cvip from '@passoa/cvip';
 import Remote from './remote/index';
 import QGBox from './qgbox/index';
 import UartsMgr from './uarts/index';
@@ -405,7 +405,7 @@ async function imageMatch(cmd: any) {
 		info = { ret: 0 };
 	} else {
 		await Remote.sendCmd({ type: 'cutScreen', filepath: tmpPath });
-		info = { ret: 1, obj: cvip.imageMatch(imgPath, tmpPath) };
+		info = { ret: 1, obj: Cvip.imageMatch(imgPath, tmpPath) };
 	}
 	return new Promise((resolve) => {
 		resolve(info);
@@ -416,7 +416,7 @@ async function saveScreen(cmd: any, caseData: any) {
 	let tmpPath = caseInfo.path + '/tmp/test.png';
 	caseData.image = caseInfo.path + '/img/' + cmd.id + '.png';
 	caseData.screen = caseInfo.path + '/tmp/' + gid++ + '.png';
-	cvip.imageSave(tmpPath, caseData.screen, 16);
+	Cvip.imageSave(tmpPath, caseData.screen, 16);
 	return new Promise((resolve) => {
 		resolve(1);
 	});

@@ -1,5 +1,5 @@
 import * as pack from '@passoa/pack';
-import * as cvip from '@passoa/cvip';
+import cvip from '@passoa/cvip';
 import * as childprs from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
