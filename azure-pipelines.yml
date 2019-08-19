@@ -88,3 +88,4 @@ steps:
     tagSource: 'auto'
     releaseNotesFile: 'ChangeLog'
     addChangeLog: false
+  condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
