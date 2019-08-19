@@ -73,7 +73,12 @@ export default new Vuex.Store({
 			reslist:{},
 			rulelist:{},
 			buttonlist:{},
-			steplist:[]
+			grouplist:{},
+			steplist:[],
+			op_data:{
+				type:0,
+				id:""
+			}
 		},
 		screen_info:{
 			count:0,

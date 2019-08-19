@@ -86,6 +86,10 @@ export default class StepsView extends Vue {
     private waitType:string="wait";
     private boxType:any={act:"qg_box",freq:"freq"};
     private clickType:any=new Map([["0","短按"],["1","长按"]]);
+    private op_data:any={
+        type:0,
+        id:""
+    }
     get clearInfo(){
         if(this.$store.state.case_info.showflag){
             this.initOp();
@@ -97,7 +101,8 @@ export default class StepsView extends Vue {
         return;
     }
     get StepList(){
-        this.steplist=this.$store.state.steps_info.steplist;
+        this.op_data = this.$store.state.steps_info.op_data;
+        this.steplist = this.$store.state.steps_info.steplist;
         return;
     }
     get Module(){
@@ -123,12 +128,26 @@ export default class StepsView extends Vue {
                 this.s_clid="";
                 break;
             case 2:
-                if(this.s_clid!=undefined){
+                if(this.s_clid!=undefined&&this.s_clid.length>0){
                     let obj:any = {action:this.s_action,module:this.s_module,id:this.s_clid};
                     if(this.s_action=="button"||this.s_action=="click"){
                         obj["click_type"]=this.s_clicktype;
                         if(this.s_clicktype)obj["click_time"]=this.s_clicktime;
                         if(this.s_skip)obj["click_skip"]=this.s_skip;
+                    }
+                    else if(this.s_action=="group"){
+                        if(this.op_data.type){
+                            if(this.op_data.id!=""&&this.op_data.id==this.s_clid){
+                                this.$notify({title: '无法选择本身!',message: '', type: 'warning',duration:1500});
+                                break;
+                            }
+                            for(let step of this.$store.state.steps_info.grouplist[this.s_clid]){
+                                if(step.action=="group"){
+                                    this.$notify({title: '子选项不能含组合步骤!',message: '', type: 'warning',duration:1500});
+                                    return;
+                                }
+                            }
+                        }
                     }
                     if(this.s_op==0)this.steplist.push(obj);
                     else if(this.s_op==2)this.steplist[this.s_idx]=obj;

@@ -1,5 +1,5 @@
 import * as pack from '@passoa/pack';
-import * as cvip from '@passoa/cvip';
+import cvip from '@passoa/cvip';
 import * as childprs from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -48,7 +48,6 @@ export class Web_mgr {
 				if (!fs.existsSync(imgPath)) fs.mkdirSync(imgPath);
 				let icon_info = obj.info.cut_info;
 				let iconPath = imgPath + '/' + icon_info.id + '.png';
-				console.log(cvip);
 				let ret = cvip.imageCut(
 					screenPath,
 					iconPath,
@@ -71,6 +70,10 @@ export class Web_mgr {
 		this.intc.on('data', (data: any) => {
 			this.pos.write(data);
 		});
+		this.intc.on('close', () => {
+			console.info('[link close]' + obj.class + '-' + obj.name + ':' + 'exit!!!');
+			this.link.closeLink(obj.class,obj.name);
+		});
 		this.pis.write({ type: 'auth', state: 'ok' });
 	}
 
@@ -81,7 +84,7 @@ export class Web_mgr {
 		let execpath = '"' + passoaPath + '" ' + jsPath + ' "' + prjpath + '"';
 		console.log(execpath);
 		childprs.exec(execpath, { windowsHide: testcfg.windowsHide });
-	}
+	};
 
 	sendToWebServer(data: any) {
 		this.pis.write(data);

@@ -3,6 +3,8 @@ import * as pack from "@passoa/pack";
 import { Test_mgr } from "./mgr_test";
 import { Web_mgr } from "./mgr_web";
 
+import * as util from 'util';
+
 class Linkmgr {
 	private ints:any;
 	private pos:any = new pack.unpackStream();
@@ -14,13 +16,10 @@ class Linkmgr {
 			this.handleCmd(data);
 		});
 		this.pis.on('data', (data:any) => {
-			c.write(data);
+			this.ints.write(data);
 		});
 		this.ints.on('data', (data:any) => {
 			this.pos.write(data);
-		});
-		this.ints.on('close', () => {
-			console.log("linkmgr close");
 		});
 		this.pis.write({ type: 'init' });
 	});
@@ -48,14 +47,18 @@ class Linkmgr {
 						return;
 				}
 				this.lk[obj.class][obj.name] = link_obj;
-				link_obj.create(this.ints, obj, this);
+				this.closeOnData();
+				console.log(obj.class,obj.name);
+				this.lk[obj.class][obj.name].create(this.ints, obj, this);
 				console.info('[link create]' + obj.class + '-' + obj.name + ':' + 'success!!!');
-				this.ints.on('close', () => {
-					console.info('[link close]' + obj.class + '-' + obj.name + ':' + 'exit!!!');
-					this.lk[obj.class][obj.name] = undefined;
-				});
 			}
 		}
+	}
+
+	closeOnData(){
+		this.pos.removeAllListeners('data');
+		this.pis.removeAllListeners('data');
+		this.ints.removeAllListeners('data');
 	}
 
 	getLink(){
@@ -65,9 +68,14 @@ class Linkmgr {
 		return undefined;
 	}
 
+	closeLink(link_class:string,link_name:string){
+		this.lk[link_class][link_name] = null;
+	}
+
 	start(){
 		this.app.listen(6000);
 	}
 }
-
 new Linkmgr().start();
+
+

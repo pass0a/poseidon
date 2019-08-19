@@ -99,21 +99,12 @@ function deleteCase(data:any,pis:any,CaseModel:any){
 
 function removeStepID(data:any,pis:any,CaseModel:any){
     let info = data.info.msg;
-    if(info.type == 0){
-        CaseModel.updateMany({},{$pull:{case_steps:{id:info.id}}},(err:any,msg:any) => {
-            if(!err){
-                data.info = true;
-                pis.write(data);
-            }
-        });
-    }else{
-        CaseModel.updateMany({},{$pull:{case_steps:{module:info.id}}},(err:any,msg:any) => {
-            if(!err){
-                data.info = true;
-                pis.write(data);
-            }
-        });
-    }
+    CaseModel.updateMany({},{$pull:{case_steps:info.type?{module:info.id}:{id:info.id}}},(err:any) => {
+        if(!err){
+            data.info = true;
+            pis.write(data);
+        }
+    });
 }
 
 function removeModule(data:any,pis:any,CaseModel:any){

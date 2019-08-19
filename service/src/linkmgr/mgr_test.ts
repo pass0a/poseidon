@@ -19,7 +19,7 @@ export class Test_mgr{
 		switch (obj.type) {
 			case 'tolink':
 				let web_link = this.link.getLink('web', 'web');
-				web_link.sendToWebServer(obj);
+				if(web_link)web_link.sendToWebServer(obj);
 				break;
 			case 'get_status':
 				this.disposedCompleted(obj.type, this.currentStatus);
@@ -27,7 +27,7 @@ export class Test_mgr{
 			case 'toSer':
 				if (obj.job == 'syncRemote') {
 					let web_link = this.link.getLink('web', 'web');
-					web_link.sendToWebServer(obj);
+					if(web_link)web_link.sendToWebServer(obj);
 				}
 				break;
 			default:
@@ -44,6 +44,10 @@ export class Test_mgr{
 		this.link = link;
 		this.intc.on('data', (data:any) => {
 			this.pos.write(data);
+		});
+		this.intc.on('close', () => {
+			console.info('[link close]' + obj.class + '-' + obj.name + ':' + 'exit!!!');
+			this.link.closeLink(obj.class,obj.name);
 		});
 		this.pis.write({ type: 'auth', state: 'ok' });
 	}

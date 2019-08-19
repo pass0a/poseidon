@@ -83,7 +83,7 @@ export class ToDB {
 			let filename = this.prjdir + data.info.prjname + '/'+ data.route +'.json';
 			fs.writeFileSync(filename, data.info.data);
 			this.req_start_flag++;
-			if(this.req_start_flag==2)this.tolink.send({type:data.type,job:data.job,info:{prjname:data.info.prjname}});
+			if(this.req_start_flag==3)this.tolink.send({type:data.type,job:data.job,info:{prjname:data.info.prjname}});
 		}
 	}
 	private readConfig() {

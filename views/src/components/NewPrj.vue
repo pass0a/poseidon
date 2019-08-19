@@ -8,7 +8,7 @@
             <i class="el-icon-folder-opened"></i>
             <span>新建项目...</span>
         </p>
-        <el-input v-model="newprj_name" placeholder="请输入项目名称..." onkeyup="value=this.value.replace(/[^\d|a-zA-Z]/g,'')"></el-input>
+        <el-input v-model="newprj_name" id="prjname" placeholder="请输入项目名称..." onkeyup="value=this.value.replace(/[^\d|a-zA-Z]/g,'')"></el-input>
         <div style="margin:10px 0px 0px 0px">
             <span><strong>注:仅可输入数据和字母</strong></span>
         </div>
@@ -37,6 +37,8 @@ export default class OpenPrj extends Vue {
         this.$store.state.project_info.newflag=false;
     }
     private ok(){
+        let prjname_input:any = document.getElementById("prjname");
+        this.newprj_name = prjname_input.value;
         if(this.newprj_name.length){
             this.$store.state.alert_info.showflag = true;
             this.$store.state.alert_info.type = 1;

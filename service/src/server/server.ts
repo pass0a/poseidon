@@ -37,6 +37,8 @@ export class Server {
 			this.inst.on('data', (frm: any) => {
 				this.pos.write(frm.PayloadData);
 			});
+			this.inst.on('close', () => {
+			});
 		});
 		this.hp = http.createServer((req: any, res: any) => {
 			let body = '';

@@ -9,7 +9,8 @@ let endflag=0;
 let fileList=new Map([
 	["caselist","caselist.json"],
 	["stopinfo","stopinfo.json"],
-	["buttons","buttons.json"]
+	["buttons","buttons.json"],
+	["group","group.json"]
 ]);
 fileList.forEach(function(value,key){
 	readFile(key,value,fileList.size);
@@ -70,16 +71,26 @@ function checkTmpDir(){
 }
 
 function disposeData(name:any,data:any){
-	if(name == "buttons"){
-		caseInfo[name] = {};
-		for(let i=0;i<data.length;i++){
-			caseInfo[name][data[i].id] = {
-				content : data[i].content,
-				event : data[i].event
+	caseInfo[name] = {};
+	switch(name){
+		case "buttons":
+			for(let i=0;i<data.length;i++){
+				caseInfo[name][data[i].id] = {
+					content : data[i].content,
+					event : data[i].event
+				}
 			}
-		}
-	}else{
-		caseInfo[name] = data;
+			break;
+		case "group":
+			for(let i=0;i<data.length;i++){
+				caseInfo[name][data[i].id] = {
+					content : data[i].content
+				}
+			}
+			break;
+		default:
+			caseInfo[name] = data;
+			break;
 	}
 }
 

@@ -39,7 +39,7 @@
         </el-tabs>
         <Modal
             v-model="showflag"
-            width="500"
+            :width="add_info.action=='group'?650:500"
             :closable="false"
             :mask-closable="false">
             <p slot="header">
@@ -73,6 +73,10 @@
                         <el-input style="width:220px" placeholder="请输入事件" v-model="add_info.event_up_2"></el-input>
                     </el-form-item>
                 </div>
+                <div v-if="add_info.action=='group'&&add_type">
+                    <span><font size="2">步骤组合</font></span>
+                    <StepsView/>
+                </div>
             </el-form>
             <span slot="footer">
                 <el-button type="info" @click="cancel">取消</el-button>
@@ -82,7 +86,7 @@
         </Modal>
         <Modal
             v-model="editflag"
-            width="400"
+            :width="actionName=='group'?650:400"
             :closable="false"
             :mask-closable="false">
             <p slot="header">
@@ -106,6 +110,10 @@
                         <el-input style="width:220px" placeholder="请输入事件" v-model="edit_info.event_up_2"></el-input>
                     </el-form-item>
                 </div>
+                <div v-if="actionName=='group'">
+                    <span><font size="2">步骤组合</font></span>
+                    <StepsView/>
+                </div>
             </el-form>
             <span slot="footer">
                 <el-button type="info" @click="editCancel">取消</el-button>
@@ -117,9 +125,14 @@
 </template>
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
-@Component
+import StepsView from "./StepsView.vue";
+@Component({
+  components: {
+      StepsView
+  }
+})
 export default class StepsMgrView extends Vue {
-    private actionList:any=["click","assert_pic","button"];
+    private actionList:any=["click","assert_pic","button","group"];
     private actionName:any=this.actionList[0];
     private moduleName:any="";
     private rulelist:any;
@@ -131,18 +144,19 @@ export default class StepsMgrView extends Vue {
     private title:any="";
     private count:any=0;
     private loading:boolean = false;
-    private add_info:any= {action:"",module:"",name:"",event:"/dev/input/event1",event_down_1:"",event_down_2:"",event_up_1:"",event_up_2:""};
+    private add_info:any= {action:"",module:"",name:"",event:"/dev/input/event1",event_down_1:"",event_down_2:"",event_up_1:"",event_up_2:"",grouplist:[]};
     private edit_info:any = {id:"",name:"",event:"",event_down_1:"",event_down_2:"",event_up_1:"",event_up_2:""};
     private idValidate:any={
         action:[{ required: true, message: '所属动作不能为空', trigger: 'blur' }],
         name:[{ required: true, message: '名称不能为空', trigger: 'blur' }],
         module:[{ required: true, message: '所属二级选项不能为空', trigger: 'blur' }],
         event:[{ required: true, message: 'Event不能为空', trigger: 'blur' }]
-    }
+    };
     private editVal:any={
         name:[{ required: true, message: '名称不能为空', trigger: 'blur' }],
         event:[{ required: true, message: 'Event不能为空', trigger: 'blur' }]
-    }
+    };
+    private leak:any={group:"组合步骤"};
     get ButtonList(){
         this.buttonlist=this.$store.state.steps_info.buttonlist;
         return;
@@ -193,6 +207,8 @@ export default class StepsMgrView extends Vue {
         if(rl!=undefined){
             if(rl.length){
                 this.moduleName = rl[0];
+            }else{
+                this.moduleName = "";
             }
         }else this.moduleName = "";
     }
@@ -211,15 +227,20 @@ export default class StepsMgrView extends Vue {
             this.edit_info.event_down_2 =btn.event_down_2;
             this.edit_info.event_up_1 =btn.event_up_1;
             this.edit_info.event_up_2 =btn.event_up_2;
+        }else if(id.indexOf("group")>-1){
+            this.$store.state.steps_info.op_data = {type:1, id:id};
+            this.$store.state.steps_info.steplist=JSON.parse(JSON.stringify(this.$store.state.steps_info.grouplist[id]));
         }
         this.editflag = true;
     }
     private deleteID(type:number,id:any){
         this.$store.state.alert_info.showflag = true;
         this.$store.state.alert_info.type = 4;
-        this.$store.state.alert_info.info.type = type;
-        this.$store.state.alert_info.info.id = id;
-        this.$store.state.alert_info.info.pid = type?this.actionName:this.moduleName;
+        this.$store.state.alert_info.info = {
+            type : type,
+            id : id,
+            pid : type?this.actionName:this.moduleName
+        };
     }
     private addID(type:number){
         this.count = this.$store.state.id_info.count;
@@ -232,12 +253,14 @@ export default class StepsMgrView extends Vue {
                 break;
             case 1:
                 this.add_info.action = this.actionName;
-                this.add_info.module = this.moduleName;
+                if(this.actionName=="group"){
+                    this.$store.state.steps_info.steplist=[];
+                    this.$store.state.steps_info.op_data = {type:1};
+                }
                 this.title="添加三级选项";
                 break;
             case 2:
                 this.add_info.action = this.actionName;
-                this.add_info.module = this.moduleName;
                 this.title="添加三级选项";
                 break;
         }
@@ -253,6 +276,11 @@ export default class StepsMgrView extends Vue {
                         break;
                     case 1:
                         req.id = this.add_info.module;
+                        if(this.add_info.action=="group"){
+                            req.pid =  this.add_info.module;
+                            this.add_info.grouplist = JSON.stringify(this.$store.state.steps_info.steplist);
+                            req.grouplist = this.add_info.grouplist;
+                        }
                         break;
                     case 2:
                         req.id = this.add_info.module;
@@ -273,7 +301,7 @@ export default class StepsMgrView extends Vue {
         (this as any).$refs.editform.validate((valid:any) => {
             if(valid){
                 this.loading = true;
-                this.sendReq("res","modify",{id:this.edit_info.id,name:this.edit_info.name});
+                this.sendReq("res","modify",{ id:this.edit_info.id,name:this.edit_info.name });
                 if(this.edit_info.id.indexOf("button")>-1){
                     let msg = {
                         id : this.edit_info.id,
@@ -281,6 +309,10 @@ export default class StepsMgrView extends Vue {
                         content : [[this.edit_info.event_down_1,this.edit_info.event_down_2],[this.edit_info.event_up_1,this.edit_info.event_up_2]]
                     }
                     this.sendReq("buttons","modify",msg);
+                }
+                else if(this.edit_info.id.indexOf("group")>-1){
+                    let m_cont = JSON.stringify(this.$store.state.steps_info.steplist);
+                    this.sendReq("group","modify",{id:this.edit_info.id,grouplist:m_cont});
                 }
                 this.editflag = false;
             }
@@ -291,7 +323,8 @@ export default class StepsMgrView extends Vue {
         this.editflag = false;
     }
     private getResName(id:any){
-        return this.$store.state.steps_info.reslist[id];
+        let name = this.$store.state.steps_info.reslist[id];
+        return name?name:this.leak[id];
     }
     private emptyText(){
         return this.actionName.length>1?"暂无数据":"请选择动作";

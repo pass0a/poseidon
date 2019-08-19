@@ -160,6 +160,11 @@ export default class Home extends Vue {
               }
               this.select_mode=key;
               break;
+            case "6_1":
+              this.$store.state.app_info.pis.write({type:"toDB",route:"buttons",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+              this.$store.state.app_info.pis.write({type:"toDB",route:"group",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+              this.select_mode=key;
+              break;
             case "6_3":
               this.$store.state.module_info.enter++;
               this.select_mode=key;

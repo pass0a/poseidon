@@ -107,7 +107,7 @@ export default class AlertView extends Vue {
                 this.$store.state.alert_info.showflag = false;
                 break;
             case 4:
-                let di_info = {
+                let di_info:any = {
                     prjname:this.$store.state.project_info.current_prj,
                     msg:{
                         type: this.$store.state.alert_info.info.type,
@@ -115,11 +115,14 @@ export default class AlertView extends Vue {
                         pid: this.$store.state.alert_info.info.pid
                     }
                 };
-                this.$store.state.req_info.remove_id = 0;
+                this.$store.state.req_info.remove_id = 1;
+                if(di_info.msg.id.indexOf("group")>-1){
+                    this.$store.state.req_info.remove_id = 2;
+                    this.sendReq("toDB","group","remove_id",di_info);
+                }
+                else if(di_info.msg.id.indexOf("button")>-1)this.sendReq("toDB","buttons","remove_id",di_info);
                 this.sendReq("toDB","cases","remove_id",di_info);
                 this.sendReq("toDB","res","remove_id",di_info);
-                this.sendReq("toDB","rule","remove_id",di_info);
-                if(di_info.msg.id.indexOf("button")>-1)this.sendReq("toDB","buttons","remove_id",di_info);
                 break;
             case 5:
                 let dmo_info = {
@@ -132,6 +135,7 @@ export default class AlertView extends Vue {
                 };
                 this.$store.state.req_info.remove_id = 0;
                 this.sendReq("toDB","cases","remove_module",dmo_info);
+                this.sendReq("toDB","status","remove_module",dmo_info);
                 this.sendReq("toDB","res","remove_id",dmo_info);
                 this.sendReq("toDB","rule","remove_id",dmo_info);
                 break;

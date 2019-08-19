@@ -2,7 +2,7 @@ import * as net from 'net';
 import * as fs from 'fs';
 import * as childprs from 'child_process';
 import * as pack from '@passoa/pack';
-import * as cvip from '@passoa/cvip';
+import Cvip from '@passoa/cvip';
 import Remote from './remote/index';
 import QGBox from './qgbox/index';
 import UartsMgr from './uarts/index';
@@ -22,8 +22,9 @@ let actionList: any = {
 	click: click,
 	assert_pic: assertPic,
 	operate_tool: operateTool,
-	button: button,
-	qg_box: qgBox
+	button : button,
+	qg_box : qgBox,
+	group : group
 };
 
 async function startTest(data: any) {
@@ -155,19 +156,16 @@ async function runSteps(caseData: any) {
 	});
 }
 
-async function disposeStepLoop(idx: any, caseData: any) {
-	// 执行步骤循环
-	let cmdStep = caseData.case_steps[idx];
-	let stepLoop = cmdStep.loop != undefined ? cmdStep.loop : 1;
-	for (let i = 0; i < stepLoop; i++) {
-		let ret = await actionList[cmdStep.action](cmdStep, caseData); // 0: 成功 1: 失败 2: 连接错误
-		caseData.briefResl = ret;
-		let stat: any = await sendInfoByLink({ type: 'get_status' });
-		if (stat.ret) {
-			if (!stat.data) {
-				return new Promise((resolve) => {
-					resolve(0);
-				});
+async function disposeStepLoop(idx:any,caseData:any){ // 执行步骤循环
+    let cmdStep=caseData.case_steps[idx];
+    let stepLoop=cmdStep.loop!=undefined?cmdStep.loop:1;
+    for(let i=0;i<stepLoop;i++){
+		let ret=await actionList[cmdStep.action](cmdStep,caseData); // 0: 成功 1: 失败 2: 连接错误 3: 组合步骤进行暂停
+		if(ret!=3)caseData.briefResl=ret;
+		let stat:any=await sendInfoByLink({type:"get_status"});
+		if(stat.ret){
+			if(!stat.data){
+				return new Promise(resolve => {resolve(0);});
 			}
 		}
 		test_log_info.step = cmdStep;
@@ -263,12 +261,36 @@ async function button(cmd: any, caseData?: any) {
 	});
 }
 
-async function qgBox(cmd: any, caseData?: any) {
-	let rev: any = await QGBox.sendBoxApi(cmd.module, 0, caseInfo.config.qg_box);
-	let result: any;
-	if (!rev.ret) {
-		result = parseFloat(rev.data) > cmd.b_volt ? 0 : 1;
-	} else {
+async function group(cmd:any,caseData?:any){
+	let groupContent = caseInfo.group[cmd.id].content;
+	for(let j=0;j<groupContent.length;j++){
+		let cmdStep=groupContent[j];
+		let stepLoop=cmdStep.loop!=undefined?cmdStep.loop:1;
+		for(let i=0;i<stepLoop;i++){
+			let ret=await actionList[cmdStep.action](cmdStep,caseData); // 0: 成功 1: 失败 2: 连接错误 3: 组合步骤进行暂停
+			// caseData.briefResl=ret;
+			if(ret){
+				return new Promise(resolve => {resolve(ret);});
+			}
+			let stat:any=await sendInfoByLink({type:"get_status"});
+			if(stat.ret){
+				if(!stat.data){
+					return new Promise(resolve => {resolve(3);});
+				}
+			}
+		}
+	}
+	return new Promise(resolve => {
+		resolve(0);
+	});
+}
+
+async function qgBox(cmd:any,caseData?:any){
+	let rev:any = await QGBox.sendBoxApi(cmd.module,0,caseInfo.config.qg_box);
+	let result:any;
+	if(!rev.ret){
+		result = parseFloat(rev.data)>cmd.b_volt?0:1;
+	}else{
 		result = 2;
 	}
 	return new Promise((resolve) => {
@@ -383,7 +405,7 @@ async function imageMatch(cmd: any) {
 		info = { ret: 0 };
 	} else {
 		await Remote.sendCmd({ type: 'cutScreen', filepath: tmpPath });
-		info = { ret: 1, obj: cvip.imageMatch(imgPath, tmpPath) };
+		info = { ret: 1, obj: Cvip.imageMatch(imgPath, tmpPath) };
 	}
 	return new Promise((resolve) => {
 		resolve(info);
@@ -394,7 +416,7 @@ async function saveScreen(cmd: any, caseData: any) {
 	let tmpPath = caseInfo.path + '/tmp/test.png';
 	caseData.image = caseInfo.path + '/img/' + cmd.id + '.png';
 	caseData.screen = caseInfo.path + '/tmp/' + gid++ + '.png';
-	cvip.imageSave(tmpPath, caseData.screen, 16);
+	Cvip.imageSave(tmpPath, caseData.screen, 16);
 	return new Promise((resolve) => {
 		resolve(1);
 	});
@@ -429,37 +451,37 @@ async function sendInfoByLink(cmd: any) {
 	});
 }
 
-async function createdLink() {
-	return new Promise((resolve) => {
-		pos = new pack.unpackStream();
-		pis = new pack.packStream();
-		c = net.connect(6000, '127.0.0.1', function() {
-			console.info('test_client connect!!!');
-		});
-		pos.on('data', function(data: any) {
-			switch (data.type) {
-				case 'init':
-					pis.write({ type: 'info', class: 'test', name: 'test' });
-					break;
-				case 'auth':
-					resolve(1);
-					break;
-			}
-		});
-		pis.on('data', function(data: any) {
-			c.write(data);
-		});
-		c.on('data', function(data: any) {
-			pos.write(data);
-		});
-		c.on('close', function() {
-			console.info('close test_client socket!!!');
-		});
-		c.on('error', function() {
-			console.error('error');
-			resolve(0);
-		});
-	});
+async function createdLink(){
+    return new Promise(resolve => {
+        pos=new pack.unpackStream();
+        pis=new pack.packStream();
+        c=net.connect(6000,"127.0.0.1",function(){
+            console.info("test_client connect!!!");
+        });
+        pos.on("data",function(data:any){
+            switch(data.type){
+                case "init":
+                    pis.write({type:"info",class:"test",name:"test"});
+                    break;
+                case "auth":
+                    resolve(1);
+                    break;
+            }
+        });
+        pis.on("data",function(data:any){
+            c.write(data);
+        });
+        c.on("data",function(data:any){
+            pos.write(data);
+        });
+        c.on("close",function(){
+			console.info("close test_client socket!!!");
+        });
+        c.on("error",function(){
+            console.error("error");
+            resolve(0);
+        });
+    });
 }
 
 export default { startTest };

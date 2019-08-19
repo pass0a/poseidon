@@ -152,6 +152,7 @@ export default class EditCasesView extends Vue {
             info : {
                 type:1,
                 prjname:this.$store.state.project_info.current_prj,
+                module:this.current_data[idx].case_module,
                 cid:this.current_data[idx]._id,
                 uid:this.$store.state.login_info._id
             }
