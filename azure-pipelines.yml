@@ -89,3 +89,15 @@ steps:
     releaseNotesFile: 'ChangeLog'
     addChangeLog: false
   condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
+
+- task: FtpUpload@2
+  inputs:
+    credentialsOption: 'serviceEndpoint'
+    serverEndpoint: 'tenwind ftp'
+    rootDirectory: '$(Build.ArtifactStagingDirectory)'
+    filePatterns: '**'
+    remoteDirectory: '/pub/poseidon'
+    clean: false
+    cleanContents: false
+    preservePaths: false
+    trustSSL: false
