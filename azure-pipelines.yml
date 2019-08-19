@@ -101,3 +101,4 @@ steps:
     cleanContents: false
     preservePaths: false
     trustSSL: false
+  condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
