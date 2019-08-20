@@ -1,5 +1,5 @@
 import * as pack from '@passoa/pack';
-import * as cvip from '@passoa/cvip';
+// import * as cvip from '@passoa/cvip';
 import * as childprs from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -9,6 +9,7 @@ export class Web_mgr {
 	private pis: any = new pack.packStream();
 	private intc: any;
 	private link: any;
+	private cvip: any;
 	constructor() {
 		this.pis.on('data', (data: any) => {
 			this.intc.write(data);
@@ -41,6 +42,7 @@ export class Web_mgr {
 				this.startJS(obj, jsPath_y);
 				break;
 			case 'saveCutImage':
+				if(!this.cvip)this.cvip = require("@passoa/cvip");
 				let passoaPath = process.execPath;
 				let prjPath = path.dirname(path.dirname(passoaPath)) + '/data_store/projects/' + obj.info.prjname;
 				let screenPath = prjPath + '/screen/screen.png';
@@ -48,7 +50,7 @@ export class Web_mgr {
 				if (!fs.existsSync(imgPath)) fs.mkdirSync(imgPath);
 				let icon_info = obj.info.cut_info;
 				let iconPath = imgPath + '/' + icon_info.id + '.png';
-				let ret = cvip.imageCut(
+				let ret = this.cvip.imageCut(
 					screenPath,
 					iconPath,
 					16,

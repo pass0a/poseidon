@@ -21,14 +21,14 @@
         <el-menu-item index="8"><i class="el-icon-service"></i>关于我们</el-menu-item>
       </el-menu>
       <div style="background-color: #545c64bb;height:31px;">
-        <span style="margin:0px 0px 0px 10px"><font size="1" color="#ffd04b"><i class="el-icon-folder-opened"></i> 当前选择项目 : {{ currentProject }}</font></span>
-        <span style="margin:0px 0px 0px 30px"><font size="1" color="#ffd04b"><i class="el-icon-connection"></i> 连接状态 : </font></span>
-        <span style="margin:0px 0px 0px 10px"><font size="1" color="#ffd04b	"><i class="el-icon-monitor"></i> 服务器</font></span>
-        <span style="margin:0px 0px 0px 0px"><font size="1" :color="showConnectStatus(0,connectStatus.server)">(<i class="el-icon-loading" v-show="!connectStatus.server"></i>{{showConnectStatus(1,connectStatus.server)}})</font></span>
-        <span style="margin:0px 0px 0px 10px"><font size="1" color="#ffd04b"><i class="el-icon-coin"></i> 数据库</font></span>
-        <span style="margin:0px 0px 0px 0px"><font size="1" :color="showConnectStatus(0,connectStatus.db)">(<i class="el-icon-loading" v-show="!connectStatus.db"></i>{{showConnectStatus(1,connectStatus.db)}})</font></span>
-        <span style="margin:0px 0px 0px 10px"><font size="1" color="#ffd04b"><i class="el-icon-link"></i> LINK</font></span>
-        <span style="margin:0px 0px 0px 0px"><font size="1" :color="showConnectStatus(0,connectStatus.link)">(<i class="el-icon-loading" v-show="!connectStatus.link"></i>{{showConnectStatus(1,connectStatus.link)}})</font></span>
+        <span style="margin:0px 0px 0px 10px"><font size="2" color="#ffd04b"><i class="el-icon-folder-opened"></i> 当前选择项目 : {{ currentProject }}</font></span>
+        <span style="margin:0px 0px 0px 30px"><font size="2" color="#ffd04b"><i class="el-icon-connection"></i> 连接状态 : </font></span>
+        <span style="margin:0px 0px 0px 10px"><font size="2" color="#ffd04b	"><i class="el-icon-monitor"></i> 服务器</font></span>
+        <span style="margin:0px 0px 0px 0px"><font size="2" :color="showConnectStatus(0,connectStatus.server)">(<i class="el-icon-loading" v-show="!connectStatus.server"></i>{{showConnectStatus(1,connectStatus.server)}})</font></span>
+        <span style="margin:0px 0px 0px 10px"><font size="2" color="#ffd04b"><i class="el-icon-coin"></i> 数据库</font></span>
+        <span style="margin:0px 0px 0px 0px"><font size="2" :color="showConnectStatus(0,connectStatus.db)">(<i class="el-icon-loading" v-show="!connectStatus.db"></i>{{showConnectStatus(1,connectStatus.db)}})</font></span>
+        <span style="margin:0px 0px 0px 10px"><font size="2" color="#ffd04b"><i class="el-icon-link"></i> LINK</font></span>
+        <span style="margin:0px 0px 0px 0px"><font size="2" :color="showConnectStatus(0,connectStatus.link)">(<i class="el-icon-loading" v-show="!connectStatus.link"></i>{{showConnectStatus(1,connectStatus.link)}})</font></span>
         <span><font size="4"><strong></strong></font></span>
         <button class="button_rt" style="margin:0px 0px 0px 10px" v-show="connectStatus.server==2||connectStatus.db==2||connectStatus.link==2" @click="reconnect">点击重新连接失败项</button>
       </div>
@@ -163,6 +163,7 @@ export default class Home extends Vue {
             case "6_1":
               this.$store.state.app_info.pis.write({type:"toDB",route:"buttons",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
               this.$store.state.app_info.pis.write({type:"toDB",route:"group",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+              this.$store.state.app_info.pis.write({type:"toDB",route:"imgs",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
               this.select_mode=key;
               break;
             case "6_3":
@@ -217,7 +218,7 @@ export default class Home extends Vue {
     text-align: center;
     text-decoration: none;
     display: inline-block;
-    font-size: 6px;
+    font-size: 10px;
     margin: 4px 2px;
     cursor: pointer;
 }

@@ -29,7 +29,8 @@ const nodeConfig = {
 		// server : './src/server/main.ts',
 		// db:'./src/dbop/main.ts',
 		// http:'./src/httpop/main.ts',
-		// test:'./src/testop/main.ts'
+		// test:'./src/testop/main.ts',
+		// pic: './src/picop/main.ts'
 	},
 	output: {
 		path: path.resolve(__dirname, distfolder),

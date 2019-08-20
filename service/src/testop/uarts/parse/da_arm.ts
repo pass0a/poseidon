@@ -2,11 +2,8 @@ class Parse_Data{
 	disposeSendData(send_id:any,msg:any){
 		let send_data:any;
 		switch(send_id){
-			case "set_arm_lib_path":
-				send_data = "export LD_LIBRARY_PATH="+msg+":$LD_LIBRARY_PATH"+" \n";
-				break;
 			case "start_arm_server":
-				send_data = msg+"/passoa "+msg+"/robot/index.js& \n";
+				send_data = msg+"/passoa "+msg+"/app.js& \n";
 				break;
 			case "button":
 				let arr = msg.ct.split(" ");

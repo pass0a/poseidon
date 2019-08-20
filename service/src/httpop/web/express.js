@@ -7,7 +7,7 @@ var fs = require('fs');
 		var url = require('url');
 		var http = require('http').createServer(function(req, res) {
 			var list = [];
-			console.log(req.url, req.method, req.protocol);
+			// console.log(req.url, req.method, req.protocol);
 			req.on('data', function(buf) {
 				list.push(new Buffer(buf));
 				// switch(buf.constructor.name){
