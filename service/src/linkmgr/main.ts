@@ -3,8 +3,6 @@ import * as pack from "@passoa/pack";
 import { Test_mgr } from "./mgr_test";
 import { Web_mgr } from "./mgr_web";
 
-import * as util from 'util';
-
 class Linkmgr {
 	private ints:any;
 	private pos:any = new pack.unpackStream();
@@ -48,7 +46,6 @@ class Linkmgr {
 				}
 				this.lk[obj.class][obj.name] = link_obj;
 				this.closeOnData();
-				console.log(obj.class,obj.name);
 				this.lk[obj.class][obj.name].create(this.ints, obj, this);
 				console.info('[link create]' + obj.class + '-' + obj.name + ':' + 'success!!!');
 			}

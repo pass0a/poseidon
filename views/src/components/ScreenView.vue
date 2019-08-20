@@ -132,7 +132,7 @@ export default class ScreenView extends Vue {
     private showImage(){
         let img:any = document.getElementById("screen");
         if(this.$store.state.screen_info.status){
-            img.src='http://127.0.0.1:6003/'+'?action=image&image='+this.$store.state.screen_info.path+'&id='+this.idx++;
+            img.src='http://127.0.0.1:6003/?action=image&image='+this.$store.state.screen_info.path+'&id='+this.idx++;
             this.stopDraw = false;
             this.onCutImage();
         }else{
@@ -152,6 +152,7 @@ export default class ScreenView extends Vue {
                 }
             }
             this.$store.state.app_info.pis.write(s_req);
+            this.$store.state.app_info.pis.write({type:"toDB",route:"imgs",job:"add",info:{prjname:this.$store.state.project_info.current_prj,msg:{id:this.s_clid,pid:this.s_module}}});
         }else{
             this.$notify({title: '请绑定步骤',message: '', type: 'warning',duration:1500});
         }

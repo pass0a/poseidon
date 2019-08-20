@@ -28,6 +28,11 @@
                         </template>
                     </el-table-column>
                     <el-table-column prop="id" label="ID"></el-table-column>
+                    <el-table-column prop="id" label="是否绑定图片(点击可查看)" v-if="actionName=='click'||actionName=='assert_pic'">
+                        <template slot-scope="scope">
+                            <el-button type="text" @click="checkImg(scope.row.id)"><font size="2" :color="bingImg(0,scope.row.id)">{{bingImg(1,scope.row.id)}}</font></el-button>
+                        </template>
+                    </el-table-column>
                     <el-table-column label="操作" width="150">
                         <template slot-scope="scope">
                             <button class="button" @click="editID(scope.row.id)">修改</button>
@@ -37,6 +42,21 @@
                 </el-table>
             </el-tabs>
         </el-tabs>
+        <Modal
+            v-model="checkflag"
+            width="600"
+            :mask-closable="false">
+            <p slot="header">
+                <Icon type="information-circled"></Icon>
+                <span>图片信息</span>
+            </p>
+            <div style="text-align:center" v-if="img!=''" >
+                <img id="icon" src="/src/assets/none.png" :draggable="false"/>
+            </div>
+            <div slot="footer">
+                <Button type="info" size="large" long @click="checkback">返回</Button>
+            </div>
+        </Modal>
         <Modal
             v-model="showflag"
             :width="add_info.action=='group'?650:500"
@@ -126,6 +146,7 @@
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
 import StepsView from "./StepsView.vue";
+import { runInThisContext } from 'vm';
 @Component({
   components: {
       StepsView
@@ -138,8 +159,10 @@ export default class StepsMgrView extends Vue {
     private rulelist:any;
     private buttonlist:any;
     private current_data:any=[];
+    private idx = 0;
     private showflag:boolean = false;
     private editflag:boolean = false;
+    private checkflag:boolean = false;
     private add_type:any=0;
     private title:any="";
     private count:any=0;
@@ -328,6 +351,28 @@ export default class StepsMgrView extends Vue {
     }
     private emptyText(){
         return this.actionName.length>1?"暂无数据":"请选择动作";
+    }
+    private bingImg(type:number,id:string){
+        switch(type){
+            case 0:
+                return this.$store.state.steps_info.imglist[id]?"#67C23A":"#F56C6C";
+            case 1:
+                return this.$store.state.steps_info.imglist[id]?"已绑定":"未绑定";
+        }
+        
+    }
+    private checkImg(id:string){
+        if(this.$store.state.steps_info.imglist[id]){
+            let icon_path = this.$store.state.project_info.current_prj +"/img/"+ id + ".png";
+            let img:any = document.getElementById("icon");
+            img.src='http://127.0.0.1:6003/?action=icon&icon='+icon_path+'&id='+this.idx++;
+            this.checkflag = true;
+        }else{
+            this.$notify({title: '该选项未绑定图片!',message: '', type: 'error',duration:1500});
+        }
+    }
+    private checkback(){
+        this.checkflag = false;
     }
     private sendReq(route:any,job:any,msg:any){
         let req = {

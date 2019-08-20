@@ -185,7 +185,7 @@
       headers.push(configureCredentials(options, req));
       headers.push(configureExposedHeaders(options, req));
       applyHeaders(headers, res);
-      console.log("[cors]actual response");
+      // console.log("[cors]actual response");
       next();
     }
   }

@@ -74,6 +74,7 @@ export default new Vuex.Store({
 			rulelist:{},
 			buttonlist:{},
 			grouplist:{},
+			imglist:{},
 			steplist:[],
 			op_data:{
 				type:0,

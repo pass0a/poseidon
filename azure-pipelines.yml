@@ -67,6 +67,8 @@ steps:
 - script: |
    cp service/node_modules/@passoa/ depends/passoa/msvc/node_modules/@passoa/ -rf
   displayName: 'install node_mudules/@passoa'
+  condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
+
 
 - task: nsis@1
   inputs:

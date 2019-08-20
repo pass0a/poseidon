@@ -175,6 +175,9 @@ export default class App extends Vue {
             case "group":
                 this.revToDB_group(data);
                 break;
+            case "imgs":
+                this.revToDB_imgs(data);
+                break;
         }
     }
     private revToDB_users(data:any){
@@ -416,6 +419,29 @@ export default class App extends Vue {
                 break;
             case "modify":
                 pis.write({type:"toDB",route:"group",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                break;
+        }
+    }
+    private revToDB_imgs(data:any){
+        switch(data.job){
+            case "list":
+                let list=JSON.parse(data.info);
+                let imglist:any={};
+                for(let i=0;i<list.length;i++){
+                    let id=list[i].id;
+                    imglist[id]=list[i].date;
+                }
+                this.$store.state.steps_info.imglist=imglist;
+                break;
+            case "add":
+                pis.write({type:"toDB",route:"imgs",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                break;
+            case "remove_id":
+                this.$store.state.req_info.remove_id--;
+                if(this.$store.state.req_info.remove_id == 0){
+                    pis.write({type:"toDB",route:"rule",job:"remove_id",info:data.info});
+                    pis.write({type:"toDB",route:"imgs",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                }
                 break;
         }
     }

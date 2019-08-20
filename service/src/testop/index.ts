@@ -385,13 +385,12 @@ async function checkRemoteAlive() {
 		}
 		if (caseInfo.config.da_server.type == 0) {
 			// 串口启动车机passoa (2次)
-			await UartsMgr.sendDataForUarts('da_arm', 'set_arm_lib_path', 1, caseInfo.config.da_server.path);
 			await UartsMgr.sendDataForUarts('da_arm', 'start_arm_server', 1, caseInfo.config.da_server.path);
-			await wait({ time: 500 });
+			await wait({ time: 10000 });
 		} else {
 			// ADB启动车机passoa (1次)
 			if (num == 2) {
-				let cmd = 'adb/adb shell sh /data/app/pack/run.sh \n';
+				let cmd = 'adb/adb shell /data/app/pack/passoa /data/app/pack/app.js& \n';
 				childprs.exec(cmd, { windowsHide: true });
 				await wait({ time: 3000 });
 			}

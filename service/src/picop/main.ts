@@ -35,9 +35,8 @@ async function main(){
                 }
                 let u_ret = await arm_uart.openUart({"port":arm_info.port,"info":arm_info.info});
                 if(u_ret){
-                    await arm_uart.sendData("export LD_LIBRARY_PATH="+cfg.da_server.path+":$LD_LIBRARY_PATH"+" \n",null,1);
-                    await arm_uart.sendData(cfg.da_server.path+"/passoa "+cfg.da_server.path+"/robot/index.js& \n",null,1);
-                    await wait(500);
+                    await arm_uart.sendData(cfg.da_server.path+"/passoa "+cfg.da_server.path+"/app.js& \n",null,1);
+                    await wait(10000);
                     let r_ret=await Remote.connectDev(cfg.da_server);
                     if(r_ret){
                         await Remote.sendCmd({type:"cutScreen",filepath:screenPath});
@@ -49,9 +48,9 @@ async function main(){
                 }
             }else{
                 // ADB启动车机Passoa
-                let cmd = "adb/adb shell sh /data/app/pack/run.sh \n";
+                let cmd = "adb/adb shell /data/app/pack/passoa /data/app/pack/app.js& \n";
                 childprs.exec(cmd,{windowsHide:true});
-                await wait(3000);
+                await wait(4000);
                 let r_ret=await Remote.connectDev(cfg.da_server);
                 if(r_ret){
                     await Remote.sendCmd({type:"cutScreen",filepath:screenPath});
