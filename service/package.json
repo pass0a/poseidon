@@ -5,7 +5,7 @@
 	"main": "main.js",
 	"scripts": {
 		"build": "npm run clean && webpack",
-		"postinstall.bak": "node node_modules/@passoa/pm -t msvc",
+		"postinstall": "node node_modules/@passoa/pm -t msvc",
 		"clean": "rimraf dist",
 		"btest": "webpack",
 		"dop": "passoa dist/db.js",
