@@ -261,6 +261,9 @@ export default class TestView extends Vue {
             case 1:
                 this.updateLogCmd(1,"当前无选择测试用例!!!");
                 break;
+            case 2:
+                this.updateLogCmd(1,"ADB异常!请检查ADB连接状态!!!");
+                break;
         }
     }
     private updateLogCmd(type:number,info?:any){

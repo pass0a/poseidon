@@ -8,6 +8,7 @@
 		"postinstall": "node node_modules/@passoa/pm -t msvc",
 		"clean": "rimraf dist",
 		"btest": "webpack",
+		"test" : "passoa dist/app.js",
 		"dop": "passoa dist/db.js",
 		"dlp": "passoa dist/link.js",
 		"dhp": "passoa dist/http.js",

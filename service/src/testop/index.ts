@@ -1,19 +1,16 @@
 import * as net from 'net';
 import * as fs from 'fs';
-import * as childprs from 'child_process';
+
 import * as pack from '@passoa/pack';
 import * as Cvip from '@passoa/cvip';
-import Remote from './remote/index';
 import QGBox from './qgbox/index';
-import UartsMgr from './uarts/index';
 
 let stepsWaitTime = 1500;
 let toWebServerType = 'tolink';
-let pos: any,
-	pis: any,
-	c: any,
-	caseInfo: any,
-	gid = 0;
+let caseInfo: any;
+let backCall: any;
+let pis:any,pos:any,c:any;
+let gid = 0;
 let progress_info = { current: 0, total: 0 };
 let test_log_info = { step: {}, ret: 0 };
 let result_to_web = { ok: 0, ng: 0 };
@@ -31,13 +28,13 @@ async function startTest(data: any) {
 	caseInfo = data;
 	if (await createdLink()) {
 		let toContinue = await readStopInfo(); // 是否继续执行
-		let ret: any = await readyForTest(toContinue);
+		let ret:any = await readyForTest(toContinue);
 		if (ret.ret) {
-			notifyWebView({ type: toWebServerType, mode: 1, info: ret.runtime });
-			notifyWebView({ type: toWebServerType, mode: 2, info: progress_info }); // 进度更新通知
+			await notifyToLink({ type: toWebServerType, mode: 1, info: ret.runtime });
+			await notifyToLink({ type: toWebServerType, mode: 2, info: progress_info }); // 进度更新通知
 			runTest(data, toContinue);
 		} else {
-			notifyWebView({ type: toWebServerType, mode: 0, error_code: ret.error_code }); // error 0:串口异常 1:无测试用例
+			await notifyToLink({ type: toWebServerType, mode: 0, error_code: ret.error_code }); // error 0:串口异常 1:无测试用例 2:ADB异常
 			c.end();
 		}
 	}
@@ -60,8 +57,12 @@ async function readyForTest(toContinue: any) {
 			if (uartsSet.size != 2) {
 				if (act == 'operate_tool') {
 					if (!uartsSet.has('relay')) uartsSet.add('relay');
-				} else if (act == 'click' || act == 'assert_pic' || act == 'button') {
+				} else if (act == 'click' || act == 'assert_pic') {
+					let tmppath = caseInfo.path + '/tmp';
+					if(!fs.existsSync(tmppath))fs.mkdirSync(tmppath);
 					if (!uartsSet.has('da_arm') && caseInfo.config.da_server.type == 0) uartsSet.add('da_arm');
+				} else if (act == 'button'){
+					if (!uartsSet.has('da_arm')) uartsSet.add('da_arm');
 				}
 			}
 			if (act == 'wait') runtime += data.case_steps[j].time;
@@ -74,9 +75,15 @@ async function readyForTest(toContinue: any) {
 		}
 		runtime = runtime * data.case_mode;
 	}
-	let ret = uartsSet.size ? await UartsMgr.openNeedUarts(Array.from(uartsSet), caseInfo.config.uarts) : 1;
+	let ret = uartsSet.size ? await notifyToLink({type:'toCom',job:'openCom',info:Array.from(uartsSet),cfg:caseInfo.config}) : 1;
 	let result: any = { ret: ret, runtime: runtime };
 	if (!ret) result.error_code = 0;
+	else if (ret && caseInfo.config.da_server.type == 1){
+		if(!await notifyToLink({type:'toDevice',job:'checkADB'})){
+			result.ret = 0;
+			result.error_code = 2;
+		}
+	}
 	return new Promise((resolve) => {
 		resolve(result);
 	});
@@ -101,8 +108,13 @@ async function readStopInfo() {
 	});
 }
 
-function notifyWebView(info: any) {
-	pis.write(info); // 0: 初始化失败 1:初始化成功 2:用例开始测试 3: 测试完成 4: 步骤执行结果 5: 步骤开始执行 6: 暂停测试
+function notifyToLink(info: any) {
+	// 0: 初始化失败 1:初始化成功 2:用例开始测试 3: 测试完成 4: 步骤执行结果 5: 步骤开始执行 6: 暂停测试
+	return new Promise((resolve) => {
+		backCall = resolve;
+		pis.write(info);
+		if(info.type == toWebServerType)backCall(1);
+	});
 }
 
 async function runTest(data: any, toContinue: any) {
@@ -118,18 +130,18 @@ async function runTest(data: any, toContinue: any) {
 			break; // 暂停退出
 		}
 		progress_info.current++;
-		notifyWebView({ type: toWebServerType, mode: 2, info: progress_info }); // 进度更新通知
+		await notifyToLink({ type: toWebServerType, mode: 2, info: progress_info }); // 进度更新通知
 		if (data.caselist[i].briefResl == 0) result_to_web.ok++;
 		else if (data.caselist[i].briefResl > 0) result_to_web.ng++;
 	}
 	outputFile(caseInfo.stopinfo, result_to_web, stopflag);
-	notifyWebView({ type: toWebServerType, mode: stopflag ? 6 : 3, info: result_to_web }); // 测试完成通知
+	await notifyToLink({ type: toWebServerType, mode: stopflag ? 6 : 3, info: result_to_web }); // 测试完成通知
 	endTest();
 }
 
 async function runSteps(caseData: any) {
 	// 执行步骤
-	notifyWebView({ type: toWebServerType, mode: 5, info: caseData.case_id }); // 用例开始执行通知
+	await notifyToLink({ type: toWebServerType, mode: 5, info: caseData.case_id }); // 用例开始执行通知
 	caseData.briefResl = -1; // 用例结果 -1:未执行 0:成功 1:失败 2:连接错误
 	caseData.results = []; // 步骤结果
 	for (let i = 0; i < caseData.case_mode; i++) {
@@ -163,7 +175,7 @@ async function disposeStepLoop(idx: any, caseData: any) {
 	for (let i = 0; i < stepLoop; i++) {
 		let ret = await actionList[cmdStep.action](cmdStep, caseData); // 0: 成功 1: 失败 2: 连接错误 3: 组合步骤进行暂停
 		if (ret != 3) caseData.briefResl = ret;
-		let stat: any = await sendInfoByLink({ type: 'get_status' });
+		let stat: any = await notifyToLink({ type: 'get_status' });
 		if (stat.ret) {
 			if (!stat.data) {
 				return new Promise((resolve) => {
@@ -173,7 +185,7 @@ async function disposeStepLoop(idx: any, caseData: any) {
 		}
 		test_log_info.step = cmdStep;
 		test_log_info.ret = ret;
-		notifyWebView({ type: toWebServerType, mode: 4, info: test_log_info }); // 测试步骤执行结果通知
+		await notifyToLink({ type: toWebServerType, mode: 4, info: test_log_info }); // 测试步骤执行结果通知
 		if (stepLoop > 1) {
 			let prop = idx.toString();
 			if (caseData.loopRet == undefined) caseData.loopRet = {};
@@ -245,17 +257,9 @@ async function button(cmd: any, caseData?: any) {
 	for (let i = 0; i < buttonCmd.content.length; i++) {
 		let ct = buttonCmd.content[i];
 		for (let j = 0; j < ct.length; j++) {
-			if (caseInfo.config.da_server.type == 0) {
-				// 串口发送
-				let info = { event: buttonCmd.event, ct: ct[j] };
-				await UartsMgr.sendDataForUarts('da_arm', 'button', 1, info);
-			} else {
-				// adb发送
-				let arr = ct[j].split(' ');
-				arr[1] = parseInt(arr[1], 16).toString();
-				let cmd = 'adb/adb shell sendevent ' + buttonCmd.event + ' ' + arr.join(' ') + ' \n';
-				childprs.execSync(cmd, { windowsHide: true });
-			}
+			// 暂支持串口发送
+			let info = { event: buttonCmd.event, ct: ct[j] };
+			await notifyToLink({type:'toCom',job:'sendData',info:{name:"da_arm",cmd:cmd.action,msg:info}});
 		}
 		if (cmd.click_type == '1') await wait({ time: cmd.click_time });
 	}
@@ -277,7 +281,7 @@ async function group(cmd: any, caseData?: any) {
 					resolve(ret);
 				});
 			}
-			let stat: any = await sendInfoByLink({ type: 'get_status' });
+			let stat: any = await notifyToLink({ type: 'get_status' });
 			if (stat.ret) {
 				if (!stat.data) {
 					return new Promise((resolve) => {
@@ -313,54 +317,51 @@ async function wait(cmd: any, caseData?: any) {
 	});
 }
 
-async function operateTool(cmd: any, caseData: any) {
-	let result = UartsMgr.sendDataForUarts('relay', cmd, 0, 0);
-	// let ret = result.ret?0:1;
+async function operateTool(cmd: any, caseData?: any) {
+	await notifyToLink({type:'toCom',job:'sendData',info:{name:"relay",cmd:cmd}});
 	return new Promise((resolve) => {
 		resolve(0);
 	});
 }
 
 async function assertPic(cmd: any, caseData: any) {
-	let stat = await checkRemoteAlive();
 	let result: any;
-	if (stat) {
+	let info = {screenPath : caseInfo.path+"/tmp/tmp.png", cfg : caseInfo.config};
+	let get_screen:any = await notifyToLink({type:"toDevice",job:"cutScreen",info:info});
+	if(get_screen.ret){
 		let ret: any = await imageMatch(cmd);
-		if (ret.ret && !ret.obj.valid) {
+		if(ret.ret && !ret.obj.valid){
 			if (caseData.case_mode == 1 && cmd.loop == undefined) {
 				await saveScreen(cmd, caseData);
 				caseData.match = Math.floor(ret.obj.val * 10000) / 100;
 			}
-		} else if (!ret.ret) caseData.image = '';
+		}else if (!ret.ret) caseData.image = '';
 		result = ret.ret && ret.obj.valid ? 0 : 1;
-	} else {
-		result = 2;
-	}
+	}else result = 2;
 	return new Promise((resolve) => {
 		resolve(result);
 	});
 }
 
 async function click(cmd: any, caseData: any) {
-	let stat = await checkRemoteAlive();
 	let result: any;
-	if (stat) {
+	let info = {screenPath : caseInfo.path+"/tmp/tmp.png", cfg : caseInfo.config};
+	let get_screen:any = await notifyToLink({type:"toDevice",job:"cutScreen",info:info});
+	if(get_screen.ret){
 		let ret: any = await imageMatch(cmd);
-		if (ret.ret && ret.obj.valid) {
-			let c_info: any = { type: cmd.action, x: ret.obj.x, y: ret.obj.y };
-			if (cmd.click_type == '1') c_info.time = cmd.click_time;
-			let rev: any = await Remote.sendCmd(c_info);
+		if(ret.ret && ret.obj.valid){
+			let msg:any = {x : ret.obj.x, y : ret.obj.y};
+			if(cmd.click_type = "1")msg.time = cmd.click_time;
+			let rev:any = await notifyToLink({type:"toDevice",job:"click",info:msg});
 			result = rev.ret ? 0 : 2;
-		} else {
+		}else{
 			if (caseData.case_mode == 1 && cmd.loop == undefined && ret.ret) {
 				await saveScreen(cmd, caseData);
 				caseData.match = Math.floor(ret.obj.val * 10000) / 100;
 			} else if (!ret.ret) caseData.image = '';
 			result = 1;
 		}
-	} else {
-		result = 2;
-	}
+	}else result = 2;
 	// 点击不判断
 	if (result == 1 && cmd.click_skip) result = 0;
 	return new Promise((resolve) => {
@@ -368,49 +369,13 @@ async function click(cmd: any, caseData: any) {
 	});
 }
 
-async function checkRemoteAlive() {
-	if (Remote.getAlive()) {
-		let rev: any = await Remote.sendCmd({ type: 'alive' });
-		if (rev.ret) {
-			return new Promise((resolve) => {
-				resolve(1);
-			});
-		}
-	}
-	let num = 2; // 连接2次车机
-	while (num) {
-		let ret = await Remote.connectDev(caseInfo.config.da_server);
-		if (ret) {
-			break;
-		}
-		if (caseInfo.config.da_server.type == 0) {
-			// 串口启动车机passoa (2次)
-			await UartsMgr.sendDataForUarts('da_arm', 'start_arm_server', 1, caseInfo.config.da_server.path);
-			await wait({ time: 10000 });
-		} else {
-			// ADB启动车机passoa (1次)
-			if (num == 2) {
-				let cmd = 'adb/adb shell /data/app/pack/passoa /data/app/pack/app.js& \n';
-				childprs.exec(cmd, { windowsHide: true });
-				await wait({ time: 3000 });
-			}
-		}
-		num--;
-	}
-	let result = num == 0 ? 0 : 1;
-	return new Promise((resolve) => {
-		resolve(result);
-	});
-}
-
 async function imageMatch(cmd: any) {
-	let tmpPath = caseInfo.path + '/tmp/test.png';
+	let tmpPath = caseInfo.path + '/tmp/tmp.png';
 	let imgPath = caseInfo.path + '/img/' + cmd.id + '.png';
 	let info: any;
 	if (!fs.existsSync(imgPath)) {
 		info = { ret: 0 };
 	} else {
-		await Remote.sendCmd({ type: 'cutScreen', filepath: tmpPath });
 		info = { ret: 1, obj: Cvip.imageMatch(imgPath, tmpPath) };
 	}
 	return new Promise((resolve) => {
@@ -419,7 +384,7 @@ async function imageMatch(cmd: any) {
 }
 
 async function saveScreen(cmd: any, caseData: any) {
-	let tmpPath = caseInfo.path + '/tmp/test.png';
+	let tmpPath = caseInfo.path + '/tmp/tmp.png';
 	caseData.image = caseInfo.path + '/img/' + cmd.id + '.png';
 	caseData.screen = caseInfo.path + '/tmp/' + gid++ + '.png';
 	Cvip.imageSave(tmpPath, caseData.screen, 16);
@@ -428,33 +393,9 @@ async function saveScreen(cmd: any, caseData: any) {
 	});
 }
 
-function endTest() {
-	UartsMgr.closeNeedUarts();
-	Remote.disconnectDev();
+async function endTest() {
+	await notifyToLink({type:'toCom',job:'closeCom'});
 	c.end();
-}
-
-async function sendInfoByLink(cmd: any) {
-	return new Promise((resolve) => {
-		let flag = 1;
-		let tm: any;
-		pos.on('data', function(data: any) {
-			if (flag) {
-				if (data.type == cmd.type) {
-					flag = 0;
-					if (tm) {
-						clearTimeout(tm);
-						tm = null;
-					}
-					resolve({ ret: 1, data: data.data != undefined ? data.data : data.stat });
-				}
-			}
-		});
-		pis.write(cmd);
-		tm = setTimeout(() => {
-			resolve({ ret: 0 });
-		}, 1500);
-	});
 }
 
 async function createdLink() {
@@ -471,6 +412,9 @@ async function createdLink() {
 					break;
 				case 'auth':
 					resolve(1);
+					break;
+				default:
+					if(backCall)backCall(data.data);
 					break;
 			}
 		});

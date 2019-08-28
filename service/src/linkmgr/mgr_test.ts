@@ -15,20 +15,28 @@ export class Test_mgr{
 		});
 	}
 
-	private handleCmd(obj: any) {
+	private async handleCmd(obj: any) {
 		switch (obj.type) {
 			case 'tolink':
 				let web_link = this.link.getLink('web', 'web');
 				if(web_link)web_link.sendToWebServer(obj);
 				break;
+			case 'toCom':
+				let com_link = this.link.getLink('com','com');
+				if(com_link){
+					let ret = await com_link.handleCmd(obj);
+					this.pis.write({ type: obj.type, job:obj.job, data: ret});
+				}
+				break;
+			case 'toDevice':
+				let device_link = this.link.getLink('device', 'device');
+				if(device_link){
+					let ret = await device_link.handleTestJob(obj);
+					this.pis.write({ type: obj.type, job:obj.job, data: ret});
+				}
+				break;
 			case 'get_status':
 				this.disposedCompleted(obj.type, this.currentStatus);
-				break;
-			case 'toSer':
-				if (obj.job == 'syncRemote') {
-					let web_link = this.link.getLink('web', 'web');
-					if(web_link)web_link.sendToWebServer(obj);
-				}
 				break;
 			default:
 				break;

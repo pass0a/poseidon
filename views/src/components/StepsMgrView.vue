@@ -50,7 +50,7 @@
                 <Icon type="information-circled"></Icon>
                 <span>图片信息</span>
             </p>
-            <div style="text-align:center" v-if="img!=''" >
+            <div style="text-align:center">
                 <img id="icon" src="/src/assets/none.png" :draggable="false"/>
             </div>
             <div slot="footer">

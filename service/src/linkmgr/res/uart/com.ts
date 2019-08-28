@@ -1,37 +1,39 @@
+// import * as util from "util";
 export class Uart{
 	private serialport = require("./serialport");
 	private uart:any;
 	private name:any;
-	openUart(data:any) {
+	private id:any;
+	private backCall:any;
+	private data_buf:any;
+	private startAnalyze:boolean = false;
+	private timer:any;
+	openUart(data:any,fn:any) {
 		return new Promise((resolve) => {
+			this.id = data.id;
+			this.name = data.port;
+			this.backCall = resolve;
 			this.uart = this.serialport.connect(data.port, data.info, () => {
-				this.name = data.port;
 				console.info("serialport: " + data.port + " open!!!");
-				resolve(1);
+				this.backCall(1);
 			});
 			this.uart.on("data", (data:any) => {
-				console.info(data);
+				// console.info(new util.TextDecoder().decode(data));
+				if(this.startAnalyze)this.analyzeData(data);
 			});
 			this.uart.on("end", () => {
-				console.info("serialport: " + data.port + " close!!!");
-				resolve(0);
+				console.info("serialport: " + this.name + " close!!!");
+				fn(this.id);
+				this.backCall(0);
 			});
 			this.uart.on("error", (error:any, msg:any) => {
-				console.error(data.port+" Error!!!");
-				resolve(0);
+				console.error(this.name+" Error!!!");
+				fn(this.id);
+				this.backCall(0);
 			});
 		});
 	}
-	sendData(buf:any,parse_data:any,send_type:any,timeout?:any) {
-		let data_buf={
-			uartbuf:new Uint8Array(0),
-			ubuf:new Uint8Array(0),
-			udatalen:0,
-			uflag:0,
-			revResult:{},
-			revDone:0
-		}
-		if (timeout == undefined) timeout = 2000;
+	sendData(buf:any,send_type:any,parse_data?:any,timeout?:any) {
 		return new Promise((resolve) => {
 			if(send_type){
 				switch(buf.constructor.name){
@@ -44,45 +46,56 @@ export class Uart{
 				}
 				resolve({ ret: 1, data: 1 });
 			}else{
-				let tm :any = null;
-				this.uart.on("data", (data:any) => {
-					if (data_buf.uflag == 1) {
-						data_buf.uartbuf = data;
-					} else {
-						let tmp = new Uint8Array(data.length + data_buf.uartbuf.length);
-						tmp.set(data_buf.uartbuf);
-						tmp.set(data, data_buf.uartbuf.length);
-						data_buf.uartbuf = tmp;
-					}
-					while (this.dealReceivedData(data_buf,buf,parse_data)); // 接收超出部分需保留
-					if (data_buf.revDone) {
-						if (tm) {
-							clearTimeout(tm);
-							tm = null;
-						}
-						data_buf.revDone = 0;
-						resolve({ ret: 1, data: data_buf.revResult });
-					}
-				});
-				this.uart.on("error", (error:any, msg:any) => {
-					console.error(name+" Error!!!");
-					if (tm) {
-						clearTimeout(tm);
-						tm = null;
-					}
-					resolve({ ret: 0 });
-				});
+				this.startAnalyze = true;
+				this.data_buf = {
+					sendbuf:buf,
+					parsedata:parse_data,
+					uartbuf:new Uint8Array(0),
+					ubuf:new Uint8Array(0),
+					udatalen:0,
+					uflag:0,
+					revResult:{},
+					revDone:0
+				}
+				if (timeout == undefined)timeout = 2000;
 				this.uart.write(new Uint8Array(buf));
-				tm = setTimeout(() => {
-					resolve({ ret: 0 });
-				}, timeout);
+				this.timeout(timeout);
 			}
 		});
 	}
-	closeUart = () => {
+	closeUart(){
 		this.uart.end();
 	}
-	dealReceivedData(data_buf:any,send_buf:any,parse_data:any){
+	private timeout(ts:number){
+        this.timer = setTimeout(() => {
+			this.startAnalyze = false;
+            this.backCall({ ret: 0 });
+		},ts);
+    }
+    private clearTimer(){
+        if(this.timer){
+            clearTimeout(this.timer);
+            this.timer = null;
+        }
+    }
+	private analyzeData(data:any){
+		if (this.data_buf.uflag == 1) {
+			this.data_buf.uartbuf = data;
+		} else {
+			let tmp = new Uint8Array(data.length + this.data_buf.uartbuf.length);
+			tmp.set(this.data_buf.uartbuf);
+			tmp.set(data, this.data_buf.uartbuf.length);
+			this.data_buf.uartbuf = tmp;
+		}
+		while (this.dealReceivedData(this.data_buf,this.data_buf.sendbuf,this.data_buf.parsedata)); // 接收超出部分需保留
+		if (this.data_buf.revDone) {
+			this.clearTimer();
+			this.data_buf.revDone = 0;
+			this.startAnalyze = false;
+			this.backCall({ ret: 1, data: this.data_buf.revResult });
+		}
+	}
+	private dealReceivedData(data_buf:any,send_buf:any,parse_data:any){
 		switch (data_buf.uflag) {
 			case 0:
 				let hty=parse_data.header_data(data_buf.uartbuf);
