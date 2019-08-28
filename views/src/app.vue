@@ -141,10 +141,29 @@ export default class App extends Vue {
                 pis.write({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
                 break;
             case "syncRemote":
-                this.$store.state.screen_info.status = data.status;
-                this.$store.state.screen_info.path = data.path;
+                this.$store.state.screen_info.status = data.info.msg.ret;
+                if(data.info.msg.ret){
+                    this.$store.state.screen_info.path = data.info.screen;
+                    this.$notify({title: '同步成功',message: '',type: 'success',duration:1500});
+                }else{
+                    let msg:string="错误信息 : ";
+                    switch(data.info.msg.code){
+                        case 0:
+                            msg += "请求超时!!!!";
+                            break;
+                        case 1:
+                            msg += "网络异常!!!!";
+                            break;
+                        case 2:
+                            msg += "ADB异常!!!!";
+                            break;
+                        case 3:
+                            msg += "串口异常!!!!";
+                            break;
+                    }
+                    this.$notify({title: '同步失败',message: msg,type: 'error',duration:2500});
+                }
                 this.$store.state.screen_info.count++;
-                this.$notify({title: data.status?'同步成功':'同步失败',message: '', type: data.status?'success':'error',duration:1500});
                 break;
             case "saveCutImage":
                 this.$store.state.screen_info.save_count++;

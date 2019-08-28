@@ -53,7 +53,7 @@ function newPrj(data:any,pis:any,RuleModel:any){
     let new_arr = [
         {
             id: "action",
-            content: ["click","assert_pic","wait","operate_tool","button","group"]
+            content: ["click","assert_pic","wait","operate_tool","button","qg_box","group"]
         },
         {
             id: "operate_tool",
@@ -70,6 +70,10 @@ function newPrj(data:any,pis:any,RuleModel:any){
         {
             id: "module",
             content: ["module-1","module-2","module-3"]
+        },
+        {
+            id: "qg_box",
+            content: ["freq"]
         }
     ];
     // 工具板

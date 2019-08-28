@@ -62,8 +62,8 @@ export default class EditCasesView extends Vue {
     }
     get updateTableData(){
         let data=this.$store.state.editcase_info.data;
+        this.caselist=[];
         if(data.length>0){
-            this.caselist=[];
             let firstModule;
             for(let i=0;i<data.length;i++){
                 if(this.caselist[data[i].case_module]==undefined)this.caselist[data[i].case_module]=[];

@@ -1,5 +1,4 @@
 import * as pack from '@passoa/pack';
-// import * as cvip from '@passoa/cvip';
 import * as childprs from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -38,8 +37,8 @@ export class Web_mgr {
 				this.startJS(obj, jsPath_r);
 				break;
 			case 'syncRemote':
-				let jsPath_y = '"' + __dirname + '/pic.js"';
-				this.startJS(obj, jsPath_y);
+				let device_link = this.link.getLink('device', 'device');
+				if(device_link)device_link.handleWebJob(obj);
 				break;
 			case 'saveCutImage':
 				if(!this.cvip)this.cvip = require("@passoa/cvip");

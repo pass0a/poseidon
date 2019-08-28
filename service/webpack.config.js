@@ -22,8 +22,7 @@ const nodeConfig = {
 	// Change to your "entry-point".
 	entry: {
 		app: './src/main.ts',
-		test: './src/testop/main.ts',
-		pic: './src/picop/main.ts'
+		test: './src/testop/main.ts'
 
 		// link: './src/linkmgr/main.ts',
 		// server : './src/server/main.ts',

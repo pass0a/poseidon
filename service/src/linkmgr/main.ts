@@ -2,35 +2,35 @@ import * as net from "net";
 import * as pack from "@passoa/pack";
 import { Test_mgr } from "./mgr_test";
 import { Web_mgr } from "./mgr_web";
-
+import { Device_mgr } from "./mgr_device";
+import { Com_mgr } from "./mgr_com";
 class Linkmgr {
-	private ints:any;
-	private pos:any = new pack.unpackStream();
-	private pis:any = new pack.packStream();
 	private lk:any = [];
 	private app = net.createServer((c:any) =>{
-		this.ints = c;
-		this.pos.on('data', (data:any) => {
-			this.handleCmd(data);
+		let pos:any = new pack.unpackStream();
+		let pis:any = new pack.packStream();
+		pos.on('data', (data:any) => {
+			this.handleCmd(data,pis,pos,c);
 		});
-		this.pis.on('data', (data:any) => {
-			this.ints.write(data);
+		pis.on('data', (data:any) => {
+			c.write(data);
 		});
-		this.ints.on('data', (data:any) => {
-			this.pos.write(data);
+		c.on('data', (data:any) => {
+			pos.write(data);
 		});
-		this.pis.write({ type: 'init' });
+		pis.write({ type: 'init' });
 	});
 
-	handleCmd(obj:any){
+	handleCmd(obj:any,pis:any,pos:any,c:any){
+		console.info(obj);
 		if(obj.type != 'info') {
-			this.pis.write({ type: 'auth', state: 'fail', msg: 'it is not info cmd!!!' });
-			this.ints.end();
+			pis.write({ type: 'auth', state: 'fail', msg: 'it is not info cmd!!!' });
+			c.end();
 		}else{
 			if(!this.lk[obj.class])this.lk[obj.class] = [];
 			if(this.lk[obj.class][obj.name]){
-				this.pis.write({ type: 'auth', state: 'fail', msg: 'your name is already login!!!' });
-				this.ints.end();
+				pis.write({ type: 'auth', state: 'fail', msg: 'your name is already login!!!' });
+				c.end();
 			}else{
 				let link_obj:any;
 				switch(obj.class){
@@ -40,22 +40,28 @@ class Linkmgr {
 					case 'web':
 						link_obj = new Web_mgr();
 						break;
+					case 'device':
+						link_obj = new Device_mgr();
+						break;
+					case 'com':
+						link_obj = new Com_mgr();
+						break;
 					default:
-						this.pis.write({ type: 'auth', state: 'fail', msg: 'Unknow object!!!' });
+						pis.write({ type: 'auth', state: 'fail', msg: 'Unknow object!!!' });
 						return;
 				}
 				this.lk[obj.class][obj.name] = link_obj;
-				this.closeOnData();
-				this.lk[obj.class][obj.name].create(this.ints, obj, this);
+				this.closeOnData(pis,pos,c);
+				this.lk[obj.class][obj.name].create(c, obj, this);
 				console.info('[link create]' + obj.class + '-' + obj.name + ':' + 'success!!!');
 			}
 		}
 	}
 
-	closeOnData(){
-		this.pos.removeAllListeners('data');
-		this.pis.removeAllListeners('data');
-		this.ints.removeAllListeners('data');
+	closeOnData(pis:any,pos:any,c:any){
+		pos.removeAllListeners('data');
+		pis.removeAllListeners('data');
+		c.removeAllListeners('data');
 	}
 
 	getLink(){
