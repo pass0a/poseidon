@@ -53,7 +53,11 @@ export class ToDB {
 		});
 	}
 	send(cmd: any) {
-		if(cmd.type=="toSer"&&cmd.job=="startTest")this.req_start_flag = 0;
+		if(cmd.type=="toSer"){
+			if(cmd.job=="startTest"||cmd.job=="replayTest"){
+				this.req_start_flag = 0;
+			}
+		}
 		this.pis.write(cmd);
 	}
 	close() {
@@ -83,7 +87,11 @@ export class ToDB {
 			let filename = this.prjdir + data.info.prjname + '/'+ data.route +'.json';
 			fs.writeFileSync(filename, data.info.data);
 			this.req_start_flag++;
-			if(this.req_start_flag==3)this.tolink.send({type:data.type,job:data.job,info:{prjname:data.info.prjname}});
+			console.log(data.route);
+			if(this.req_start_flag==4){
+				this.tolink.send({type:data.type,job:data.job,info:{prjname:data.info.prjname}});
+				console.log("================");
+			}
 		}
 	}
 	private readConfig() {

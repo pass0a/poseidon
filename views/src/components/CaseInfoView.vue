@@ -74,8 +74,22 @@ export default class CaseInfoView extends Vue {
     private case_info:any={case_module:""};
     get showflag(){
         if(this.$store.state.case_info.showflag){
-            this.title=this.$store.state.case_info.type?"修改用例":"新建用例";
-            this.case_info=this.$store.state.case_info.type?JSON.parse(JSON.stringify(this.$store.state.case_info.data)):this.initCaseData();
+            switch(this.$store.state.case_info.type){
+                case 0:
+                    this.title = "新建用例";
+                    this.case_info = this.initCaseData();
+                    break;
+                case 1:
+                    this.title = "修改用例";
+                    this.case_info = JSON.parse(JSON.stringify(this.$store.state.case_info.data));
+                    break;
+                case 3:
+                    this.title = "复制新用例";
+                    this.case_info = JSON.parse(JSON.stringify(this.$store.state.case_info.data));
+                    this.case_info.case_id = "";
+                    this.case_info.case_module = "";
+                    break;
+            }
             this.$store.state.steps_info.steplist=JSON.parse(JSON.stringify(this.case_info.case_steps));
             this.$store.state.steps_info.op_date = {type:0};
         }else{
@@ -106,7 +120,7 @@ export default class CaseInfoView extends Vue {
                 let req = {
                     type : "toDB",
                     route : "cases",
-                    job : this.$store.state.case_info.type?"modify":"add",
+                    job : this.$store.state.case_info.type==1?"modify":"add",
                     info : {
                         prjname:this.$store.state.project_info.current_prj,
                         casedata:this.case_info

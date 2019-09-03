@@ -11,6 +11,7 @@ let pos = new pack.unpackStream();
 
 import { Component, Prop, Vue } from "vue-property-decorator";
 import { truncate } from 'fs';
+import { constants } from 'crypto';
 @Component
 export default class App extends Vue {
     private ws: any = null;
@@ -124,6 +125,7 @@ export default class App extends Vue {
                 this.$store.state.app_info.connect_info.link = data.info;
                 break;
             case "readConfig":
+                if(data.info.da_server.others_flag==undefined)data.info.da_server.others_flag=0;
                 this.$store.state.setting_info.info = data.info;
                 break;
             case "saveConfig":
@@ -166,8 +168,8 @@ export default class App extends Vue {
                 this.$store.state.screen_info.count++;
                 break;
             case "saveCutImage":
-                this.$store.state.screen_info.save_count++;
-                this.$notify({title: '保存成功!',message: '', type: 'success',duration:1500});
+                // this.$store.state.screen_info.save_count++;
+                // this.$notify({title: '保存成功!',message: '', type: 'success',duration:1500});
                 break;
         }
     }
@@ -194,8 +196,8 @@ export default class App extends Vue {
             case "group":
                 this.revToDB_group(data);
                 break;
-            case "imgs":
-                this.revToDB_imgs(data);
+            case "binding":
+                this.revToDB_binding(data);
                 break;
         }
     }
@@ -264,6 +266,21 @@ export default class App extends Vue {
             case "remove_module":
                 this.$store.state.editcase_info.refresh_data=true;
                 this.$notify({title: '模块删除成功!',message: '', type: 'success',duration:1500});
+                break;
+            case "copy_steps":
+                this.$store.state.editcase_info.update_op = true;
+                this.$store.state.editcase_info.ret = data.info;
+                if(data.info){
+                    this.$store.state.editcase_info.refresh_data = true;
+                    let l_req = {
+                        type : "toDB",
+                        route : "cases",
+                        job : "list",
+                        info : {prjname:this.$store.state.project_info.current_prj}
+                    }
+                    this.$store.state.app_info.pis.write(l_req);
+                    this.$notify({title: '复制成功!',message: '', type: 'success',duration:1500});
+                }else this.$notify({title: '用例ID不存在!',message: '', type: 'error',duration:1500});
                 break;
         }
     }
@@ -441,25 +458,30 @@ export default class App extends Vue {
                 break;
         }
     }
-    private revToDB_imgs(data:any){
+    private revToDB_binding(data:any){
         switch(data.job){
             case "list":
-                let list=JSON.parse(data.info);
-                let imglist:any={};
+                let list=JSON.parse(data.info.data);
+                let bindlist:any={};
                 for(let i=0;i<list.length;i++){
                     let id=list[i].id;
-                    imglist[id]=list[i].date;
+                    bindlist[id]={
+                        date : list[i].date,
+                        content : list[i].content
+                    };
                 }
-                this.$store.state.steps_info.imglist=imglist;
+                this.$store.state.steps_info.bindlist=bindlist;
                 break;
             case "add":
-                pis.write({type:"toDB",route:"imgs",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                pis.write({type:"toDB",route:"binding",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                this.$store.state.screen_info.save_count++;
+                this.$notify({title: '保存成功!',message: '', type: 'success',duration:1500});
                 break;
             case "remove_id":
                 this.$store.state.req_info.remove_id--;
                 if(this.$store.state.req_info.remove_id == 0){
                     pis.write({type:"toDB",route:"rule",job:"remove_id",info:data.info});
-                    pis.write({type:"toDB",route:"imgs",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                    pis.write({type:"toDB",route:"binding",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
                 }
                 break;
         }

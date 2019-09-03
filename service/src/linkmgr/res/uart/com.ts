@@ -8,6 +8,7 @@ export class Uart{
 	private data_buf:any;
 	private startAnalyze:boolean = false;
 	private timer:any;
+	private analyzeDataObj:any;
 	openUart(data:any,fn:any) {
 		return new Promise((resolve) => {
 			this.id = data.id;
@@ -15,26 +16,32 @@ export class Uart{
 			this.backCall = resolve;
 			this.uart = this.serialport.connect(data.port, data.info, () => {
 				console.info("serialport: " + data.port + " open!!!");
-				this.backCall(1);
+				this.backCall({ret:1});
 			});
 			this.uart.on("data", (data:any) => {
 				// console.info(new util.TextDecoder().decode(data));
-				if(this.startAnalyze)this.analyzeData(data);
+				if(this.startAnalyze){
+					if(this.analyzeDataObj.disposeRevData(data)){
+						this.clearTimer();
+						this.backCall({ret:1});
+					}
+				}
 			});
 			this.uart.on("end", () => {
 				console.info("serialport: " + this.name + " close!!!");
 				fn(this.id);
-				this.backCall(0);
+				this.backCall({ret:0});
 			});
 			this.uart.on("error", (error:any, msg:any) => {
 				console.error(this.name+" Error!!!");
 				fn(this.id);
-				this.backCall(0);
+				this.backCall({ret:0});
 			});
 		});
 	}
-	sendData(buf:any,send_type:any,parse_data?:any,timeout?:any) {
+	sendData(buf:any,send_type:any,parse_obj?:any,timeout?:any) {
 		return new Promise((resolve) => {
+			this.backCall = resolve;
 			if(send_type){
 				switch(buf.constructor.name){
 					case "String":
@@ -47,24 +54,34 @@ export class Uart{
 				resolve({ ret: 1, data: 1 });
 			}else{
 				this.startAnalyze = true;
-				this.data_buf = {
-					sendbuf:buf,
-					parsedata:parse_data,
-					uartbuf:new Uint8Array(0),
-					ubuf:new Uint8Array(0),
-					udatalen:0,
-					uflag:0,
-					revResult:{},
-					revDone:0
+				switch(buf.constructor.name){
+					case "String":
+						this.analyzeDataObj = parse_obj;
+						this.uart.write(buf);
+						break;
+					default:
+						this.data_buf = {
+							sendbuf:buf,
+							uartbuf:new Uint8Array(0),
+							ubuf:new Uint8Array(0),
+							udatalen:0,
+							uflag:0,
+							revResult:{},
+							revDone:0
+						}
+						this.uart.write(new Uint8Array(buf));
+						break;
 				}
 				if (timeout == undefined)timeout = 2000;
-				this.uart.write(new Uint8Array(buf));
 				this.timeout(timeout);
 			}
 		});
 	}
 	closeUart(){
-		this.uart.end();
+		return new Promise((resolve) => {
+			this.uart.end();
+			resolve({ret:1});
+		});
 	}
 	private timeout(ts:number){
         this.timer = setTimeout(() => {

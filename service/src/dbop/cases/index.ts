@@ -117,6 +117,16 @@ function removeModule(data:any,pis:any,CaseModel:any){
     });
 }
 
+function copySteps(data:any,pis:any,CaseModel:any){
+    let info = data.info;
+    CaseModel.findOneAndUpdate({case_id:info.case_id},{$set: {case_steps:info.copy_steps}},(err:any,docs:any) => {
+        if(!err){
+            data.info = docs?true:false;
+            pis.write(data);
+        }
+    });
+}
+
 function objectIDtoString(buffer:any){
     let str:string = "";
     for(let buf of buffer){
@@ -150,6 +160,9 @@ function disposeData(data:any,pis:any){
             break;
         case "remove_module":
             removeModule(data,pis,CaseModel);
+            break;
+        case "copy_steps":
+            copySteps(data,pis,CaseModel);
             break;
         default:
             break;

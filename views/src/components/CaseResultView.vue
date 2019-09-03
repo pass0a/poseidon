@@ -17,12 +17,12 @@
                     <span><strong><font size="2" :color="getColor()">{{ getResultTitle() }}</font></strong></span>
                 </template>
             </el-table-column>
-            <el-table-column label="操作" width="200">
+            <!-- <el-table-column label="操作" width="200">
                 <template slot-scope="scope">
                     <button class="button" @click="replayCase(scope.$index)" disabled>重新执行</button>
                     <button class="button" @click="replayCase(scope.$index)" disabled>重新截图</button>
                 </template>
-            </el-table-column>
+            </el-table-column> -->
         </el-table>
         <div style="margin:10px 0px 0px 10px;" v-if="caseData.length">
             <span><font size="2"><strong>自动化测试步骤</strong></font></span>
@@ -60,8 +60,8 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 @Component
 export default class CaseResultView extends Vue {
     private caseData:any=[];
-    private stepTitle:any=["未执行","执行成功","执行失败"];
-    private stepStatus:any=["wait","finish","error"];
+    private stepTitle:any=["未执行","执行成功","执行失败","网络异常"];
+    private stepStatus:any=["wait","finish","error","error"];
     private imgreq:any=0;
     private scrreq:any=0;
     get showflag(){
@@ -84,7 +84,7 @@ export default class CaseResultView extends Vue {
     }
     private getStepTitleOrStatus(type:number,idx:any){
         if(this.caseData.length){
-            let content = type?this.stepStatus:this.stepTitle
+            let content = type?this.stepStatus:this.stepTitle;
             let data = this.caseData[0];
             if(data.briefResl!=undefined){
                 if(data.briefResl==0) return content[1];
@@ -92,7 +92,7 @@ export default class CaseResultView extends Vue {
                 else{
                     let error_idx = data.results[0].stepNum;
                     if(error_idx > idx) return content[1];
-                    else if(error_idx == idx) return content[2];
+                    else if(error_idx == idx) return data.briefResl==2?content[3]:content[2];
                     else return content[0];
                 }
             }else return content[0];

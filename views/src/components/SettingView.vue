@@ -40,16 +40,23 @@
                     </el-form>
                 </el-tab-pane>
                 <el-tab-pane label="测试设备配置" name="2">
-                    <el-form :model="daserverInfo" ref="daserform" label-width="180px">
+                    <el-form :model="daserverInfo" ref="daserform" label-width="200px" :inline="true">
                         <el-form-item label="启动路径:">
                             <el-input size="small" style="width:235px" v-model="da_server_info.path"></el-input>
-                        </el-form-item>
+                        </el-form-item><br/>
                         <el-form-item label="启动方式:">
                             <el-radio-group v-model="da_server_info.type" size="small" @change="selectStartMd">
-                                <el-radio :label="0" border style="width:120px">串口 + Wi-Fi</el-radio>
+                                <el-radio :label="0" border style="width:120px">COM + Wi-Fi</el-radio>
                                 <el-radio :label="1" border style="width:120px">ADB + Wi-Fi</el-radio>
                                 <el-radio :label="2" border style="width:120px" disabled>仅 ADB</el-radio>
                             </el-radio-group>
+                        </el-form-item>
+                        <el-form-item label="启动前是否需要输入其他命令:" v-show="!da_server_info.type" style="margin:0px 0px 0px 50px">
+                            <el-radio-group v-model="da_server_info.others_flag">
+                                <el-radio :label="0">否</el-radio>
+                                <el-radio :label="1">是</el-radio>
+                            </el-radio-group>
+                            <el-input size="small" style="margin:0px 0px 0px 10px;width:180px" v-model="da_server_info.others_cmd" placeholder="请输入所需命令" v-show="da_server_info.others_flag"></el-input>
                         </el-form-item>
                         <div v-show="da_server_info.type<2">
                             <el-divider content-position="left">Wi-Fi配置</el-divider>
@@ -60,7 +67,7 @@
                                 <el-input size="small" style="width:235px" v-model="da_server_info.port"></el-input>
                             </el-form-item>
                             <div v-show="da_server_info.type==0">
-                                <el-divider content-position="left">串口配置</el-divider>
+                                <el-divider content-position="left">COM配置</el-divider>
                                 <SetPort style="margin:0px 0px 0px 80px;"/>
                             </div>
                         </div>

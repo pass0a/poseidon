@@ -47,7 +47,14 @@ export class Device_mgr{
 				}
 				break;
 			case "click":
-				result = await Remote.sendCmd({type:"click",x:data.info.x,y:data.info.y,time:data.info.time});
+				if(await this.startPassoa(data,data.info.cfg)){
+					result = await Remote.sendCmd({type:"click",x:data.info.x,y:data.info.y,click_type:data.info.click_type,time:data.info.time});
+				}
+				break;
+			case "slide":
+				if(await this.startPassoa(data,data.info.cfg)){
+					result = await Remote.sendCmd({type:"slide",x1:data.info.x1,y1:data.info.y1,x2:data.info.x2,y2:data.info.y2,time:data.info.time});
+				}
 				break;
 			case "checkADB":
 				result = await this.checkADB();
@@ -71,16 +78,15 @@ export class Device_mgr{
 						if(data.job == "syncRemote"){
 							ct = await com_link.handleCmd({type:"toCom",job:"startPassoa",cfg:cfg});
 						}else{
-							ct = await com_link.handleCmd({type:"toCom",job:"sendData",info:{name:"da_arm",cmd:"start_arm_server",msg:cfg.da_server.path}});
+							ct = await com_link.handleCmd({type:"toCom",job:"sendData",info:{name:"da_arm",cmd:"start_arm_server",msg:cfg.da_server}});
 						}
-						if(!ct){
+						if(!ct.ret){
 							data.info.msg = {ret:0,code:3}
 							this.sendDataByWebLink(data);
 							return new Promise(resolve => {
 								resolve(0);
 							});
 						}
-						await this.wait(8000);
 					}
 				}else{
 					// ADB启动
@@ -88,10 +94,9 @@ export class Device_mgr{
 					let start_status:boolean = false;
 					if(adb_start.ret){
 						let p_cmd = cfg.da_server.path + "/passoa " + cfg.da_server.path+"/app.js&";
-						if(await ADB.sendByADB(p_cmd)){
+						if(await ADB.sendByADB(p_cmd,true)){
 							start_status = true;
 							ADB.endADB();
-							await this.wait(8000);
 						}
 					}
 					if(!start_status){
