@@ -62,6 +62,7 @@ export default new Vuex.Store({
 		editcase_info:{
 			refresh_data:false,
 			update_op:false,
+			ret: true,
 			data:{}
 		},
 		case_info:{
@@ -74,7 +75,7 @@ export default new Vuex.Store({
 			rulelist:{},
 			buttonlist:{},
 			grouplist:{},
-			imglist:{},
+			bindlist:{},
 			steplist:[],
 			op_data:{
 				type:0,

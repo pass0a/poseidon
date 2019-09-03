@@ -44,6 +44,8 @@ function newPrj(data:any,pis:any,ResModel:any){
     let new_arr = [
         {id:"click",name:"图片点击"},
         {id:"assert_pic",name:"图片判断"},
+        {id:"click_poi",name:"坐标点击"},
+        {id:"slide",name:"轨迹划动"},
         {id:"wait",name:"等待"},
         {id:"operate_tool",name:"控制工具板"},
         {id:"button",name:"硬按键"},

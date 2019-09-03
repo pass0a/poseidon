@@ -18,6 +18,8 @@ let actionList: any = {
 	wait: wait,
 	click: click,
 	assert_pic: assertPic,
+	click_poi: clickPoi,
+	slide: slide,
 	operate_tool: operateTool,
 	button: button,
 	qg_box: qgBox,
@@ -73,16 +75,17 @@ async function readyForTest(toContinue: any) {
 				} else runtime += stepsWaitTime;
 			}
 		}
-		runtime = runtime * data.case_mode;
+		runtime = runtime * 2 * data.case_mode;
 	}
 	let ret = uartsSet.size ? await notifyToLink({type:'toCom',job:'openCom',info:Array.from(uartsSet),cfg:caseInfo.config}) : 1;
 	let result: any = { ret: ret, runtime: runtime };
 	if (!ret) result.error_code = 0;
 	else if (ret && caseInfo.config.da_server.type == 1){
-		if(!await notifyToLink({type:'toDevice',job:'checkADB'})){
-			result.ret = 0;
-			result.error_code = 2;
-		}
+		// 检测ADB是否存在
+		// if(!await notifyToLink({type:'toDevice',job:'checkADB'})){
+		// 	result.ret = 0;
+		// 	result.error_code = 2;
+		// }
 	}
 	return new Promise((resolve) => {
 		resolve(result);
@@ -124,7 +127,7 @@ async function runTest(data: any, toContinue: any) {
 	for (let i = start_idx; i < data.caselist.length; i++) {
 		let ret: any = await runSteps(data.caselist[i]);
 		if (!ret.ret) {
-			caseInfo.stopinfo.idx = ret.finish && i == data.caselist.length - 1 ? i + 1 : i;
+			caseInfo.stopinfo.idx = i;
 			caseInfo.stopinfo.gid = gid++;
 			stopflag = true;
 			break; // 暂停退出
@@ -149,13 +152,9 @@ async function runSteps(caseData: any) {
 		for (let j = 0; j < caseData.case_steps.length; j++) {
 			let ret = await disposeStepLoop(j, caseData);
 			if (!ret) {
-				let finish = true;
-				if (j < caseData.case_steps.length - 1) {
-					caseData.briefResl = -1;
-					finish = false;
-				}
+				caseData.briefResl = -1;
 				return new Promise((resolve) => {
-					resolve({ ret: 0, finish: finish });
+					resolve({ ret: 0 });
 				});
 			} else if (ret && caseData.briefResl > 0) {
 				caseData.results.push({ runNum: i, stepNum: j });
@@ -173,16 +172,16 @@ async function disposeStepLoop(idx: any, caseData: any) {
 	let cmdStep = caseData.case_steps[idx];
 	let stepLoop = cmdStep.loop != undefined ? cmdStep.loop : 1;
 	for (let i = 0; i < stepLoop; i++) {
-		let ret = await actionList[cmdStep.action](cmdStep, caseData); // 0: 成功 1: 失败 2: 连接错误 3: 组合步骤进行暂停
-		if (ret != 3) caseData.briefResl = ret;
 		let stat: any = await notifyToLink({ type: 'get_status' });
-		if (stat.ret) {
+		if (!stat) {
 			if (!stat.data) {
 				return new Promise((resolve) => {
 					resolve(0);
 				});
 			}
 		}
+		let ret = await actionList[cmdStep.action](cmdStep, caseData); // 0: 成功 1: 失败 2: 连接错误 3: 组合步骤进行暂停
+		if (ret != 3) caseData.briefResl = ret;
 		test_log_info.step = cmdStep;
 		test_log_info.ret = ret;
 		await notifyToLink({ type: toWebServerType, mode: 4, info: test_log_info }); // 测试步骤执行结果通知
@@ -350,8 +349,8 @@ async function click(cmd: any, caseData: any) {
 	if(get_screen.ret){
 		let ret: any = await imageMatch(cmd);
 		if(ret.ret && ret.obj.valid){
-			let msg:any = {x : ret.obj.x, y : ret.obj.y};
-			if(cmd.click_type = "1")msg.time = cmd.click_time;
+			let msg:any = {x : ret.obj.x, y : ret.obj.y, click_type:cmd.click_type, cfg : caseInfo.config};
+			if(cmd.click_type == "1")msg.time = cmd.click_time;
 			let rev:any = await notifyToLink({type:"toDevice",job:"click",info:msg});
 			result = rev.ret ? 0 : 2;
 		}else{
@@ -364,6 +363,27 @@ async function click(cmd: any, caseData: any) {
 	}else result = 2;
 	// 点击不判断
 	if (result == 1 && cmd.click_skip) result = 0;
+	return new Promise((resolve) => {
+		resolve(result);
+	});
+}
+
+async function clickPoi(cmd: any, caseData: any) {
+	let poi_info = caseInfo.binding[cmd.id];
+	let msg:any = {x : poi_info.x1, y : poi_info.y1,click_type:cmd.click_type, cfg : caseInfo.config};
+	if(cmd.click_type == "1")msg.time = cmd.click_time;
+	let rev:any = await notifyToLink({type:"toDevice",job:"click",info:msg});
+	let result = rev.ret ? 0 : 2;
+	return new Promise((resolve) => {
+		resolve(result);
+	});
+}
+
+async function slide(cmd: any, caseData: any) {
+	let slide_info = caseInfo.binding[cmd.id];
+	let msg:any = {x1 : slide_info.x1, y1 : slide_info.y1, x2:slide_info.x2, y2: slide_info.y2,time:1000, cfg : caseInfo.config};
+	let rev:any = await notifyToLink({type:"toDevice",job:"slide",info:msg});
+	let result = rev.ret ? 0 : 2;
 	return new Promise((resolve) => {
 		resolve(result);
 	});

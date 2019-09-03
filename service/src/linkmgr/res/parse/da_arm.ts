@@ -1,8 +1,12 @@
+import * as util from "util";
 class Parse_Data{
+	private ret_type:number = -1;
+	private ret_data:string = "";
 	disposeSendData(send_id:any,msg:any){
 		let send_data:any;
 		switch(send_id){
 			case "start_arm_server":
+				this.ret_type = 0;
 				send_data = msg+"/passoa "+msg+"/app.js& \n";
 				break;
 			case "button":
@@ -17,6 +21,18 @@ class Parse_Data{
 				break;
 		}
 		return send_data;
+	}
+	disposeRevData(data:any){
+		switch(this.ret_type){
+			case 0:
+				this.ret_data += new util.TextDecoder().decode(data);
+				if(this.ret_data.indexOf("passoa success") > -1){
+					this.ret_data = "";
+					return 1;				
+				}
+				break;
+		}
+		return 0;
 	}
 }
 export default new Parse_Data();

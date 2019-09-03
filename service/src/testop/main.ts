@@ -10,7 +10,8 @@ let fileList=new Map([
 	["caselist","caselist.json"],
 	["stopinfo","stopinfo.json"],
 	["buttons","buttons.json"],
-	["group","group.json"]
+	["group","group.json"],
+	["binding","binding.json"]
 ]);
 fileList.forEach(function(value,key){
 	readFile(key,value,fileList.size);
@@ -86,6 +87,11 @@ function disposeData(name:any,data:any){
 				caseInfo[name][data[i].id] = {
 					content : data[i].content
 				}
+			}
+			break;
+		case "binding":
+			for(let i=0;i<data.length;i++){
+				caseInfo[name][data[i].id] = data[i].content;
 			}
 			break;
 		default:

@@ -24,13 +24,18 @@
                 <el-table :data="TableData" style="width: 100%" height="370" size="mini" stripe border ref="stepsTable" :empty-text="emptyText()">
                     <el-table-column prop="id" label="名称">
                         <template slot-scope="scope">
-                            <span v-if="scope.row">{{ getResName(scope.row.id) }}</span>
+                            <span>{{ getResName(scope.row.id) }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column prop="id" label="ID"></el-table-column>
                     <el-table-column prop="id" label="是否绑定图片(点击可查看)" v-if="actionName=='click'||actionName=='assert_pic'">
                         <template slot-scope="scope">
-                            <el-button type="text" @click="checkImg(scope.row.id)"><font size="2" :color="bingImg(0,scope.row.id)">{{bingImg(1,scope.row.id)}}</font></el-button>
+                            <el-button type="text" @click="checkImg(scope.row.id)"><font size="2" :color="bingId(0,scope.row.id)">{{bingId(1,scope.row.id)}}</font></el-button>
+                        </template>
+                    </el-table-column>
+                    <el-table-column prop="content" label="绑定信息" v-if="actionName=='click_poi'||actionName=='slide'">
+                        <template slot-scope="scope">
+                            <span><font size="2" :color="bingId(0,scope.row.id)">{{ getBindInfo(scope.row.id) }}</font></span>
                         </template>
                     </el-table-column>
                     <el-table-column label="操作" width="150">
@@ -153,7 +158,7 @@ import { runInThisContext } from 'vm';
   }
 })
 export default class StepsMgrView extends Vue {
-    private actionList:any=["click","assert_pic","button","group"];
+    private actionList:any=["click","assert_pic","click_poi","slide","button","group"];
     private actionName:any=this.actionList[0];
     private moduleName:any="";
     private rulelist:any;
@@ -179,7 +184,7 @@ export default class StepsMgrView extends Vue {
         name:[{ required: true, message: '名称不能为空', trigger: 'blur' }],
         event:[{ required: true, message: 'Event不能为空', trigger: 'blur' }]
     };
-    private leak:any={group:"组合步骤"};
+    private leak:any={group:"组合步骤",click_poi:"坐标点击",slide:"轨迹划动"};
     get ButtonList(){
         this.buttonlist=this.$store.state.steps_info.buttonlist;
         return;
@@ -352,17 +357,17 @@ export default class StepsMgrView extends Vue {
     private emptyText(){
         return this.actionName.length>1?"暂无数据":"请选择动作";
     }
-    private bingImg(type:number,id:string){
+    private bingId(type:number,id:string){
         switch(type){
             case 0:
-                return this.$store.state.steps_info.imglist[id]?"#67C23A":"#F56C6C";
+                return this.$store.state.steps_info.bindlist[id]?"#67C23A":"#F56C6C";
             case 1:
-                return this.$store.state.steps_info.imglist[id]?"已绑定":"未绑定";
+                return this.$store.state.steps_info.bindlist[id]?"已绑定":"未绑定";
         }
         
     }
     private checkImg(id:string){
-        if(this.$store.state.steps_info.imglist[id]){
+        if(this.$store.state.steps_info.bindlist[id]){
             let icon_path = this.$store.state.project_info.current_prj +"/img/"+ id + ".png";
             let img:any = document.getElementById("icon");
             img.src='http://127.0.0.1:6003/?action=icon&icon='+icon_path+'&id='+this.idx++;
@@ -370,6 +375,18 @@ export default class StepsMgrView extends Vue {
         }else{
             this.$notify({title: '该选项未绑定图片!',message: '', type: 'error',duration:1500});
         }
+    }
+    private getBindInfo(id:string){
+        let resObj:any = this.$store.state.steps_info.bindlist[id];
+        if(resObj){
+            switch(this.actionName){
+                case "click_poi":
+                    return "坐标点 ["+resObj.content.x1+","+resObj.content.y1+"]";
+                case "slide":
+                    return "轨迹 ("+resObj.content.x1+","+resObj.content.y1+") ==> ("+resObj.content.x2+","+resObj.content.y2+")";
+            }
+        }
+        return "未绑定";
     }
     private checkback(){
         this.checkflag = false;

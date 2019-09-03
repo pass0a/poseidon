@@ -22,10 +22,8 @@ export class Com_mgr{
 		switch(obj.job){
 			case "startPassoa":
 				result = await this.openNeedUarts(["da_arm"],obj.cfg);
-				if(result){
-					this.sendDataByName({name:"da_arm",cmd:"start_arm_server",msg:obj.cfg.da_server.path});
-					// this.uartlist["da_arm"].sendData(obj.cfg.da_server.path+"/passoa "+obj.cfg.da_server.path+"/app.js& \n",1);
-					await this.wait(8000);
+				if(result.ret){
+					result = await this.sendDataByName({name:"da_arm",cmd:"start_arm_server",msg:obj.cfg.da_server});
 					this.uartlist["da_arm"].closeUart();
 					this.uartlist["da_arm"] = null;
 				}
@@ -46,18 +44,29 @@ export class Com_mgr{
 	};
 
 	private async sendDataByName(info:any){
-		let sd:any;
-		switch(info.name){
-			case "relay":
-				sd = relay.disposeSendData(info.cmd);
-				break;
-			case "da_arm":
-				sd = da_arm.disposeSendData(info.cmd,info.msg);
-				break;
+		let ret:any = {ret:0};
+		if(this.uartlist[info.name]){
+			let sd:any;
+			let notNeedReturn = 1;
+			let needReturn = 0;
+			switch(info.name){
+				case "relay":
+					sd = relay.disposeSendData(info.cmd);
+					ret = await this.uartlist[info.name].sendData(sd,notNeedReturn);
+					break;
+				case "da_arm":
+					sd = da_arm.disposeSendData(info.cmd,info.msg.path);
+					if(info.msg.others_flag){
+						let others_cmd = info.msg.others_cmd + " \n";
+						await this.uartlist[info.name].sendData(others_cmd,notNeedReturn);
+					}
+					ret = await this.uartlist[info.name].sendData(sd,needReturn,da_arm,10000);
+					break;
+			}
 		}
-		if(this.uartlist[info.name])this.uartlist[info.name].sendData(sd,1);
-		else return 0;
-		return 1;
+		return new Promise(resolve => {
+			resolve(ret);
+		});
 	}
 
 	private async closeAllUarts(){
@@ -82,31 +91,24 @@ export class Com_mgr{
 			}
 			uart_info.id = uart_name;
 			this.uartlist[uart_name] = new Uart();
-			if(!await this.uartlist[uart_name].openUart(uart_info,(name:string)=>{
+			let result = await this.uartlist[uart_name].openUart(uart_info,(name:string)=>{
 				if(this.uartlist[name])this.uartlist[name] = null;
-			})){
+			})
+			if(!result.ret){
 				i-=1;
 				while(i>-1){
 					this.uartlist[uartArray[i]].closeUart();
 					this.uartlist[uartArray[i]] = null;
 				}
 				return new Promise(resolve => {
-					resolve(0);
+					resolve({ret:0});
 				});
 			}
 		}
 		return new Promise(resolve => {
-			resolve(1);
+			resolve({ret:1});
 		});
 	}
-
-	private wait(w_time:any){
-        return new Promise(resolve => {
-            setTimeout( () => {
-                resolve(0);
-            },w_time);
-        });
-    }
 
 	create(c:any,obj:any,link:any){
 		this.intc = c;

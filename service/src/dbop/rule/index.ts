@@ -53,7 +53,7 @@ function newPrj(data:any,pis:any,RuleModel:any){
     let new_arr = [
         {
             id: "action",
-            content: ["click","assert_pic","wait","operate_tool","button","qg_box","group"]
+            content: ["click","assert_pic","click_poi","slide","wait","operate_tool","button","qg_box","group"]
         },
         {
             id: "operate_tool",

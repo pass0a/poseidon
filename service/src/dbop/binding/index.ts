@@ -1,24 +1,26 @@
 import { getModel } from "./model";
 
-function getList(data:any,pis:any,ImgModel:any){
-    ImgModel.aggregate([
+function getList(data:any,pis:any,BindingModel:any){
+    BindingModel.aggregate([
         {$project:{
             "_id":0,"__v":0
         }}
     ],function(err:any,docs:any){
         if(!err){
-            data.info=JSON.stringify(docs);
+            data.route = "binding";
+            data.info.data = JSON.stringify(docs);
             pis.write(data);
         }
     });
 }
 
-function add(data:any,pis:any,ImgModel:any){
+function add(data:any,pis:any,BindingModel:any){
     let info:any = data.info.msg;
-    ImgModel.findOne({id:info.id},(err:any,msg:any) => {
+    BindingModel.findOne({id:info.id},(err:any,msg:any) => {
         if(!err){
             if(msg){
-                ImgModel.updateOne({id:info.id},{$set: {
+                BindingModel.updateOne({id:info.id},{$set: {
+                        content:info.content,
                         date:Date.now()
                     }},function(err:any){
                         if(!err){
@@ -28,9 +30,10 @@ function add(data:any,pis:any,ImgModel:any){
                     }
                 );
             }else{
-                let model=new ImgModel({
+                let model=new BindingModel({
                     id: info.id,
-                    pid: info.pid
+                    pid: info.pid,
+                    content:info.content
                 });
                 model.save(function (err:any,msg:any){
                     if(!err){
@@ -43,9 +46,9 @@ function add(data:any,pis:any,ImgModel:any){
     });
 }
 
-function modify(data:any,pis:any,ImgModel:any){
+function modify(data:any,pis:any,BindingModel:any){
     let info:any = data.info.msg;
-    ImgModel.updateOne({id:info.id},{$set: {
+    BindingModel.updateOne({id:info.id},{$set: {
 		}},function(err:any){
 			if(!err){
                 data.info=true;
@@ -55,11 +58,11 @@ function modify(data:any,pis:any,ImgModel:any){
     );
 }
 
-function removeID(data:any,pis:any,ImgModel:any){
+function removeID(data:any,pis:any,BindingModel:any){
     let info:any = data.info.msg;
     switch(info.type){
         case 0:
-            ImgModel.deleteOne({ id: info.id},function(err:any){
+            BindingModel.deleteOne({ id: info.id},function(err:any){
                 if(!err){
                     data.info.status = true;
                     pis.write(data);
@@ -67,7 +70,7 @@ function removeID(data:any,pis:any,ImgModel:any){
             });
             break;
         case 1:
-            ImgModel.deleteMany({ pid: info.id },(err:any,msg:any)=>{
+            BindingModel.deleteMany({ pid: info.id },(err:any,msg:any)=>{
                 if(!err){
                     data.info.status = true;
                     pis.write(data);
@@ -78,19 +81,25 @@ function removeID(data:any,pis:any,ImgModel:any){
 }
 
 function disposeData(data:any,pis:any){
-    let ImgModel = getModel(data.info.prjname+"_imgs");
+    let BindingModel = getModel(data.info.prjname+"_binding");
     switch(data.job){
         case "list":
-            getList(data,pis,ImgModel);
+            getList(data,pis,BindingModel);
             break;
         case "add":
-            add(data,pis,ImgModel);
+            add(data,pis,BindingModel);
             break;
         case "modify":
-            modify(data,pis,ImgModel);
+            modify(data,pis,BindingModel);
             break;
         case "remove_id":
-            removeID(data,pis,ImgModel);
+            removeID(data,pis,BindingModel);
+            break;
+        case "startTest":
+            getList(data,pis,BindingModel);
+            break;
+        case "replayTest":
+            getList(data,pis,BindingModel);
             break;
         default:
             break;

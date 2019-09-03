@@ -123,7 +123,7 @@ export default class AlertView extends Vue {
                 else if(di_info.msg.id.indexOf("button")>-1)this.sendReq("toDB","buttons","remove_id",di_info);
                 else{
                     this.$store.state.req_info.remove_id = 2;
-                    this.sendReq("toDB","imgs","remove_id",di_info);
+                    this.sendReq("toDB","binding","remove_id",di_info);
                 }
                 this.sendReq("toDB","cases","remove_id",di_info);
                 this.sendReq("toDB","res","remove_id",di_info);

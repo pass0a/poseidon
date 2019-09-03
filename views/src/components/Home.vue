@@ -13,9 +13,9 @@
         <el-menu-item index="5"><i class="el-icon-document"></i>查看报告</el-menu-item>
         <el-submenu index="6">
             <template slot="title">多项管理</template>
-            <el-menu-item index="6_1">步骤管理</el-menu-item>
-            <el-menu-item index="6_2">截图管理</el-menu-item>
-            <el-menu-item index="6_3">模块管理</el-menu-item>
+            <el-menu-item index="6_1">模块管理</el-menu-item>
+            <el-menu-item index="6_2">步骤管理</el-menu-item>
+            <el-menu-item index="6_3">选项绑定</el-menu-item>
         </el-submenu>
         <el-menu-item index="7"><i class="el-icon-setting"></i>系统配置</el-menu-item>
         <el-menu-item index="8"><i class="el-icon-service"></i>关于我们</el-menu-item>
@@ -36,9 +36,9 @@
         <ul v-show="select_mode=='3'"><EditCasesView/></ul>
         <ul v-show="select_mode=='4'"><TestView/></ul>
         <ul v-show="select_mode=='5'"><ReportView/></ul>
-        <ul v-show="select_mode=='6_1'"><StepsMgrView/></ul>
-        <ul v-show="select_mode=='6_2'"><ScreenView/></ul>
-        <ul v-show="select_mode=='6_3'"><ModuleView/></ul>
+        <ul v-show="select_mode=='6_1'"><ModuleView/></ul>
+        <ul v-show="select_mode=='6_2'"><StepsMgrView/></ul>
+        <ul v-show="select_mode=='6_3'"><ScreenView/></ul>
         <ul v-show="select_mode=='7'"><SettingView/></ul>
         <ul v-show="select_mode=='8'"><AboutView/></ul>
       </div>
@@ -158,16 +158,22 @@ export default class Home extends Vue {
                 }
                 this.$store.state.app_info.pis.write(l_req);
               }
+              this.$store.state.app_info.pis.write({type:"toDB",route:"binding",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
               this.select_mode=key;
               break;
             case "6_1":
+              this.$store.state.module_info.enter++;
+              this.select_mode=key;
+              break;
+            case "6_2":
               this.$store.state.app_info.pis.write({type:"toDB",route:"buttons",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
               this.$store.state.app_info.pis.write({type:"toDB",route:"group",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
-              this.$store.state.app_info.pis.write({type:"toDB",route:"imgs",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+              this.$store.state.app_info.pis.write({type:"toDB",route:"binding",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
               this.select_mode=key;
               break;
             case "6_3":
-              this.$store.state.module_info.enter++;
+              this.$store.state.app_info.pis.write({type:"toSer",job:"readConfig"});
+              this.$store.state.app_info.pis.write({type:"toDB",route:"binding",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
               this.select_mode=key;
               break;
             case "5":
