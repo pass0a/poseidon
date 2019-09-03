@@ -9,7 +9,7 @@ import rule from './rule/index';
 import buttons from './buttons/index';
 import status from './status/index';
 import group from './group/index';
-import imgs from './imgs/index';
+import binding from './binding/index';
 
 //config.logmode('rotating', 'passoa', __dirname + '/passoa.log', 1024 * 1024 * 5, 1);
 
@@ -21,6 +21,7 @@ let options = { useNewUrlParser: true, ssl: false };
 let db_status : number = 0;
 let db_ct = mongoose.connection;
 let req = {type:"toDB",route:"connect",info:0};
+mongoose.set("useFindAndModify", false);// cases中的findOneAndUpdate
 
 createServer();
 
@@ -37,6 +38,7 @@ function createServer() {
 				buttons.disposeData(data, pis);
 				status.disposeData(data, pis);
 				group.disposeData(data, pis);
+				binding.disposeData(data, pis);
 				break;
 		}
 	});
@@ -137,8 +139,8 @@ function handle(data: any) {
 		case 'group':
 			group.disposeData(data, pis);
 			break;
-		case 'imgs':
-			imgs.disposeData(data, pis);
+		case 'binding':
+			binding.disposeData(data, pis);
 			break;
 		default:
 			break;

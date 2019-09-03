@@ -18,8 +18,14 @@ class Remote{
 		});
     }
     private handle(data:any){
+        console.log(data);
         this.clearTimer();
         switch(data.type){
+            case "auth":
+                break;
+            case "alive":
+                this.backCall({ret:1});
+                break;
             case "cutScreen":
                 if(data.stat&&data.buf){
                     if(data.buf.byteLength){
@@ -28,8 +34,11 @@ class Remote{
                     }
                 }
                 break;
-            default:
-                if(this.backCall)this.backCall({ret:1});
+            case "click":
+                this.backCall({ret:1});
+                break;
+            case "slide":
+                this.backCall({ret:1});
                 break;
         }
     }
@@ -49,7 +58,7 @@ class Remote{
             this.backCall = resolve;
             switch(data.type){
                 case "click":
-                    this.pis.write({type:data.type,x:data.x,y:data.y,time:data.time});
+                    this.pis.write({type:data.type,x:data.x,y:data.y,click_type:data.click_type,time:data.time});
                     break;
                 case "slide":
                     this.pis.write({type:data.type,x1:data.x1,y1:data.y1,x2:data.x2,y2:data.y2,time:data.time});

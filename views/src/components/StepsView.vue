@@ -58,7 +58,10 @@
             </el-select>
             <el-input-number v-model="s_box" style="width:130px" controls-position="right" :min="2.529" size="small" v-show="s_module==boxType.freq"></el-input-number>
             <el-select placeholder="请选择" filterable clearable  size="small" style="width:155px" v-model="s_clid" v-show="s_action!=waitType&&s_action!=boxType.act" @change="changeSel(2)">
-                <el-option v-for="val in Clid" :key="val" :label="getResName(val)" :value="val"></el-option>
+                <el-option v-for="val in Clid" :key="val" :label="getResName(val)" :value="val" :disabled="checkBinding(0,val)">
+                    <span style="float: left">{{ getResName(val) }}</span>
+                    <span style="float: right"><font :color="checkBinding(1,val)">{{ checkBinding(2,val) }}</font></span>
+                </el-option>
             </el-select>
             <Checkbox v-model="s_skip" v-show="s_action=='click'">不判断</Checkbox>
             <el-input-number v-model="s_wait" controls-position="right" :min="0" size="small" v-show="s_action==waitType"></el-input-number>
@@ -114,6 +117,19 @@ export default class StepsView extends Vue {
     private getResName(id:any){
         return this.$store.state.steps_info.reslist[id];
     }
+    private checkBinding(type:number,id:string){
+        let needCheckArr = ["click","assert_pic","click_poi","slide"];
+        let idx = needCheckArr.indexOf(this.s_action);
+        let bind = this.$store.state.steps_info.bindlist[id];
+        switch(type){
+            case 0:
+                return idx>-1?(bind?false:true):false;
+            case 1:
+                return idx>-1?(bind?"":"#F56C6C"):"";
+            case 2:
+                return idx>-1?(bind?"":"未绑定"):"";
+        }
+    }
     private changeSel(flag:Number){
         switch(flag){
             case 0:
@@ -130,7 +146,7 @@ export default class StepsView extends Vue {
             case 2:
                 if(this.s_clid!=undefined&&this.s_clid.length>0){
                     let obj:any = {action:this.s_action,module:this.s_module,id:this.s_clid};
-                    if(this.s_action=="button"||this.s_action=="click"){
+                    if(this.s_action=="button"||this.s_action=="click"||this.s_action=="click_poi"){
                         obj["click_type"]=this.s_clicktype;
                         if(this.s_clicktype)obj["click_time"]=this.s_clicktime;
                         if(this.s_skip)obj["click_skip"]=this.s_skip;
@@ -203,7 +219,7 @@ export default class StepsView extends Vue {
         return action+" ==> "+content;
     }
     private showClickType(act:any){
-        if(act=="button"||act=="click")return true;
+        if(act=="button"||act=="click"||act=="click_poi")return true;
         return false;
     }
     private showClickTime(clicktype:any){

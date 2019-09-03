@@ -25,7 +25,7 @@ export class Test_mgr{
 				let com_link = this.link.getLink('com','com');
 				if(com_link){
 					let ret = await com_link.handleCmd(obj);
-					this.pis.write({ type: obj.type, job:obj.job, data: ret});
+					this.pis.write({ type: obj.type, job:obj.job, data: ret.ret});
 				}
 				break;
 			case 'toDevice':
