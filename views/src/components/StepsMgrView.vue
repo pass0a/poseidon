@@ -13,7 +13,7 @@
 				<el-tab-pane v-for="it in Module" :name="it" :key="it">
                     <span slot="label">
                         {{getResName(it)}}  
-                        <a @click.prevent="editID(it)" v-if="showEditIcon(it)">
+                        <a @click.prevent="editID(0,it)" v-if="showEditIcon(it)">
                             <i class="el-icon-edit"></i>
                         </a>
                         <a @click.prevent="deleteID(1,it)" v-if="showEditIcon(it)">
@@ -40,7 +40,7 @@
                     </el-table-column>
                     <el-table-column label="操作" width="150">
                         <template slot-scope="scope">
-                            <button class="button" @click="editID(scope.row.id)">修改</button>
+                            <button class="button" @click="editID(1,scope.row.id)">修改</button>
                             <button class="button" style="background-color:#F56C6C" @click="deleteID(0,scope.row.id)">删除</button>
                         </template>
                     </el-table-column>
@@ -135,7 +135,7 @@
                         <el-input style="width:220px" placeholder="请输入事件" v-model="edit_info.event_up_2"></el-input>
                     </el-form-item>
                 </div>
-                <div v-if="actionName=='group'">
+                <div v-if="actionName=='group'&&edit_info.type">
                     <span><font size="2">步骤组合</font></span>
                     <StepsView/>
                 </div>
@@ -173,7 +173,7 @@ export default class StepsMgrView extends Vue {
     private count:any=0;
     private loading:boolean = false;
     private add_info:any= {action:"",module:"",name:"",event:"/dev/input/event1",event_down_1:"",event_down_2:"",event_up_1:"",event_up_2:"",grouplist:[]};
-    private edit_info:any = {id:"",name:"",event:"",event_down_1:"",event_down_2:"",event_up_1:"",event_up_2:""};
+    private edit_info:any = {id:"",name:"",event:"",event_down_1:"",event_down_2:"",event_up_1:"",event_up_2:"",type:0};
     private idValidate:any={
         action:[{ required: true, message: '所属动作不能为空', trigger: 'blur' }],
         name:[{ required: true, message: '名称不能为空', trigger: 'blur' }],
@@ -245,19 +245,22 @@ export default class StepsMgrView extends Vue {
     private changeAction(){
         this.add_info.module = "";
     }
-    private editID(id:any){
+    private editID(type:number,id:any){
         this.edit_info.id = id;
         this.edit_info.name = this.getResName(id);
-        if(id.indexOf("button")>-1){
-            let btn = this.buttonlist[id];
-            this.edit_info.event = btn.event;
-            this.edit_info.event_down_1 =btn.event_down_1;
-            this.edit_info.event_down_2 =btn.event_down_2;
-            this.edit_info.event_up_1 =btn.event_up_1;
-            this.edit_info.event_up_2 =btn.event_up_2;
-        }else if(id.indexOf("group")>-1){
-            this.$store.state.steps_info.op_data = {type:1, id:id};
-            this.$store.state.steps_info.steplist=JSON.parse(JSON.stringify(this.$store.state.steps_info.grouplist[id]));
+        this.edit_info.type = type;
+        if(type){
+            if(id.indexOf("button")>-1){
+                let btn = this.buttonlist[id];
+                this.edit_info.event = btn.event;
+                this.edit_info.event_down_1 =btn.event_down_1;
+                this.edit_info.event_down_2 =btn.event_down_2;
+                this.edit_info.event_up_1 =btn.event_up_1;
+                this.edit_info.event_up_2 =btn.event_up_2;
+            }else if(id.indexOf("group")>-1){
+                this.$store.state.steps_info.op_data = {type:1, id:id};
+                this.$store.state.steps_info.steplist=JSON.parse(JSON.stringify(this.$store.state.steps_info.grouplist[id]));
+            }
         }
         this.editflag = true;
     }

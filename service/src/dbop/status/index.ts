@@ -4,7 +4,6 @@ import * as mongodb from "mongodb";
 function add(data:any,pis:any,StatusModel:any){
     let info:any = data.info;
     let model=new StatusModel({
-        type: info.type,
         module: info.module,
         cid: createObjectID(info.cid),
         uid: createObjectID(info.uid)
@@ -19,7 +18,7 @@ function add(data:any,pis:any,StatusModel:any){
 
 function remove(data:any,pis:any,StatusModel:any){
     let info:any = data.info;
-    StatusModel.deleteOne({type:info.type,cid:createObjectID(info.cid),uid:createObjectID(info.uid)},function(err:any){
+    StatusModel.deleteOne({cid:createObjectID(info.cid),uid:createObjectID(info.uid)},function(err:any){
         if(!err){
             data.info = true;
             pis.write(data);
@@ -36,7 +35,7 @@ function getTestList(data:any,pis:any,StatusModel:any){
             as:"cases"
         }},
         {$match:{
-            "type":1,"uid":createObjectID(data.info.uid)
+            "uid":createObjectID(data.info.uid)
         }},
         {$project:{
             "_id":0,"__v":0,"cid":0,"uid":0,"cases._id":0,"cases.__v":0
@@ -82,6 +81,10 @@ function disposeData(data:any,pis:any){
             break;
         case "remove_module":
             removeModule(data,pis,StatusModel);
+            break;
+        case "module_add":
+            break;
+        case "module_delete":
             break;
         case "startTest":
             getTestList(data,pis,StatusModel);

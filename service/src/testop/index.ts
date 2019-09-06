@@ -48,6 +48,8 @@ async function readyForTest(toContinue: any) {
 			resolve({ ret: 0, error_code: 1 });
 		});
 	}
+	let tmppath = caseInfo.path + '/tmp';
+	if(!fs.existsSync(tmppath))fs.mkdirSync(tmppath);
 	let uartsSet = new Set();
 	let runtime = 0;
 	progress_info.total = caseInfo.caselist.length;
@@ -55,19 +57,10 @@ async function readyForTest(toContinue: any) {
 	for (let i = start_idx; i < caseInfo.caselist.length; i++) {
 		let data = caseInfo.caselist[i];
 		for (let j = 0; j < data.case_steps.length; j++) {
-			let act = data.case_steps[j].action;
 			if (uartsSet.size != 2) {
-				if (act == 'operate_tool') {
-					if (!uartsSet.has('relay')) uartsSet.add('relay');
-				} else if (act == 'click' || act == 'assert_pic') {
-					let tmppath = caseInfo.path + '/tmp';
-					if(!fs.existsSync(tmppath))fs.mkdirSync(tmppath);
-					if (!uartsSet.has('da_arm') && caseInfo.config.da_server.type == 0) uartsSet.add('da_arm');
-				} else if (act == 'button'){
-					if (!uartsSet.has('da_arm')) uartsSet.add('da_arm');
-				}
+				checkNeedCom(data.case_steps[j],uartsSet);
 			}
-			if (act == 'wait') runtime += data.case_steps[j].time;
+			if (data.case_steps[j].action == 'wait') runtime += data.case_steps[j].time;
 			else {
 				if (j < data.case_steps.length - 1) {
 					let next_act = data.case_steps[j + 1].action;
@@ -90,6 +83,31 @@ async function readyForTest(toContinue: any) {
 	return new Promise((resolve) => {
 		resolve(result);
 	});
+}
+
+function checkNeedCom(cmd:any,uartsSet:Set<any>){
+	switch(cmd.action){
+		case "operate_tool":
+			if (!uartsSet.has('relay')) uartsSet.add('relay');
+			break;
+		case "click":
+			if (!uartsSet.has('da_arm') && caseInfo.config.da_server.type == 0) uartsSet.add('da_arm');
+			break;
+		case "assert_pic":
+			if (!uartsSet.has('da_arm') && caseInfo.config.da_server.type == 0) uartsSet.add('da_arm');
+			break;
+		case "button":
+			if (!uartsSet.has('da_arm')) uartsSet.add('da_arm');
+			break;
+		case "group":
+			let groupContent = caseInfo.group[cmd.id].content;
+			for(let j = 0; j < groupContent.length; j++){
+				if(uartsSet.size != 2){
+					checkNeedCom(groupContent[j],uartsSet);
+				}
+			}
+			break;
+	}
 }
 
 async function readStopInfo() {
@@ -254,6 +272,7 @@ async function defaultDelay(index: any, caseSteps: any) {
 async function button(cmd: any, caseData?: any) {
 	let buttonCmd = caseInfo.buttons[cmd.id];
 	for (let i = 0; i < buttonCmd.content.length; i++) {
+		if(i==0&&caseInfo.config.da_server.others_flag)await notifyToLink({type:'toCom',job:'sendData',info:{name:"da_arm",cmd:"others",msg:caseInfo.config.da_server}});
 		let ct = buttonCmd.content[i];
 		for (let j = 0; j < ct.length; j++) {
 			// 暂支持串口发送
@@ -274,7 +293,6 @@ async function group(cmd: any, caseData?: any) {
 		let stepLoop = cmdStep.loop != undefined ? cmdStep.loop : 1;
 		for (let i = 0; i < stepLoop; i++) {
 			let ret = await actionList[cmdStep.action](cmdStep, caseData); // 0: 成功 1: 失败 2: 连接错误 3: 组合步骤进行暂停
-			// caseData.briefResl=ret;
 			if (ret) {
 				return new Promise((resolve) => {
 					resolve(ret);
@@ -426,6 +444,7 @@ async function createdLink() {
 			console.info('test_client connect!!!');
 		});
 		pos.on('data', function(data: any) {
+			console.log(data);
 			switch (data.type) {
 				case 'init':
 					pis.write({ type: 'info', class: 'test', name: 'test' });

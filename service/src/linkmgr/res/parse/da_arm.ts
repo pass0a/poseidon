@@ -7,7 +7,7 @@ class Parse_Data{
 		switch(send_id){
 			case "start_arm_server":
 				this.ret_type = 0;
-				send_data = msg+"/passoa "+msg+"/app.js& \n";
+				send_data = msg.path+"/passoa "+msg.path+"/app.js& \n";
 				break;
 			case "button":
 				let arr = msg.ct.split(" ");
@@ -16,6 +16,9 @@ class Parse_Data{
 				for(let k=0;k<len;k++)str_10="0"+str_10;
 				arr[1]=str_10;
 				send_data = "sendevent "+msg.event+" "+arr.join(" ")+" \n";
+				break;
+			case "others":
+				send_data = msg.others_cmd + " \n";
 				break;
 			default:
 				break;

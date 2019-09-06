@@ -142,6 +142,11 @@ function handle(data: any) {
 		case 'binding':
 			binding.disposeData(data, pis);
 			break;
+		case 'poseidon':
+			rule.disposeData(data, pis);
+			res.disposeData(data, pis);
+			projects.disposeData(data, pis);
+			break;
 		default:
 			break;
 	}

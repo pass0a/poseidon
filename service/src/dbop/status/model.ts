@@ -1,7 +1,6 @@
 import * as mongoose from 'mongoose';
 
 let propSchema = new mongoose.Schema({
-	type: Number,
 	module: {
 		type : String,
 		default: ""

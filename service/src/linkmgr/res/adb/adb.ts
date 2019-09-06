@@ -6,6 +6,26 @@ class ADB{
     private backcall:any;
     private startflag:boolean=false;
     private startlog:string="";
+    sendData(cmd:string,callback:any){
+        if(this.adb_cmd)this.adb_cmd.stdin.write(cmd+" \r\n");
+        else{
+            this.adb_cmd = childprs.spawn('"'+path.dirname(process.execPath)+'/adb/adb" ',[cmd], { windowsHide:false,detached:true });
+            this.adb_cmd.stdout.on('data',(data:any) => {
+                // console.log('ADB-OUT:', data);
+                callback({ret:1,data:data});
+            });
+            this.adb_cmd.stderr.on('data',(err:any) => {
+                console.error('ADB-ERROR', err);
+                this.adb_cmd = null;
+                callback({ret:0});
+            });
+            this.adb_cmd.on('close',(code:any) => {
+                console.error('ADB-close', code);
+                this.adb_cmd = null;
+                callback({ret:2,data:code});
+            });
+        }
+    }
     startADB(cmd:string){
         return new Promise((resolve) => {
             this.backcall = resolve;

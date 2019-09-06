@@ -16,6 +16,7 @@ import { constants } from 'crypto';
 export default class App extends Vue {
     private ws: any = null;
     private idn:number = 0;
+    private poseidon_up:number = 0;
     created() {
         pis.on("data", (data: any) => {
             this.ws.send(data);
@@ -139,8 +140,7 @@ export default class App extends Vue {
                 this.$store.state.test_info.stopflag = 0;
                 this.$store.state.test_info.stopflag = data.info;
                 this.$store.state.req_info.refresh_rl = 0;
-                pis.write({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
-                pis.write({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                pis.write({type:"toDB",route:"projects",job:"check",info:{prjname:this.$store.state.project_info.current_prj}});
                 break;
             case "syncRemote":
                 this.$store.state.screen_info.status = data.info.msg.ret;
@@ -171,6 +171,11 @@ export default class App extends Vue {
                 // this.$store.state.screen_info.save_count++;
                 // this.$notify({title: '保存成功!',message: '', type: 'success',duration:1500});
                 break;
+            case "pushPassoa":
+                this.$store.state.push_info.count++;
+                this.$store.state.push_info.revdata = data.info;
+                this.$notify({title: data.info?'推送成功!':"推送失败!",message:data.info?"":"ADB异常!",type: data.info?"success":'error',duration:1500});
+                break;
         }
     }
     private revToDB(data:any){
@@ -199,6 +204,20 @@ export default class App extends Vue {
             case "binding":
                 this.revToDB_binding(data);
                 break;
+            case "poseidon":
+                this.revToDB_poseidon(data);
+                break;
+        }
+    }
+    private revToDB_poseidon(data:any){
+        switch(data.job){
+            case "poseidon_up":
+                this.poseidon_up++;
+                if(this.poseidon_up==3){
+                    pis.write({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                    pis.write({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                }
+                break;
         }
     }
     private revToDB_users(data:any){
@@ -213,7 +232,7 @@ export default class App extends Vue {
             case "add":
                 if(data.info.state){
                     this.$store.state.req_info.new_prj=0;
-                    this.$store.state.project_info.current_prj=data.info.name;
+                    this.$store.state.project_info.current_prj = data.info.name;
                     pis.write({type:"toDB",route:"res",job:"new",info:{prjname:data.info.name}});
                     pis.write({type:"toDB",route:"rule",job:"new",info:{prjname:data.info.name}});
                     pis.write({type:"toDB",route:"buttons",job:"new",info:{prjname:data.info.name}});
@@ -225,6 +244,15 @@ export default class App extends Vue {
             case "list":
                 this.$store.state.project_info.prjlist=data.info;
                 this.$store.state.project_info.openflag=true;
+                break;
+            case "check":
+                if(!data.info){
+                    pis.write({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                    pis.write({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                }else{
+                    this.poseidon_up = 0;
+                    pis.write({type:"toDB",route:"poseidon",job:"poseidon_up",info:{prjname:this.$store.state.project_info.current_prj,up:data.info}});
+                }
                 break;
         }
     }

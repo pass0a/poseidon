@@ -107,7 +107,11 @@ export default new Vuex.Store({
 			case_exp:"预期结果",
 			case_note:"备注"
 		},
-		init_checkbox:["case_id","case_pre","case_op","case_exp"]
+		init_checkbox:["case_id","case_pre","case_op","case_exp"],
+		push_info:{
+			count:0,
+			revdata:{}
+		}
 	},
 	mutations:{}
 });

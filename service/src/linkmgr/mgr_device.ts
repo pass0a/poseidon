@@ -118,13 +118,6 @@ export class Device_mgr{
 			resolve(cnum);
 		});
 	}
-	private wait(w_time:any){
-        return new Promise(resolve => {
-            setTimeout( () => {
-                resolve(0);
-            },w_time);
-        });
-	}
 	private async checkADB(){
 		let result:number = 0;
 		let adb_start:any = await ADB.startADB("shell");

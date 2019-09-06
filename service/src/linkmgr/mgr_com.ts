@@ -55,12 +55,13 @@ export class Com_mgr{
 					ret = await this.uartlist[info.name].sendData(sd,notNeedReturn);
 					break;
 				case "da_arm":
-					sd = da_arm.disposeSendData(info.cmd,info.msg.path);
-					if(info.msg.others_flag){
+					let skl = info.cmd == "start_arm_server"?needReturn:notNeedReturn;
+					sd = da_arm.disposeSendData(info.cmd,info.msg);
+					if(!skl){
 						let others_cmd = info.msg.others_cmd + " \n";
 						await this.uartlist[info.name].sendData(others_cmd,notNeedReturn);
 					}
-					ret = await this.uartlist[info.name].sendData(sd,needReturn,da_arm,10000);
+					ret = await this.uartlist[info.name].sendData(sd,skl,da_arm,10000);
 					break;
 			}
 		}

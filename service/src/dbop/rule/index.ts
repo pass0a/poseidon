@@ -110,6 +110,25 @@ function removeID(data:any,pis:any,RuleModel:any){
     });
 }
 
+function poseidonUpdate(data:any,pis:any,RuleModel:any){
+    let update_arr:any = [];
+    switch(data.info.up){
+        case 1:
+            RuleModel.updateOne({id:"action"},{$push:{content:{$each:["click_poi","slide","qg_box"]}}},function(err:any,mg:any){
+                if(!err){
+                    update_arr = [{id: "qg_box",content: ["freq"]}];
+                    RuleModel.insertMany(update_arr,(err:any, msg:any) => {
+                        if(!err){
+                            data.info = true;
+                            pis.write(data);
+                        }
+                    });
+                }
+            });
+            break;
+    }
+}
+
 function disposeData(data:any,pis:any){
     let RuleModel = getModel(data.info.prjname+"_rule");
     switch(data.job){
@@ -124,6 +143,9 @@ function disposeData(data:any,pis:any){
             break;
         case "remove_id":
             removeID(data,pis,RuleModel);
+            break;
+        case "poseidon_up":
+            poseidonUpdate(data,pis,RuleModel);
             break;
         default:
             break;

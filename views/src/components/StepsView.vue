@@ -152,15 +152,17 @@ export default class StepsView extends Vue {
                         if(this.s_skip)obj["click_skip"]=this.s_skip;
                     }
                     else if(this.s_action=="group"){
-                        if(this.op_data.type){
-                            if(this.op_data.id!=""&&this.op_data.id==this.s_clid){
-                                this.$notify({title: '无法选择本身!',message: '', type: 'warning',duration:1500});
-                                break;
-                            }
-                            for(let step of this.$store.state.steps_info.grouplist[this.s_clid]){
-                                if(step.action=="group"){
-                                    this.$notify({title: '子选项不能含组合步骤!',message: '', type: 'warning',duration:1500});
-                                    return;
+                        if(this.$store.state.home_info.mode=="6_2"){
+                            if(this.op_data.type){
+                                if(this.op_data.id!=""&&this.op_data.id==this.s_clid){
+                                    this.$notify({title: '无法选择本身!',message: '', type: 'warning',duration:1500});
+                                    break;
+                                }
+                                for(let step of this.$store.state.steps_info.grouplist[this.s_clid]){
+                                    if(step.action=="group"){
+                                        this.$notify({title: '子选项不能含组合步骤!',message: '', type: 'warning',duration:1500});
+                                        return;
+                                    }
                                 }
                             }
                         }

@@ -117,6 +117,25 @@ function removeID(data:any,pis:any,ResModel:any){
     });
 }
 
+function poseidonUpdate(data:any,pis:any,ResModel:any){
+    let update_arr:any = [];
+    switch(data.info.up){
+        case 1:
+            update_arr = [{id:"click_poi",name:"坐标点击"},
+                          {id:"slide",name:"轨迹划动"},
+                          {id:"qg_box",name:"QG BOX"},
+                          {id:"freq",name:"FREQ"},
+                         ];
+            break;
+    }
+    ResModel.insertMany(update_arr, function(err:any, msg:any) {
+        if(!err){
+            data.info = true;
+            pis.write(data);
+        }
+    });
+}
+
 function disposeData(data:any,pis:any){
     let ResModel = getModel(data.info.prjname+"_res");
     switch(data.job){
@@ -134,6 +153,9 @@ function disposeData(data:any,pis:any){
             break;
         case "remove_id":
             removeID(data,pis,ResModel);
+            break;
+        case "poseidon_up":
+            poseidonUpdate(data,pis,ResModel);
             break;
         default:
             break;
