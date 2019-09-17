@@ -32,7 +32,12 @@ function formatPath(dir, ext) {
 		var f1 = fs.statSync(pn);
 		var f2 = new fs.ReadStream(pn);
 		f2.on('open', function() {
-			res.writeHead(200, { 'Cache-Control': 'no-cache', 'Content-Type': mime(pn), 'Content-Length': f1.size });
+			res.writeHead(200, {
+				connection: 'close',
+				'Cache-Control': 'no-cache',
+				'Content-Type': mime(pn),
+				'Content-Length': f1.size
+			});
 		});
 		f2.on('data', function(data) {
 			res.write(data);
@@ -41,7 +46,7 @@ function formatPath(dir, ext) {
 			res.end();
 		});
 		f2.on('error', function() {
-			res.writeHead(404, { 'Content-Type': 'text/html' });
+			res.writeHead(404, { connection: 'close', 'Content-Type': 'text/html' });
 			res.end('<h1>404 Not Found</h1>');
 		});
 	}
