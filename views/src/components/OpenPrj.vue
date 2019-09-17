@@ -13,6 +13,7 @@
             <el-table-column label="操作" width="150">
                 <template slot-scope="scope">
                     <button class="button" @click="openPrj(scope.row.name)">打开</button>
+                    <button class="button" style="background-color:#F56C6C" @click="deletePrj(scope.row.name)">删除</button>
                 </template>
             </el-table-column>
         </el-table>
@@ -41,6 +42,11 @@ export default class OpenPrj extends Vue {
             this.$store.state.app_info.pis.write({type:"toSer",job:"readStopinfo",prjname:this.$store.state.project_info.current_prj});
         }
         this.$store.state.project_info.openflag=false;
+    }
+    private deletePrj(prjname:any){
+        this.$store.state.alert_info.showflag = true;
+        this.$store.state.alert_info.type = 6;
+        this.$store.state.alert_info.info = prjname;
     }
 }
 </script>

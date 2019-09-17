@@ -204,6 +204,9 @@ export class Server {
 			case 'saveCutImage':
 				this.tolink.send(data);
 				break;
+			case 'pushPassoa':
+				this.tolink.send(data);
+				break;
 		}
 	}
 }

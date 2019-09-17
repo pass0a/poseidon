@@ -1,4 +1,5 @@
 import { getModel } from "./model";
+import * as mongoose from 'mongoose';
 
 function getList(data:any,pis:any,BindingModel:any){
     BindingModel.aggregate([
@@ -96,6 +97,7 @@ function disposeData(data:any,pis:any){
             removeID(data,pis,BindingModel);
             break;
         case "startTest":
+                console.log("bind start");
             getList(data,pis,BindingModel);
             break;
         case "replayTest":

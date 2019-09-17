@@ -1,6 +1,7 @@
 // import * as util from "util";
+import { serialport } from '@passoa/serialport';
+
 export class Uart{
-	private serialport = require("./serialport");
 	private uart:any;
 	private name:any;
 	private id:any;
@@ -9,15 +10,13 @@ export class Uart{
 	private startAnalyze:boolean = false;
 	private timer:any;
 	private analyzeDataObj:any;
+	private fileStream:any;
 	openUart(data:any,fn:any) {
 		return new Promise((resolve) => {
 			this.id = data.id;
 			this.name = data.port;
 			this.backCall = resolve;
-			this.uart = this.serialport.connect(data.port, data.info, () => {
-				console.info("serialport: " + data.port + " open!!!");
-				this.backCall({ret:1});
-			});
+			this.uart = new serialport(data.port, data.info);
 			this.uart.on("data", (data:any) => {
 				// console.info(new util.TextDecoder().decode(data));
 				if(this.startAnalyze){
@@ -29,14 +28,23 @@ export class Uart{
 			});
 			this.uart.on("end", () => {
 				console.info("serialport: " + this.name + " close!!!");
+				if(this.fileStream){
+					this.fileStream.end();
+					this.fileStream = null;
+				}
 				fn(this.id);
 				this.backCall({ret:0});
 			});
 			this.uart.on("error", (error:any, msg:any) => {
 				console.error(this.name+" Error!!!");
+				if(this.fileStream){
+					this.fileStream.end();
+					this.fileStream = null;
+				}
 				fn(this.id);
 				this.backCall({ret:0});
 			});
+			this.timeout(500,1);
 		});
 	}
 	sendData(buf:any,send_type:any,parse_obj?:any,timeout?:any) {
@@ -73,7 +81,18 @@ export class Uart{
 						break;
 				}
 				if (timeout == undefined)timeout = 2000;
-				this.timeout(timeout);
+				this.timeout(timeout,0);
+			}
+		});
+	}
+	openLog(loger:any,file:any){
+		return new Promise((resolve) => {
+			if(this.uart){
+				this.fileStream = file;
+				this.uart.pipe(loger).pipe(file);
+				resolve({ret:1});
+			}else{
+				resolve({ret:0});
 			}
 		});
 	}
@@ -83,10 +102,10 @@ export class Uart{
 			resolve({ret:1});
 		});
 	}
-	private timeout(ts:number){
+	private timeout(ts:number,ret:number){
         this.timer = setTimeout(() => {
 			this.startAnalyze = false;
-            this.backCall({ ret: 0 });
+            this.backCall({ ret: ret });
 		},ts);
     }
     private clearTimer(){

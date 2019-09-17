@@ -2,6 +2,7 @@ import * as net from 'net';
 import * as pack from '@passoa/pack';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as childprs from "child_process";
 import * as util from 'util';
 import * as os from 'os';
 import { Server } from './server';
@@ -79,6 +80,10 @@ export class ToDB {
 				case 'projects':
 					if(data.job == 'add' && data.info.state)fs.mkdirSync(this.prjdir + data.info.name);
 					break;
+				case 'removeAll': // 删除文件夹
+					let remove_dir = "\""+this.prjdir + data.info.prjname+"\"";
+					childprs.exec("rmdir /s/q "+remove_dir, { windowsHide:true });
+					break;
 				default:
 					break;
 			}
@@ -88,7 +93,7 @@ export class ToDB {
 			fs.writeFileSync(filename, data.info.data);
 			this.req_start_flag++;
 			console.log(data.route);
-			if(this.req_start_flag==4){
+			if(this.req_start_flag==5){
 				this.tolink.send({type:data.type,job:data.job,info:{prjname:data.info.prjname}});
 				console.log("================");
 			}

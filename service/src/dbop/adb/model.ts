@@ -1,10 +1,12 @@
 import * as mongoose from 'mongoose';
 
 let propSchema = new mongoose.Schema({
-	name:String,
-	date: { type: Date, default: Date.now },
-	uid: mongoose.Schema.Types.ObjectId,
-	version:String
+	id:String,
+	pid:String,
+	send_data:String,
+	type:Number,
+	timeout:Number,
+	rev_data:String
 });
 
 export function getModel(modelName:any){

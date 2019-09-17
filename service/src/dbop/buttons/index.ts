@@ -1,4 +1,5 @@
 import { getModel } from "./model";
+import * as mongoose from 'mongoose';
 
 function getList(data:any,pis:any,BtnModel:any){
     BtnModel.aggregate([
@@ -84,6 +85,7 @@ function disposeData(data:any,pis:any){
             removeID(data,pis,BtnModel);
             break;
         case "startTest":
+                console.log("btn start");
             getList(data,pis,BtnModel);
             break;
         case "replayTest":

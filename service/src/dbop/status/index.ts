@@ -1,10 +1,10 @@
 import { getModel } from "./model";
 import * as mongodb from "mongodb";
+import * as mongoose from 'mongoose';
 
 function add(data:any,pis:any,StatusModel:any){
     let info:any = data.info;
     let model=new StatusModel({
-        type: info.type,
         module: info.module,
         cid: createObjectID(info.cid),
         uid: createObjectID(info.uid)
@@ -17,9 +17,33 @@ function add(data:any,pis:any,StatusModel:any){
 	});
 }
 
+function addModule(data:any,pis:any,StatusModel:any){
+    let info:any = data.info;
+    let addList:any=[];
+    for(let i=0;i<info.changelist.length;i++){
+        addList.push({module:info.module,cid:info.changelist[i],uid:info.uid});
+    }
+    StatusModel.insertMany(addList, function(err:any, msg:any) {
+        if(!err){
+            data.info = true;
+            pis.write(data);
+        }
+    });
+}
+
+function deleteModule(data:any,pis:any,StatusModel:any){
+    let info = data.info;
+    StatusModel.deleteMany({module:info.module},(err:any)=>{
+        if(!err){
+            data.info = true;
+            pis.write(data);
+        }
+    });
+}
+
 function remove(data:any,pis:any,StatusModel:any){
     let info:any = data.info;
-    StatusModel.deleteOne({type:info.type,cid:createObjectID(info.cid),uid:createObjectID(info.uid)},function(err:any){
+    StatusModel.deleteOne({cid:createObjectID(info.cid),uid:createObjectID(info.uid)},function(err:any){
         if(!err){
             data.info = true;
             pis.write(data);
@@ -36,7 +60,7 @@ function getTestList(data:any,pis:any,StatusModel:any){
             as:"cases"
         }},
         {$match:{
-            "type":1,"uid":createObjectID(data.info.uid)
+            "uid":createObjectID(data.info.uid)
         }},
         {$project:{
             "_id":0,"__v":0,"cid":0,"uid":0,"cases._id":0,"cases.__v":0
@@ -83,7 +107,14 @@ function disposeData(data:any,pis:any){
         case "remove_module":
             removeModule(data,pis,StatusModel);
             break;
+        case "module_add":
+            addModule(data,pis,StatusModel);
+            break;
+        case "module_delete":
+            deleteModule(data,pis,StatusModel);
+            break;
         case "startTest":
+                console.log("stat start");
             getTestList(data,pis,StatusModel);
             break;
         case "replayTest":

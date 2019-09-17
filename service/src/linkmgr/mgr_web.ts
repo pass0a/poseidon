@@ -2,6 +2,7 @@ import * as pack from '@passoa/pack';
 import * as childprs from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
+import ADB from "./res/adb/adb";
 
 export class Web_mgr {
 	private pos: any = new pack.unpackStream();
@@ -18,7 +19,7 @@ export class Web_mgr {
 		});
 	}
 
-	private handleCmd(obj: any) {
+	private async handleCmd(obj: any) {
 		switch (obj.job) {
 			case 'startTest':
 				let jsPath_s = '"' + __dirname + '/test.js"';
@@ -60,9 +61,49 @@ export class Web_mgr {
 				);
 				this.pis.write({ type: obj.type, job: obj.job, ret: ret });
 				break;
+			case "pushPassoa":
+				if(obj.info.type=="adb"){
+					let cmd = "push "+path.dirname(process.execPath)+"/remote/"+obj.info.version+"/. "+obj.info.path;
+					let push_ret:any = await this.pushByADB(cmd,true,30000);
+					if(!push_ret.ret)obj.info = false;
+					else{
+						let ret_shell:any = await this.pushByADB("shell",false,3000);
+						let ret_chmod:any = await this.pushByADB("chmod 777 "+obj.info.path+"/passoa",false,3000);
+						ADB.endADB();
+						obj.info = ret_shell.ret&&ret_chmod.ret;
+					}
+					this.pis.write(obj);
+				}
+				break;
 			default:
 				break;
 		}
+	}
+
+	private pushByADB(cmd:string,needReturn:boolean,timeout:number){
+		return new Promise(resolve => {
+			let timer:any;
+			ADB.sendData(cmd,(data:any) => {
+				switch(data.ret){
+					case 0:
+						break;
+					case 1:
+						break;
+					case 2:
+						if(timer){
+							clearTimeout(timer);
+							timer = null;
+						}
+						resolve({ret:data.data?0:1});
+						break;
+					default:
+						break;
+				}
+			});
+			timer = setTimeout( () => {
+                resolve({ret:needReturn?0:1});
+            },timeout);
+		});
 	}
 
 	create(c: any, obj: any, link: any) {

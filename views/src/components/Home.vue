@@ -18,7 +18,8 @@
             <el-menu-item index="6_3">选项绑定</el-menu-item>
         </el-submenu>
         <el-menu-item index="7"><i class="el-icon-setting"></i>系统配置</el-menu-item>
-        <el-menu-item index="8"><i class="el-icon-service"></i>关于我们</el-menu-item>
+        <el-menu-item index="8"><i class="el-icon-s-unfold"></i>软件推送</el-menu-item>
+        <el-menu-item index="9"><i class="el-icon-service"></i>关于我们</el-menu-item>
       </el-menu>
       <div style="background-color: #545c64bb;height:31px;">
         <span style="margin:0px 0px 0px 10px"><font size="2" color="#ffd04b"><i class="el-icon-folder-opened"></i> 当前选择项目 : {{ currentProject }}</font></span>
@@ -40,7 +41,8 @@
         <ul v-show="select_mode=='6_2'"><StepsMgrView/></ul>
         <ul v-show="select_mode=='6_3'"><ScreenView/></ul>
         <ul v-show="select_mode=='7'"><SettingView/></ul>
-        <ul v-show="select_mode=='8'"><AboutView/></ul>
+        <ul v-show="select_mode=='8'"><PushView/></ul>
+        <ul v-show="select_mode=='9'"><AboutView/></ul>
       </div>
       <div>
         <OpenPrj/>
@@ -67,6 +69,7 @@ import StepsMgrView from "./StepsMgrView.vue";
 import ModuleView from "./ModuleView.vue";
 import AboutView from "./AboutView.vue";
 import AuthView from "./AuthView.vue";
+import PushView from "./PushView.vue";
 @Component({
   components: {
     OpenPrj,
@@ -79,7 +82,8 @@ import AuthView from "./AuthView.vue";
     StepsMgrView,
     ModuleView,
     AboutView,
-    AuthView
+    AuthView,
+    PushView
   }
 })
 export default class Home extends Vue {
@@ -169,6 +173,7 @@ export default class Home extends Vue {
               this.$store.state.app_info.pis.write({type:"toDB",route:"buttons",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
               this.$store.state.app_info.pis.write({type:"toDB",route:"group",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
               this.$store.state.app_info.pis.write({type:"toDB",route:"binding",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+              this.$store.state.app_info.pis.write({type:"toDB",route:"adb",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
               this.select_mode=key;
               break;
             case "6_3":
@@ -181,6 +186,10 @@ export default class Home extends Vue {
               this.select_mode=key;
               break;
             case "7":
+              this.$store.state.app_info.pis.write({type:"toSer",job:"readConfig"});
+              this.select_mode=key;
+              break;
+            case "8":
               this.$store.state.app_info.pis.write({type:"toSer",job:"readConfig"});
               this.select_mode=key;
               break;

@@ -15,6 +15,9 @@
                 <el-select placeholder="请选择" filterable size="small" style="width:140px" v-model="s_module" v-show="s_action!=waitType" @change="changeSel(1)">
                     <el-option v-for="val in Module" :key="val" :label="getResName(val)" :value="val"></el-option>
                 </el-select>
+                <el-select placeholder="请选择" filterable size="small" style="width:75px" v-model="s_freqtype" v-show="s_action==boxType.act&&s_module==boxType.freq">
+                    <el-option v-for="val in freqtype.keys()" :label="freqtype.get(val)" :value="val" :key="val"></el-option>
+                </el-select>
                 <el-input-number v-model="s_box" style="width:130px" controls-position="right" :min="2.529" size="small" v-show="s_module==boxType.freq"></el-input-number>
                 <el-select placeholder="请选择" filterable clearable  size="small" style="width:155px" v-model="s_clid" v-show="s_action!=waitType&&s_action!=boxType.act">
                     <el-option v-for="val in Clid" :key="val" :label="getResName(val)" :value="val"></el-option>
@@ -56,6 +59,9 @@
             <el-select placeholder="请选择" filterable size="small" style="width:140px" v-model="s_module" v-show="s_action!=waitType" @change="changeSel(1)">
                 <el-option v-for="val in Module" :key="val" :label="getResName(val)" :value="val"></el-option>
             </el-select>
+            <el-select placeholder="请选择" filterable size="small" style="width:75px" v-model="s_freqtype" v-show="s_action==boxType.act&&s_module==boxType.freq">
+                <el-option v-for="val in freqtype.keys()" :label="freqtype.get(val)" :value="val" :key="val"></el-option>
+            </el-select>
             <el-input-number v-model="s_box" style="width:130px" controls-position="right" :min="2.529" size="small" v-show="s_module==boxType.freq"></el-input-number>
             <el-select placeholder="请选择" filterable clearable  size="small" style="width:155px" v-model="s_clid" v-show="s_action!=waitType&&s_action!=boxType.act" @change="changeSel(2)">
                 <el-option v-for="val in Clid" :key="val" :label="getResName(val)" :value="val" :disabled="checkBinding(0,val)">
@@ -77,6 +83,7 @@ export default class StepsView extends Vue {
     private s_action:string="";
     private s_module:string="";
     private s_clicktype:string="0";
+    private s_freqtype:string="0";
     private s_clicktime:Number=1500;
     private s_clid:string="";
     private s_box:any = 2.529;
@@ -89,6 +96,7 @@ export default class StepsView extends Vue {
     private waitType:string="wait";
     private boxType:any={act:"qg_box",freq:"freq"};
     private clickType:any=new Map([["0","短按"],["1","长按"]]);
+    private freqtype:any=new Map([["0","大于"],["1","等于"]]);
     private op_data:any={
         type:0,
         id:""
@@ -152,15 +160,17 @@ export default class StepsView extends Vue {
                         if(this.s_skip)obj["click_skip"]=this.s_skip;
                     }
                     else if(this.s_action=="group"){
-                        if(this.op_data.type){
-                            if(this.op_data.id!=""&&this.op_data.id==this.s_clid){
-                                this.$notify({title: '无法选择本身!',message: '', type: 'warning',duration:1500});
-                                break;
-                            }
-                            for(let step of this.$store.state.steps_info.grouplist[this.s_clid]){
-                                if(step.action=="group"){
-                                    this.$notify({title: '子选项不能含组合步骤!',message: '', type: 'warning',duration:1500});
-                                    return;
+                        if(this.$store.state.home_info.mode=="6_2"){
+                            if(this.op_data.type){
+                                if(this.op_data.id!=""&&this.op_data.id==this.s_clid){
+                                    this.$notify({title: '无法选择本身!',message: '', type: 'warning',duration:1500});
+                                    break;
+                                }
+                                for(let step of this.$store.state.steps_info.grouplist[this.s_clid]){
+                                    if(step.action=="group"){
+                                        this.$notify({title: '子选项不能含组合步骤!',message: '', type: 'warning',duration:1500});
+                                        return;
+                                    }
                                 }
                             }
                         }
@@ -180,7 +190,7 @@ export default class StepsView extends Vue {
             obj = {action:this.s_action,time:this.s_wait};
         }else if(this.s_module == this.boxType.freq){
             if(this.s_box==undefined)this.s_box=2.529;
-            obj = {action:this.s_action,module:this.s_module,b_volt:this.s_box};
+            obj = {action:this.s_action,module:this.s_module,b_volt:this.s_box,b_type:this.s_freqtype};
         }
         if(this.s_op==0)this.steplist.push(obj);
         else if(this.s_op==2)this.steplist[this.s_idx]=obj;
@@ -192,6 +202,7 @@ export default class StepsView extends Vue {
         this.s_module="";
         this.s_clid="";
         this.s_clicktype="0";
+        this.s_freqtype="0";
         this.s_clicktime=1500;
         this.s_op=0;
         this.s_idx=-1;
@@ -209,7 +220,7 @@ export default class StepsView extends Vue {
                 content = it.time+"毫秒";
                 break;
             case "qg_box":
-                content = " ["+this.getResName(it.module)+"] "+it.b_volt + " V";
+                content = " ["+this.getResName(it.module)+"] ( "+this.freqtype.get(it.b_type)+" ) "+it.b_volt + " V";
                 break;
             default:
                 content = " ["+this.getResName(it.module)+"] "+this.getResName(it.id);
@@ -246,6 +257,7 @@ export default class StepsView extends Vue {
                 }
                 else if(item.action==this.boxType.act){
                     this.s_module=item.module;
+                    this.s_freqtype = item.b_type;
                     this.s_box = item.b_volt;
                 }
                 else{

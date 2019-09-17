@@ -5,6 +5,8 @@
         <el-link v-model="testStatus" v-show="false"></el-link>
         <el-button-group style="margin:5px 0px 0px 10px;">
             <el-button plain icon="el-icon-plus" size="small" @click="addCase">新建用例</el-button>
+            <el-button plain icon="el-icon-check" size="small" @click="changeAllCases(0)">当前全部开启</el-button>
+            <el-button plain icon="el-icon-close" size="small" @click="changeAllCases(1)">当前全部关闭</el-button>
         </el-button-group>
         <el-tabs type="border-card" tab-position="bottom" style="margin:5px 10px 10px 10px;" v-model="current_case_module" @tab-click="select_module">
             <el-tab-pane v-for="it of ModuleData" :label="getResName(it)" :key="it" :name="it"></el-tab-pane>
@@ -227,7 +229,6 @@ export default class EditCasesView extends Vue {
             route : "status",
             job : this.current_data[idx].c_status.length?"delete":"add",
             info : {
-                type:1,
                 prjname:this.$store.state.project_info.current_prj,
                 module:this.current_data[idx].case_module,
                 cid:this.current_data[idx]._id,
@@ -236,6 +237,35 @@ export default class EditCasesView extends Vue {
         }
         this.$store.state.app_info.pis.write(req);
         this.current_data[idx].c_status=this.current_data[idx].c_status.length?[]:[{type:1}];
+    }
+    private changeAllCases(type:number){
+        let changeList:Array<string> = [];
+        for(let i=0;i<this.current_data.length;i++){
+            if(!type){
+                if(!this.current_data[i].c_status.length){
+                    this.current_data[i].c_status = [{type:1}];
+                    changeList.push(this.current_data[i]._id);
+                }
+            }else{
+                if(this.current_data[i].c_status.length){
+                    this.current_data[i].c_status = [];
+                    changeList.push(this.current_data[i]._id);
+                }
+            }
+        }
+        if(changeList.length>0){
+            let req:any = {type : "toDB",route : "status",job:"",info:{}};
+            if(!type){
+                req.job = "module_add";
+                req.info = {prjname:this.$store.state.project_info.current_prj, module:this.current_case_module, uid:this.$store.state.login_info._id,changelist:changeList};
+            }else{
+                req.job = "module_delete";
+                req.info = {prjname:this.$store.state.project_info.current_prj, module:this.current_case_module, uid:this.$store.state.login_info._id}
+            }
+            console.log(req);
+            this.$store.state.app_info.pis.write(req);
+        }
+        
     }
 }
 </script>

@@ -44,7 +44,12 @@ export default class SetPort extends Vue {
     private flow=[{name:"None",num:0},{name:"RTS/CTS",num:1},{name:"XON/XOFF",num:2}];
     get editInfo(){
         if(this.$store.state.setting_info.info.uarts!=undefined){
-            this.initInfo = this.$store.state.setting_info.info.uarts[this.$store.state.setting_info.select_serial];
+            let info = this.$store.state.setting_info.info.uarts[this.$store.state.setting_info.select_serial];
+            if(info)this.initInfo = info;
+            else{
+                this.$store.state.setting_info.info.uarts[this.$store.state.setting_info.select_serial] = {port:1,baud_rate:115200,data_bits:8,stop_bits:0,parity:0,flow_control:0};
+                this.initInfo = this.$store.state.setting_info.info.uarts[this.$store.state.setting_info.select_serial];
+            }
         }
         return this.initInfo;
     }

@@ -1,4 +1,5 @@
 import { getModel } from "./model";
+import * as mongoose from 'mongoose';
 
 function getList(data:any,pis:any,RuleModel:any){
     RuleModel.aggregate([
@@ -53,7 +54,7 @@ function newPrj(data:any,pis:any,RuleModel:any){
     let new_arr = [
         {
             id: "action",
-            content: ["click","assert_pic","click_poi","slide","wait","operate_tool","button","qg_box","group"]
+            content: ["click","assert_pic","click_poi","slide","wait","operate_tool","button","qg_box","group","adb_cmd"]
         },
         {
             id: "operate_tool",
@@ -110,6 +111,35 @@ function removeID(data:any,pis:any,RuleModel:any){
     });
 }
 
+function poseidonUpdate(data:any,pis:any,RuleModel:any){
+    let update_arr:any = [];
+    let new_act:any = [];
+    switch(data.info.up){
+        case 1:
+            new_act = ["click_poi","slide","qg_box","adb_cmd"];
+            update_arr = [{id: "qg_box",content: ["freq"]}];
+            break;
+        case 2:
+            new_act = ["adb_cmd"];
+            update_arr = [];
+            break;
+    }
+    RuleModel.updateOne({id:"action"},{$push:{content:{$each:new_act}}},function(err:any,mg:any){
+        if(!err){
+            if(update_arr.length)RuleModel.insertMany(update_arr,(err:any, msg:any) => {
+                if(!err){
+                    data.info = true;
+                    pis.write(data);
+                }
+            });
+            else {
+                data.info = true;
+                pis.write(data);
+            }
+        }
+    });
+}
+
 function disposeData(data:any,pis:any){
     let RuleModel = getModel(data.info.prjname+"_rule");
     switch(data.job){
@@ -124,6 +154,9 @@ function disposeData(data:any,pis:any){
             break;
         case "remove_id":
             removeID(data,pis,RuleModel);
+            break;
+        case "poseidon_up":
+            poseidonUpdate(data,pis,RuleModel);
             break;
         default:
             break;

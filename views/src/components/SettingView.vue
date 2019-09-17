@@ -2,7 +2,7 @@
     <div>
         <el-link v-model="testStatus" v-show="false"></el-link>
         <el-card class="box-card" shadow="never" style="margin:5px 10px 5px 10px">
-            <el-tabs type="border-card" tab-position="left" style="height:450px" height="300" @tab-click="clickTab" v-model="tabName">
+            <el-tabs type="border-card" tab-position="left" style="height:450px" @tab-click="clickTab" v-model="tabName">
                 <el-tab-pane label="硬件配置" name="0">
                     <div>
                         <el-divider content-position="left">工具板</el-divider>
@@ -73,6 +73,30 @@
                         </div>
                     </el-form>
                 </el-tab-pane>
+                <el-tab-pane label="日志功能配置" name="4">
+                    <el-form :model="logInfo" ref="logform" label-width="120px">
+                        <el-form-item label="启动状态:">
+                            <el-switch active-color="#13ce66" inactive-color="#F56C6C" v-model="log_info.open" @change="openLog"></el-switch>
+                        </el-form-item>
+                        <el-form-item label="抓取方式:" v-show="log_info.open">
+                            <el-radio-group v-model="log_info.type" size="small">
+                                <el-radio :label="0" border style="width:90px">COM</el-radio>
+                                <el-radio :label="1" border style="width:90px">ADB</el-radio>
+                            </el-radio-group>
+                        </el-form-item>  
+                        <el-form-item label="信息配置:" v-show="log_info.open">
+                            <el-input style="width:250px" size="small" placeholder="请输入ADB指令" v-model="log_info.adb_cmd" v-if="log_info.type==1"></el-input>
+                            <SetPort v-if="log_info.type==0"/>
+                        </el-form-item>
+                        <!-- <el-form-item label="是否需输入指令:" v-show="log_info.open&&log_info.type==0">
+                            <el-radio-group v-model="log_info.others_flag">
+                                <el-radio :label="0">否</el-radio>
+                                <el-radio :label="1">是</el-radio>
+                            </el-radio-group>
+                            <el-input size="small" style="margin:0px 0px 0px 10px;width:220px" v-model="log_info.others_cmd" placeholder="请输入所需命令" v-show="log_info.others_flag"></el-input>
+                        </el-form-item>   -->
+                    </el-form>
+                </el-tab-pane>
                 <el-tab-pane label="服务器配置" name="3">
                     <div>
                         <el-form :model="dbserverInfo" ref="serverform" label-width="100px">
@@ -118,8 +142,9 @@ export default class SettingView extends Vue {
     private da_server_info:any={};
     private test_info:any={};
     private box_info:any={};
+    private log_info:any={};
     private test_status:any=false;
-    private uarts:any=["relay","da_arm"];
+    private uarts:any=["relay","da_arm","log"];
     private created() {
         this.$store.state.setting_info.select_serial = this.uarts[0];
     }
@@ -143,6 +168,11 @@ export default class SettingView extends Vue {
         this.test_status = this.$store.state.test_info.testing;
         return;
     }
+    get logInfo(){
+        if(this.$store.state.setting_info.info.log_info!=undefined)this.log_info = this.$store.state.setting_info.info.log_info;
+        else this.log_info = {open:false,type:0,adb_cmd:"",others_flag:0,others_cmd:""};
+        return;
+    }
     private selectStartMd(name:any){
         if(name==0)this.$store.state.setting_info.select_serial = this.uarts[1];
     }
@@ -156,7 +186,15 @@ export default class SettingView extends Vue {
                     this.$store.state.setting_info.select_serial = this.uarts[1];
                 }
                 break;
+            case "4":
+                if(this.log_info.open&&this.log_info.type==0){
+                    this.$store.state.setting_info.select_serial = this.uarts[2];
+                }
+                break;
         }
+    }
+    private openLog(){
+        if(this.log_info.open)this.$store.state.setting_info.select_serial = this.uarts[2];
     }
     private selectServer(){
         this.$store.state.setting_info.info.db_server.type=this.select_server;
@@ -168,6 +206,7 @@ export default class SettingView extends Vue {
         if(this.test_status){
             this.$notify({title: '测试进行中!!!无法进行操作',message: '', type: 'warning',duration:1500});
         }else{
+            if(this.$store.state.setting_info.info.log_info==undefined)this.$store.state.setting_info.info.log_info = this.log_info;
             this.$store.state.alert_info.showflag = true;
             this.$store.state.alert_info.type = 0;
         }
