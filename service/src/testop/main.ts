@@ -11,7 +11,8 @@ let fileList=new Map([
 	["stopinfo","stopinfo.json"],
 	["buttons","buttons.json"],
 	["group","group.json"],
-	["binding","binding.json"]
+	["binding","binding.json"],
+	["adb","adb.json"]
 ]);
 fileList.forEach(function(value,key){
 	readFile(key,value,fileList.size);
@@ -92,6 +93,16 @@ function disposeData(name:any,data:any){
 		case "binding":
 			for(let i=0;i<data.length;i++){
 				caseInfo[name][data[i].id] = data[i].content;
+			}
+			break;
+		case "adb":
+			for(let i=0;i<data.length;i++){
+				caseInfo[name][data[i].id] = {
+					send_data : data[i].send_data,
+					type : data[i].type,
+					timeout : data[i].timeout,
+					rev_data: data[i].rev_data
+				}
 			}
 			break;
 		default:

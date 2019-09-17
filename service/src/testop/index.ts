@@ -14,6 +14,9 @@ let gid = 0;
 let progress_info = { current: 0, total: 0 };
 let test_log_info = { step: {}, ret: 0 };
 let result_to_web = { ok: 0, ng: 0 };
+let log_info:any = {id:"",status:false,filename:""};
+let adb_cmd_isExist = false;
+let com_len = 2;
 let actionList: any = {
 	wait: wait,
 	click: click,
@@ -23,7 +26,8 @@ let actionList: any = {
 	operate_tool: operateTool,
 	button: button,
 	qg_box: qgBox,
-	group: group
+	group: group,
+	adb_cmd : adbCmd
 };
 
 async function startTest(data: any) {
@@ -34,10 +38,22 @@ async function startTest(data: any) {
 		if (ret.ret) {
 			await notifyToLink({ type: toWebServerType, mode: 1, info: ret.runtime });
 			await notifyToLink({ type: toWebServerType, mode: 2, info: progress_info }); // 进度更新通知
+			startLog();
 			runTest(data, toContinue);
 		} else {
 			await notifyToLink({ type: toWebServerType, mode: 0, error_code: ret.error_code }); // error 0:串口异常 1:无测试用例 2:ADB异常
-			c.end();
+			endTest();
+		}
+	}
+}
+
+async function startLog(){
+	if(log_info.status){// Log监听开始
+		log_info.filename = caseInfo.path + '/log/log.txt';
+		if(!caseInfo.config.log_info.type)await notifyToLink({type:'toCom',job:'openLog',info:log_info});
+		else{
+			log_info.adb_cmd = caseInfo.config.log_info.adb_cmd;
+			await notifyToLink({type:'toDevice',job:'openLog',info:log_info});
 		}
 	}
 }
@@ -51,15 +67,17 @@ async function readyForTest(toContinue: any) {
 	let tmppath = caseInfo.path + '/tmp';
 	if(!fs.existsSync(tmppath))fs.mkdirSync(tmppath);
 	let uartsSet = new Set();
+	LogOpen(uartsSet);// Log
 	let runtime = 0;
 	progress_info.total = caseInfo.caselist.length;
 	let start_idx = toContinue ? caseInfo.stopinfo.idx : 0;
 	for (let i = start_idx; i < caseInfo.caselist.length; i++) {
 		let data = caseInfo.caselist[i];
 		for (let j = 0; j < data.case_steps.length; j++) {
-			if (uartsSet.size != 2) {
+			if (uartsSet.size != com_len) {
 				checkNeedCom(data.case_steps[j],uartsSet);
 			}
+			if (data.case_steps[j].action == 'adb_cmd' && !adb_cmd_isExist)adb_cmd_isExist = true;
 			if (data.case_steps[j].action == 'wait') runtime += data.case_steps[j].time;
 			else {
 				if (j < data.case_steps.length - 1) {
@@ -73,16 +91,39 @@ async function readyForTest(toContinue: any) {
 	let ret = uartsSet.size ? await notifyToLink({type:'toCom',job:'openCom',info:Array.from(uartsSet),cfg:caseInfo.config}) : 1;
 	let result: any = { ret: ret, runtime: runtime };
 	if (!ret) result.error_code = 0;
-	else if (ret && caseInfo.config.da_server.type == 1){
-		// 检测ADB是否存在
-		// if(!await notifyToLink({type:'toDevice',job:'checkADB'})){
-		// 	result.ret = 0;
-		// 	result.error_code = 2;
-		// }
+	else if ((ret && caseInfo.config.da_server.type == 1)||adb_cmd_isExist){
+		// 检测ADB是否打开
+		if(!await notifyToLink({type:'toDevice',job:'checkADB'})){
+			result.ret = 0;
+			result.error_code = 2;
+		}
 	}
 	return new Promise((resolve) => {
 		resolve(result);
 	});
+}
+
+function LogOpen(uartsSet:Set<any>){
+	log_info.status = caseInfo.config.log_info.open;
+	if(log_info.status){
+		if(!fs.existsSync(caseInfo.path + '/log'))fs.mkdirSync(caseInfo.path + '/log');
+		if(!caseInfo.config.log_info.type){// 检测Log串口是否共用
+			let uartsInfo = caseInfo.config.uarts;
+			if(uartsInfo.log.port==uartsInfo.relay.port){
+				log_info.id = 'relay';
+				uartsSet.add('relay');
+			}
+			else if(uartsInfo.log.port==uartsInfo.da_arm.port){
+				log_info.id = 'da_arm';
+				uartsSet.add('da_arm');
+			}
+			else { 
+				log_info.id = 'log';
+				uartsSet.add('da_arm');
+				com_len = 3;
+			}
+		}else adb_cmd_isExist = true;
+	}
 }
 
 function checkNeedCom(cmd:any,uartsSet:Set<any>){
@@ -102,7 +143,7 @@ function checkNeedCom(cmd:any,uartsSet:Set<any>){
 		case "group":
 			let groupContent = caseInfo.group[cmd.id].content;
 			for(let j = 0; j < groupContent.length; j++){
-				if(uartsSet.size != 2){
+				if(uartsSet.size != com_len){
 					checkNeedCom(groupContent[j],uartsSet);
 				}
 			}
@@ -271,6 +312,7 @@ async function defaultDelay(index: any, caseSteps: any) {
 
 async function button(cmd: any, caseData?: any) {
 	let buttonCmd = caseInfo.buttons[cmd.id];
+	console.log(cmd.id);
 	for (let i = 0; i < buttonCmd.content.length; i++) {
 		if(i==0&&caseInfo.config.da_server.others_flag)await notifyToLink({type:'toCom',job:'sendData',info:{name:"da_arm",cmd:"others",msg:caseInfo.config.da_server}});
 		let ct = buttonCmd.content[i];
@@ -313,11 +355,20 @@ async function group(cmd: any, caseData?: any) {
 	});
 }
 
+async function adbCmd(cmd: any, caseData?: any){
+	let adbInfo = caseInfo.adb[cmd.id];
+	let result = await notifyToLink({type:'toDevice',job:'sendADB',info:adbInfo});
+	return new Promise((resolve) => {
+		resolve(result);
+	});
+}
+
 async function qgBox(cmd: any, caseData?: any) {
+	if(cmd.b_type == undefined)cmd.b_type = "0";
 	let rev: any = await QGBox.sendBoxApi(cmd.module, 0, caseInfo.config.qg_box);
 	let result: any;
 	if (!rev.ret) {
-		result = parseFloat(rev.data) > cmd.b_volt ? 0 : 1;
+		result = cmd.b_type == "0" ? (parseFloat(rev.data) > cmd.b_volt ? 0 : 1):(parseFloat(rev.data) == cmd.b_volt ? 0 : 1);
 	} else {
 		result = 2;
 	}
@@ -433,6 +484,7 @@ async function saveScreen(cmd: any, caseData: any) {
 
 async function endTest() {
 	await notifyToLink({type:'toCom',job:'closeCom'});
+	await notifyToLink({type:'toDevice',job:'closeADB'});
 	c.end();
 }
 

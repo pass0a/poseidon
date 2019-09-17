@@ -1,4 +1,5 @@
 import { getModel } from "./model";
+import * as mongoose from 'mongoose';
 
 function getList(data:any,pis:any,ResModel:any){
     ResModel.aggregate([
@@ -51,6 +52,7 @@ function newPrj(data:any,pis:any,ResModel:any){
         {id:"button",name:"硬按键"},
         {id:"qg_box",name:"QG BOX"},
         {id:"group",name:"组合步骤"},
+        {id:"adb_cmd",name:"ADB指令"},
         {id:"freq",name:"FREQ"},
         {id:"operate_tool-1",name:"打开"},
         {id:"operate_tool-2",name:"关闭"},
@@ -118,22 +120,29 @@ function removeID(data:any,pis:any,ResModel:any){
 }
 
 function poseidonUpdate(data:any,pis:any,ResModel:any){
-    let update_arr:any = [];
+    let new_act:any = [];
     switch(data.info.up){
         case 1:
-            update_arr = [{id:"click_poi",name:"坐标点击"},
-                          {id:"slide",name:"轨迹划动"},
-                          {id:"qg_box",name:"QG BOX"},
-                          {id:"freq",name:"FREQ"},
-                         ];
+            new_act = [{id:"click_poi",name:"坐标点击"},
+                        {id:"slide",name:"轨迹划动"},
+                        {id:"qg_box",name:"QG BOX"},
+                        {id:"freq",name:"FREQ"},
+                        {id:"adb_cmd",name:"ADB指令"}];
+            break;
+        case 2:
+            new_act = [{id:"adb_cmd",name:"ADB指令"}];
             break;
     }
-    ResModel.insertMany(update_arr, function(err:any, msg:any) {
+    if(new_act.length)ResModel.insertMany(new_act, function(err:any, msg:any) {
         if(!err){
             data.info = true;
             pis.write(data);
         }
     });
+    else{
+        data.info = true;
+        pis.write(data);
+    }
 }
 
 function disposeData(data:any,pis:any){

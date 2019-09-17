@@ -1,4 +1,5 @@
 import { getModel } from "./model";
+import * as mongoose from 'mongoose';
 
 function getList(data:any,pis:any,GroupModel:any){
     GroupModel.aggregate([
@@ -77,6 +78,7 @@ function disposeData(data:any,pis:any){
             removeID(data,pis,GroupModel);
             break;
         case "startTest":
+                console.log("group start");
             getList(data,pis,GroupModel);
             break;
         case "replayTest":

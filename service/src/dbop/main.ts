@@ -10,6 +10,7 @@ import buttons from './buttons/index';
 import status from './status/index';
 import group from './group/index';
 import binding from './binding/index';
+import adb from './adb/index';
 
 //config.logmode('rotating', 'passoa', __dirname + '/passoa.log', 1024 * 1024 * 5, 1);
 
@@ -39,6 +40,7 @@ function createServer() {
 				status.disposeData(data, pis);
 				group.disposeData(data, pis);
 				binding.disposeData(data, pis);
+				adb.disposeData(data, pis);
 				break;
 		}
 	});
@@ -142,10 +144,31 @@ function handle(data: any) {
 		case 'binding':
 			binding.disposeData(data, pis);
 			break;
+		case 'adb':
+			adb.disposeData(data, pis);
+			break;
 		case 'poseidon':
 			rule.disposeData(data, pis);
 			res.disposeData(data, pis);
 			projects.disposeData(data, pis);
+			break;
+		case 'removeAll':
+			projects.disposeData(data, pis);
+			let delete_collection_list = ["cases","rule","res","btn","group","binding","status","adb"];
+			for(let i=0;i<delete_collection_list.length;i++){
+				delete_collection_list[i] = data.info.prjname + "_" +delete_collection_list[i];
+			}
+			mongoose.connection.db.listCollections().toArray(function(err, names) {
+                if (!err) {
+                    names.forEach(function(e,i,a) {
+                        if(delete_collection_list.indexOf(e.name)>-1){
+							mongoose.connection.db.dropCollection(e.name);
+						}
+                        
+                    });
+                }
+            })
+			pis.write(data);
 			break;
 		default:
 			break;

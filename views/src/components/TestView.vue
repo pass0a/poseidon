@@ -62,6 +62,7 @@ export default class TestView extends Vue {
     private logCmd:any="";
     private processNum:any=0;
     private screen_status:any = false;
+    private freqtype:any=new Map([["0","大于"],["1","等于"]]);
     get getStopFlag(){
         this.btnMode = this.$store.state.test_info.stopflag?4:0;
         return;
@@ -244,7 +245,7 @@ export default class TestView extends Vue {
                 content = step.time+"毫秒";
                 break;
             case "qg_box":
-                content = " ["+reslist[step.module]+"] "+step.b_volt + " V";
+                content = " ["+reslist[step.module]+"] ( "+this.freqtype.get(step.b_type)+" ) "+step.b_volt + " V";
                 break;
             default:
                 content = " ["+reslist[step.module]+"] "+reslist[step.id];

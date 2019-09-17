@@ -1,6 +1,7 @@
 <template>
     <div>
         <el-link v-model="ButtonList" v-show="false"></el-link>
+        <el-link v-model="AdbList" v-show="false"></el-link>
         <el-link v-model="updateShowflage" v-show="false"></el-link>
         <el-tabs type="border-card" style="margin:5px 10px 10px 10px;" v-model="actionName" @tab-click="clickAction()">
 			<el-tab-pane v-for="it in actionList" :name="it" :key="it" :label="getResName(it)"></el-tab-pane>
@@ -85,6 +86,7 @@
                 <el-form-item label="名称 :" prop="name">
                     <el-input style="width:180px" placeholder="请输入" v-model="add_info.name"></el-input>
                 </el-form-item>
+                <el-divider></el-divider>
                 <div v-if="add_info.action=='button'">
                     <el-form-item label="Event :" prop="event">
                         <el-input style="width:180px" placeholder="请输入" v-model="add_info.event"></el-input>
@@ -102,6 +104,23 @@
                     <span><font size="2">步骤组合</font></span>
                     <StepsView/>
                 </div>
+                <div v-if="add_info.action=='adb_cmd'&&add_type">
+                    <el-form-item label="ADB发送 :" prop="sd">
+                        <el-input style="width:250px" placeholder="请输入ADB指令" v-model="add_info.sd"></el-input>
+                    </el-form-item>
+                    <el-form-item label="等待返回 :">
+                        <RadioGroup v-model="add_info.tp">
+                            <Radio :label="0"><font size="2">否</font></Radio>
+                            <Radio :label="1"><font size="2">是</font></Radio>
+                        </RadioGroup>
+                    </el-form-item>
+                    <el-form-item label="超时设置 :" v-show="add_info.tp">
+                        <el-input-number style="width:120px" v-model="add_info.tt" controls-position="right" :min="0" size="small" @blur="blur(0)"></el-input-number> ms
+                    </el-form-item>
+                    <el-form-item label="返回消息 :" v-if="add_info.tp" prop="rd">
+                        <el-input style="width:250px" placeholder="请输入返回的消息" v-model="add_info.rd"></el-input>
+                    </el-form-item>
+                </div>
             </el-form>
             <span slot="footer">
                 <el-button type="info" @click="cancel">取消</el-button>
@@ -111,7 +130,7 @@
         </Modal>
         <Modal
             v-model="editflag"
-            :width="actionName=='group'?650:400"
+            :width="actionName=='group'?650:430"
             :closable="false"
             :mask-closable="false">
             <p slot="header">
@@ -135,6 +154,23 @@
                         <el-input style="width:220px" placeholder="请输入事件" v-model="edit_info.event_up_2"></el-input>
                     </el-form-item>
                 </div>
+                <div v-if="actionName=='adb_cmd'&&edit_info.type">
+                    <el-form-item label="ADB发送 :" prop="sd">
+                        <el-input style="width:250px" placeholder="请输入ADB指令" v-model="edit_info.sd"></el-input>
+                    </el-form-item>
+                    <el-form-item label="等待返回 :">
+                        <RadioGroup v-model="edit_info.tp">
+                            <Radio :label="0"><font size="2">否</font></Radio>
+                            <Radio :label="1"><font size="2">是</font></Radio>
+                        </RadioGroup>
+                    </el-form-item>
+                    <el-form-item label="超时设置 :" v-show="edit_info.tp">
+                        <el-input-number style="width:120px" v-model="edit_info.tt" controls-position="right" :min="0" size="small" @blur="blur(1)"></el-input-number> ms
+                    </el-form-item>
+                    <el-form-item label="返回消息 :" v-if="edit_info.tp" prop="rd">
+                        <el-input style="width:250px" placeholder="请输入返回的消息" v-model="edit_info.rd"></el-input>
+                    </el-form-item>
+                </div>
                 <div v-if="actionName=='group'&&edit_info.type">
                     <span><font size="2">步骤组合</font></span>
                     <StepsView/>
@@ -151,18 +187,19 @@
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
 import StepsView from "./StepsView.vue";
-import { runInThisContext } from 'vm';
+import { constants } from 'buffer';
 @Component({
   components: {
       StepsView
   }
 })
 export default class StepsMgrView extends Vue {
-    private actionList:any=["click","assert_pic","click_poi","slide","button","group"];
+    private actionList:any=["click","assert_pic","click_poi","slide","button","group","adb_cmd"];
     private actionName:any=this.actionList[0];
     private moduleName:any="";
     private rulelist:any;
     private buttonlist:any;
+    private adblist:any;
     private current_data:any=[];
     private idx = 0;
     private showflag:boolean = false;
@@ -172,21 +209,29 @@ export default class StepsMgrView extends Vue {
     private title:any="";
     private count:any=0;
     private loading:boolean = false;
-    private add_info:any= {action:"",module:"",name:"",event:"/dev/input/event1",event_down_1:"",event_down_2:"",event_up_1:"",event_up_2:"",grouplist:[]};
-    private edit_info:any = {id:"",name:"",event:"",event_down_1:"",event_down_2:"",event_up_1:"",event_up_2:"",type:0};
+    private add_info:any= {action:"",module:"",name:"",event:"/dev/input/event1",event_down_1:"",event_down_2:"",event_up_1:"",event_up_2:"",grouplist:[],sd:"",rd:"",tp:0,tt:3000};
+    private edit_info:any = {id:"",name:"",event:"",event_down_1:"",event_down_2:"",event_up_1:"",event_up_2:"",type:0,sd:"",rd:"",tp:0,tt:3000};
     private idValidate:any={
-        action:[{ required: true, message: '所属动作不能为空', trigger: 'blur' }],
-        name:[{ required: true, message: '名称不能为空', trigger: 'blur' }],
-        module:[{ required: true, message: '所属二级选项不能为空', trigger: 'blur' }],
-        event:[{ required: true, message: 'Event不能为空', trigger: 'blur' }]
+        action:[{ required: true, message: '不能为空', trigger: 'blur' }],
+        module:[{ required: true, message: '不能为空', trigger: 'blur' }],
+        name:[{ required: true, message: '不能为空', trigger: 'blur' }],
+        event:[{ required: true, message: '不能为空', trigger: 'blur' }],
+        sd:[{ required: true, message: '不能为空', trigger: 'blur' }],
+        rd:[{ required: true, message: '不能为空', trigger: 'blur' }]
     };
     private editVal:any={
         name:[{ required: true, message: '名称不能为空', trigger: 'blur' }],
-        event:[{ required: true, message: 'Event不能为空', trigger: 'blur' }]
+        event:[{ required: true, message: 'Event不能为空', trigger: 'blur' }],
+        sd:[{ required: true, message: '不能为空', trigger: 'blur' }],
+        rd:[{ required: true, message: '不能为空', trigger: 'blur' }]
     };
-    private leak:any={group:"组合步骤",click_poi:"坐标点击",slide:"轨迹划动"};
+    private leak:any={group:"组合步骤",click_poi:"坐标点击",slide:"轨迹划动",adb_cmd:"ADB指令"};
     get ButtonList(){
         this.buttonlist=this.$store.state.steps_info.buttonlist;
+        return;
+    }
+    get AdbList(){
+        this.adblist=this.$store.state.steps_info.adblist;
         return;
     }
     get Module(){
@@ -260,6 +305,12 @@ export default class StepsMgrView extends Vue {
             }else if(id.indexOf("group")>-1){
                 this.$store.state.steps_info.op_data = {type:1, id:id};
                 this.$store.state.steps_info.steplist=JSON.parse(JSON.stringify(this.$store.state.steps_info.grouplist[id]));
+            }else if(id.indexOf("adb_cmd")>-1){
+                let info = this.adblist[id];
+                this.edit_info.sd = info.sd;
+                this.edit_info.tp = info.tp;
+                this.edit_info.tt = info.tp?info.sd:3000;
+                this.edit_info.rd = info.tp?info.sd:"";
             }
         }
         this.editflag = true;
@@ -312,6 +363,13 @@ export default class StepsMgrView extends Vue {
                             this.add_info.grouplist = JSON.stringify(this.$store.state.steps_info.steplist);
                             req.grouplist = this.add_info.grouplist;
                         }
+                        else if(this.add_info.action=="adb_cmd"){
+                            req.pid =  this.add_info.module;
+                            req.sd = this.add_info.sd;
+                            req.tp =  this.add_info.tp;
+                            req.tt = req.tp?this.add_info.tt : 0;
+                            req.rd = req.tp?this.add_info.rd : "";
+                        }
                         break;
                     case 2:
                         req.id = this.add_info.module;
@@ -326,6 +384,8 @@ export default class StepsMgrView extends Vue {
     private cancel(){
         (this as any).$refs.caseform.resetFields();
         this.add_info.module = "";
+        this.add_info.tp = 0;
+        this.add_info.tt = 3000;
         this.showflag = false;
     }
     private editOk(){
@@ -344,6 +404,16 @@ export default class StepsMgrView extends Vue {
                 else if(this.edit_info.id.indexOf("group")>-1){
                     let m_cont = JSON.stringify(this.$store.state.steps_info.steplist);
                     this.sendReq("group","modify",{id:this.edit_info.id,grouplist:m_cont});
+                }
+                else if(this.edit_info.id.indexOf("adb_cmd")>-1){
+                    let msg = {
+                        id : this.edit_info.id,
+                        sd : this.edit_info.sd,
+                        tp : this.edit_info.tp,
+                        tt : this.edit_info.tp?this.edit_info.tt:0,
+                        rd : this.edit_info.tp?this.edit_info.rd:""
+                    }
+                    this.sendReq("adb","modify",msg);
                 }
                 this.editflag = false;
             }
@@ -393,6 +463,10 @@ export default class StepsMgrView extends Vue {
     }
     private checkback(){
         this.checkflag = false;
+    }
+    private blur(type:number){
+        if(this.add_info.tt == undefined&&!type)this.add_info.tt = 3000;
+        else if(this.edit_info.tt == undefined&&type)this.edit_info.tt = 3000;
     }
     private sendReq(route:any,job:any,msg:any){
         let req = {

@@ -1,5 +1,6 @@
 import { getModel } from "./model";
 import * as mongodb from "mongodb";
+import * as mongoose from 'mongoose';
 
 function add(data:any,pis:any,StatusModel:any){
     let info:any = data.info;
@@ -14,6 +15,30 @@ function add(data:any,pis:any,StatusModel:any){
             pis.write(data);
 		}
 	});
+}
+
+function addModule(data:any,pis:any,StatusModel:any){
+    let info:any = data.info;
+    let addList:any=[];
+    for(let i=0;i<info.changelist.length;i++){
+        addList.push({module:info.module,cid:info.changelist[i],uid:info.uid});
+    }
+    StatusModel.insertMany(addList, function(err:any, msg:any) {
+        if(!err){
+            data.info = true;
+            pis.write(data);
+        }
+    });
+}
+
+function deleteModule(data:any,pis:any,StatusModel:any){
+    let info = data.info;
+    StatusModel.deleteMany({module:info.module},(err:any)=>{
+        if(!err){
+            data.info = true;
+            pis.write(data);
+        }
+    });
 }
 
 function remove(data:any,pis:any,StatusModel:any){
@@ -83,10 +108,13 @@ function disposeData(data:any,pis:any){
             removeModule(data,pis,StatusModel);
             break;
         case "module_add":
+            addModule(data,pis,StatusModel);
             break;
         case "module_delete":
+            deleteModule(data,pis,StatusModel);
             break;
         case "startTest":
+                console.log("stat start");
             getTestList(data,pis,StatusModel);
             break;
         case "replayTest":

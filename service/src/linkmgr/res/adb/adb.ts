@@ -3,83 +3,67 @@ import * as path from "path";
 
 class ADB{
     private adb_cmd:any;
-    private backcall:any;
-    private startflag:boolean=false;
-    private startlog:string="";
+    private log_cmd:any;
     sendData(cmd:string,callback:any){
-        if(this.adb_cmd)this.adb_cmd.stdin.write(cmd+" \r\n");
+        if(this.adb_cmd){
+            this.addOnEvent(callback);
+            this.adb_cmd.stdin.write(cmd+" \r\n");
+        }
         else{
-            this.adb_cmd = childprs.spawn('"'+path.dirname(process.execPath)+'/adb/adb" ',[cmd], { windowsHide:false,detached:true });
-            this.adb_cmd.stdout.on('data',(data:any) => {
-                // console.log('ADB-OUT:', data);
-                callback({ret:1,data:data});
-            });
-            this.adb_cmd.stderr.on('data',(err:any) => {
-                console.error('ADB-ERROR', err);
-                this.adb_cmd = null;
-                callback({ret:0});
-            });
-            this.adb_cmd.on('close',(code:any) => {
-                console.error('ADB-close', code);
-                this.adb_cmd = null;
-                callback({ret:2,data:code});
-            });
+            this.adb_cmd = childprs.spawn('"'+path.dirname(process.execPath)+'/adb/adb" ',[cmd], { windowsHide:true,detached:true });
+            this.addOnEvent(callback);
         }
     }
-    startADB(cmd:string){
-        return new Promise((resolve) => {
-            this.backcall = resolve;
-            if(this.adb_cmd)this.adb_cmd.stdin.write(cmd+" \r\n");
-            else{
-                this.adb_cmd = childprs.spawn('"'+path.dirname(process.execPath)+'/adb/adb" ',[cmd], { windowsHide:false,detached:true });
-                this.adb_cmd.stdout.on('data',(data:any) => {
-                    console.log('ADB-OUT:', data);
-                    if(this.startflag){
-                        this.startlog+=data;
-                        if(this.startlog.indexOf("passoa success")>-1){
-                            this.startlog = "";
-                            this.startflag = false;
-                            this.backcall({ret:1});
-                        }
-                    }
-                });
-                this.adb_cmd.stderr.on('data',(err:any) => {
-                    console.error('ADB-ERROR', err);
-                });
-                this.adb_cmd.on('close',(code:any) => {
-                    console.error('ADB-close', code);
-                    if(this.backcall){
-                        this.adb_cmd = null;
-                        this.backcall({ret:0,code:code});
-                    }
-                });
-            }
-            setTimeout( () => {
-                resolve({ret:1});
-            },1000);
+    private addOnEvent(callback:any){
+        this.adb_cmd.stdout.removeAllListeners("data");
+        this.adb_cmd.stderr.removeAllListeners("data");
+        this.adb_cmd.removeAllListeners("close");
+        this.adb_cmd.stdout.on('data',(data:any) => {
+            // console.log('ADB-OUT:', data);
+            callback({ret:1,data:data});
+        });
+        this.adb_cmd.stderr.on('data',(err:any) => {
+            console.error('ADB-ERROR', err);
+            this.adb_cmd = null;
+            callback({ret:0});
+        });
+        this.adb_cmd.on('close',(code:any) => {
+            console.error('ADB-close', code);
+            this.adb_cmd = null;
+            callback({ret:2,data:code});
         });
     }
-    async sendByADB(cmd:string,startflag:boolean){
-        this.startflag = startflag;
-        if(this.adb_cmd){
-            return new Promise((resolve) => {
-                this.backcall = resolve;
-                this.adb_cmd.stdin.write(cmd+" \r\n");
-                setTimeout( () => {
-                    resolve({ret:1});
-                },20000);
-            });
-        }else{
-            let ret:any = await  this.startADB(cmd);
-            return new Promise((resolve) => {
-                resolve({ret:ret.ret});
-            });
-        }
+    openADBLog(cmd:any,loger:any,file:any,callback:any){
+        this.log_cmd = childprs.spawn('"'+path.dirname(process.execPath)+'/adb/adb" ',[cmd], { windowsHide:true,detached:true });
+        this.log_cmd.stdout.pipe(loger).pipe(file);
+        // this.log_cmd.stdout.removeAllListeners("data");
+        // this.log_cmd.stderr.removeAllListeners("data");
+        // this.log_cmd.removeAllListeners("close");
+        this.log_cmd.stdout.on('data',(data:any) => {
+            // console.log('ADB-OUT:', data);
+            callback({ret:1,data:data});
+        });
+        this.log_cmd.stderr.on('data',(err:any) => {
+            console.error('ADB-ERROR', err);
+            file.end();
+            this.log_cmd = null;
+            callback({ret:0});
+        });
+        this.log_cmd.on('close',(code:any) => {
+            console.error('ADB-close', code);
+            file.end();
+            this.log_cmd = null;
+            callback({ret:2,data:code});
+        });
     }
     endADB(){
         if(this.adb_cmd){
             this.adb_cmd.kill();
             this.adb_cmd = null;
+        }
+        if(this.log_cmd){
+            this.log_cmd.kill();
+            this.log_cmd = null;
         }
     }
 }

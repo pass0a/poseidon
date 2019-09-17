@@ -1,5 +1,7 @@
 import * as pack from "@passoa/pack";
+import * as fs from 'fs';
 import { Uart } from "./res/uart/com";
+import { logger } from '@passoa/logger';
 import relay from "./res/parse/relay";
 import da_arm from "./res/parse/da_arm";
 
@@ -37,11 +39,26 @@ export class Com_mgr{
 			case "closeCom":
 				result = await this.closeAllUarts();
 				break;
+			case "openLog":
+				result = await this.openComLog(obj.info);
+				break;
 		}
 		return new Promise(resolve => {
 			resolve(result);
 		});
 	};
+
+	private async openComLog(info:any){
+		let ret:any = {ret:0};
+		if(this.uartlist[info.id]){
+			let file = fs.createWriteStream(info.filename);
+			let loger = new logger();
+			ret = await this.uartlist[info.id].openLog(loger,file);
+		}
+		return new Promise(resolve => {
+			resolve(ret);
+		});
+	}
 
 	private async sendDataByName(info:any){
 		let ret:any = {ret:0};

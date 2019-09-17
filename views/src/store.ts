@@ -75,6 +75,7 @@ export default new Vuex.Store({
 			rulelist:{},
 			buttonlist:{},
 			grouplist:{},
+			adblist:{},
 			bindlist:{},
 			steplist:[],
 			op_data:{
@@ -111,7 +112,8 @@ export default new Vuex.Store({
 		push_info:{
 			count:0,
 			revdata:{}
-		}
+		},
+		version:"3.2.3"
 	},
 	mutations:{}
 });

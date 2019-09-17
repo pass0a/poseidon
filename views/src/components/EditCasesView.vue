@@ -263,7 +263,7 @@ export default class EditCasesView extends Vue {
                 req.info = {prjname:this.$store.state.project_info.current_prj, module:this.current_case_module, uid:this.$store.state.login_info._id}
             }
             console.log(req);
-            // this.$store.state.app_info.pis.write(req);
+            this.$store.state.app_info.pis.write(req);
         }
         
     }

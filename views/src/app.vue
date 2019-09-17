@@ -204,8 +204,20 @@ export default class App extends Vue {
             case "binding":
                 this.revToDB_binding(data);
                 break;
+            case "adb":
+                this.revToDB_adb(data);
+                break;
             case "poseidon":
                 this.revToDB_poseidon(data);
+                break;
+            case "removeAll":
+                if(this.$store.state.project_info.current_prj == data.info.prjname){
+                    this.$store.state.project_info.current_prj = "";
+                }
+                this.$store.state.alert_info.showflag=false;
+                this.$store.state.project_info.openflag=false;
+                this.$store.state.home_info.count++;
+                this.$notify({title: '删除成功',message: '', type: 'success',duration:1500});
                 break;
         }
     }
@@ -251,7 +263,7 @@ export default class App extends Vue {
                     pis.write({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
                 }else{
                     this.poseidon_up = 0;
-                    pis.write({type:"toDB",route:"poseidon",job:"poseidon_up",info:{prjname:this.$store.state.project_info.current_prj,up:data.info}});
+                    pis.write({type:"toDB",route:"poseidon",job:"poseidon_up",info:{prjname:this.$store.state.project_info.current_prj,up:data.info,version:this.$store.state.version}});
                 }
                 break;
         }
@@ -396,6 +408,9 @@ export default class App extends Vue {
                 else if(data.info.msg.grouplist&&data.info.msg.id.indexOf('group')>-1){
                     pis.write({type:"toDB",route:"group",job:"add",info:data.info});
                 }
+                else if(data.info.msg.id.indexOf('adb_cmd')>-1,data.info.msg.sd!=undefined){
+                    pis.write({type:"toDB",route:"adb",job:"add",info:data.info});
+                }
                 break;
             case "new":
                 this.$store.state.req_info.new_prj++;
@@ -511,6 +526,34 @@ export default class App extends Vue {
                     pis.write({type:"toDB",route:"rule",job:"remove_id",info:data.info});
                     pis.write({type:"toDB",route:"binding",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
                 }
+                break;
+        }
+    }
+    private revToDB_adb(data:any){
+        switch(data.job){
+            case "list":
+                let list=JSON.parse(data.info.data);
+                let adblist:any={};
+                for(let i=0;i<list.length;i++){
+                    let id=list[i].id;
+                    adblist[id] = {};
+                    adblist[id].sd=list[i].send_data;
+                    adblist[id].tp=list[i].type;
+                    adblist[id].tt=list[i].timeout;
+                    adblist[id].rd=list[i].rev_data;
+                }
+                this.$store.state.steps_info.adblist=adblist;
+                break;
+            case "add":
+                if(data.info){
+                    pis.write({type:"toDB",route:"adb",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                }
+                break;
+            case "remove_id":
+                pis.write({type:"toDB",route:"adb",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                break;
+            case "modify":
+                pis.write({type:"toDB",route:"adb",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
                 break;
         }
     }

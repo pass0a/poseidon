@@ -60,6 +60,7 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 @Component
 export default class CaseResultView extends Vue {
     private caseData:any=[];
+    private freqtype:any=new Map([["0","大于"],["1","等于"]]);
     private stepTitle:any=["未执行","执行成功","执行失败","网络异常"];
     private stepStatus:any=["wait","finish","error","error"];
     private imgreq:any=0;
@@ -108,7 +109,7 @@ export default class CaseResultView extends Vue {
                 content = it.time+"毫秒";
                 break;
             case "qg_box":
-                content = " ["+this.getResName(it.module)+"] "+it.b_volt + " V";
+                content = " ["+this.getResName(it.module)+"] ( "+this.freqtype.get(it.b_type)+" ) "+it.b_volt + " V";
                 break;
             default:
                 content = " ["+this.getResName(it.module)+"] "+this.getResName(it.id);

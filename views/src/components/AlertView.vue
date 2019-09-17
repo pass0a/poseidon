@@ -65,6 +65,11 @@ export default class AlertView extends Vue {
                 this.alertInfo.content="是否确定删除整个模块 : " + this.getResName(this.$store.state.alert_info.info.id) +" ?注意:确定后将自动删除该模块的所有用例!请谨慎操作!";
                 this.alertInfo.btn="确定";
                 break;
+            case 6:
+                this.alertInfo.title="删除项目";
+                this.alertInfo.content="是否删除项目 : " + this.$store.state.alert_info.info + " ?";
+                this.alertInfo.btn="删除";
+                break;
             default:
                 break;
         }
@@ -83,7 +88,8 @@ export default class AlertView extends Vue {
             case 1:
                 let p_info = {
                     name : this.$store.state.alert_info.info,
-                    uid : this.$store.state.login_info._id
+                    uid : this.$store.state.login_info._id,
+                    version : this.$store.state.version
                 }
                 this.sendReq("toDB","projects","add",p_info);
                 break;
@@ -121,6 +127,7 @@ export default class AlertView extends Vue {
                     this.sendReq("toDB","group","remove_id",di_info);
                 }
                 else if(di_info.msg.id.indexOf("button")>-1)this.sendReq("toDB","buttons","remove_id",di_info);
+                else if(di_info.msg.id.indexOf("adb")>-1)this.sendReq("toDB","adb","remove_id",di_info);
                 else{
                     this.$store.state.req_info.remove_id = 2;
                     this.sendReq("toDB","binding","remove_id",di_info);
@@ -142,6 +149,9 @@ export default class AlertView extends Vue {
                 this.sendReq("toDB","status","remove_module",dmo_info);
                 this.sendReq("toDB","res","remove_id",dmo_info);
                 this.sendReq("toDB","rule","remove_id",dmo_info);
+                break;
+            case 6:
+                this.$store.state.app_info.pis.write({type:"toDB",route:"removeAll",job:"removeAll",info:{prjname:this.$store.state.alert_info.info}});
                 break;
         }
     }
