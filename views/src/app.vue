@@ -176,6 +176,9 @@ export default class App extends Vue {
                 this.$store.state.push_info.revdata = data.info;
                 this.$notify({title: data.info?'推送成功!':"推送失败!",message:data.info?"":"ADB异常!",type: data.info?"success":'error',duration:1500});
                 break;
+            case "savePhoto":
+                this.$store.state.camera_info.save_count++;
+                break;
         }
     }
     private revToDB(data:any){
@@ -518,7 +521,7 @@ export default class App extends Vue {
             case "add":
                 pis.write({type:"toDB",route:"binding",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
                 this.$store.state.screen_info.save_count++;
-                this.$notify({title: '保存成功!',message: '', type: 'success',duration:1500});
+                this.$notify({title: '绑定成功!',message: '', type: 'success',duration:1500});
                 break;
             case "remove_id":
                 this.$store.state.req_info.remove_id--;

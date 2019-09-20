@@ -63,7 +63,7 @@ export class Web_mgr {
 				break;
 			case "pushPassoa":
 				if(obj.info.type=="adb"){
-					let cmd = "push "+path.dirname(process.execPath)+"/remote/"+obj.info.version+"/. "+obj.info.path;
+					let cmd = "push \""+path.dirname(process.execPath)+"/remote/"+obj.info.version+"/. \""+obj.info.path;
 					let push_ret:any = await this.pushByADB(cmd,true,30000);
 					if(!push_ret.ret)obj.info = false;
 					else{
@@ -74,6 +74,24 @@ export class Web_mgr {
 					}
 					this.pis.write(obj);
 				}
+				break;
+			case "savePhoto":
+				if(!this.cvip)this.cvip = require("@passoa/cvip");
+				let passoa_path = process.execPath;
+				let prj_path = path.dirname(path.dirname(passoa_path)) + '/data_store/projects/' + obj.info.prjname;
+				let screen_path = prj_path + '/screen/screen.png';
+				let img_path = prj_path + '/img/' + obj.info.id + ".png";
+				let img_ret = this.cvip.imageCut(
+					screen_path,
+					img_path,
+					16,
+					obj.info.info.x1,
+					obj.info.info.y1,
+					obj.info.info.w,
+					obj.info.info.h
+				);
+				obj.info = img_ret?false:true;
+				this.pis.write(obj);
 				break;
 			default:
 				break;
@@ -125,7 +143,19 @@ export class Web_mgr {
 		let prjpath = path.dirname(path.dirname(passoaPath)) + '/data_store/projects/' + obj.info.prjname;
 		let execpath = '"' + passoaPath + '" ' + jsPath + ' "' + prjpath + '"';
 		console.log(execpath);
-		childprs.exec(execpath, { windowsHide: testcfg.windowsHide });
+		let cmd:any = childprs.exec(execpath, { windowsHide: testcfg.windowsHide });
+		// cmd.stdout.removeAllListeners("data");
+        // cmd.stderr.removeAllListeners("data");
+        // cmd.removeAllListeners("close");
+		// cmd.stdout.on('data',(data:any) => {
+        //     console.log('CMD-LOG:', data);
+		// });
+		// cmd.stderr.on('data',(err:any) => {
+        //     console.error('CMD-ERROR', err);
+        // });
+        // cmd.on('close',(code:any) => {
+        //     console.error('CMD-close', code);
+        // });
 	}
 
 	sendToWebServer(data: any) {

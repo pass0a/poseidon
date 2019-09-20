@@ -1,5 +1,4 @@
 import { getModel } from "./model";
-import * as mongoose from 'mongoose';
 
 function getList(data:any,pis:any,BindingModel:any){
     BindingModel.aggregate([

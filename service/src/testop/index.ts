@@ -104,26 +104,28 @@ async function readyForTest(toContinue: any) {
 }
 
 function LogOpen(uartsSet:Set<any>){
-	log_info.status = caseInfo.config.log_info.open;
-	if(log_info.status){
-		if(!fs.existsSync(caseInfo.path + '/log'))fs.mkdirSync(caseInfo.path + '/log');
-		if(!caseInfo.config.log_info.type){// 检测Log串口是否共用
-			let uartsInfo = caseInfo.config.uarts;
-			if(uartsInfo.log.port==uartsInfo.relay.port){
-				log_info.id = 'relay';
-				uartsSet.add('relay');
-			}
-			else if(uartsInfo.log.port==uartsInfo.da_arm.port){
-				log_info.id = 'da_arm';
-				uartsSet.add('da_arm');
-			}
-			else { 
-				log_info.id = 'log';
-				uartsSet.add('da_arm');
-				com_len = 3;
-			}
-		}else adb_cmd_isExist = true;
-	}
+	if(caseInfo.config.log_info){
+		log_info.status = caseInfo.config.log_info.open;
+		if(log_info.status){
+			if(!fs.existsSync(caseInfo.path + '/log'))fs.mkdirSync(caseInfo.path + '/log');
+			if(!caseInfo.config.log_info.type){// 检测Log串口是否共用
+				let uartsInfo = caseInfo.config.uarts;
+				if(uartsInfo.log.port==uartsInfo.relay.port){
+					log_info.id = 'relay';
+					uartsSet.add('relay');
+				}
+				else if(uartsInfo.log.port==uartsInfo.da_arm.port){
+					log_info.id = 'da_arm';
+					uartsSet.add('da_arm');
+				}
+				else { 
+					log_info.id = 'log';
+					uartsSet.add('da_arm');
+					com_len = 3;
+				}
+			}else adb_cmd_isExist = true;
+		}
+	}	
 }
 
 function checkNeedCom(cmd:any,uartsSet:Set<any>){

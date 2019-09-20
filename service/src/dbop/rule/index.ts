@@ -1,5 +1,4 @@
 import { getModel } from "./model";
-import * as mongoose from 'mongoose';
 
 function getList(data:any,pis:any,RuleModel:any){
     RuleModel.aggregate([
@@ -54,7 +53,7 @@ function newPrj(data:any,pis:any,RuleModel:any){
     let new_arr = [
         {
             id: "action",
-            content: ["click","assert_pic","click_poi","slide","wait","operate_tool","button","qg_box","group","adb_cmd"]
+            content: ["click","assert_pic","assert_pto","click_poi","slide","wait","operate_tool","button","qg_box","group","adb_cmd"]
         },
         {
             id: "operate_tool",
@@ -121,6 +120,10 @@ function poseidonUpdate(data:any,pis:any,RuleModel:any){
             break;
         case 2:
             new_act = ["adb_cmd"];
+            update_arr = [];
+            break;
+        case 3:
+            new_act = ["assert_pto"];
             update_arr = [];
             break;
     }

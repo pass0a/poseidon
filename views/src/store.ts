@@ -90,6 +90,9 @@ export default new Vuex.Store({
 			path:"",
 			save_count:0
 		},
+		camera_info:{
+			save_count:0
+		},
 		id_info:{
 			count:0
 		},
@@ -113,7 +116,7 @@ export default new Vuex.Store({
 			count:0,
 			revdata:{}
 		},
-		version:"3.2.3"
+		version:"3.2.4"
 	},
 	mutations:{}
 });

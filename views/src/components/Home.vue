@@ -16,6 +16,7 @@
             <el-menu-item index="6_1">模块管理</el-menu-item>
             <el-menu-item index="6_2">步骤管理</el-menu-item>
             <el-menu-item index="6_3">选项绑定</el-menu-item>
+            <el-menu-item index="6_4">摄像功能</el-menu-item>
         </el-submenu>
         <el-menu-item index="7"><i class="el-icon-setting"></i>系统配置</el-menu-item>
         <el-menu-item index="8"><i class="el-icon-s-unfold"></i>软件推送</el-menu-item>
@@ -40,6 +41,7 @@
         <ul v-show="select_mode=='6_1'"><ModuleView/></ul>
         <ul v-show="select_mode=='6_2'"><StepsMgrView/></ul>
         <ul v-show="select_mode=='6_3'"><ScreenView/></ul>
+        <ul v-show="select_mode=='6_4'"><CameraView/></ul>
         <ul v-show="select_mode=='7'"><SettingView/></ul>
         <ul v-show="select_mode=='8'"><PushView/></ul>
         <ul v-show="select_mode=='9'"><AboutView/></ul>
@@ -70,6 +72,7 @@ import ModuleView from "./ModuleView.vue";
 import AboutView from "./AboutView.vue";
 import AuthView from "./AuthView.vue";
 import PushView from "./PushView.vue";
+import CameraView from "./CameraView.vue";
 @Component({
   components: {
     OpenPrj,
@@ -83,13 +86,14 @@ import PushView from "./PushView.vue";
     ModuleView,
     AboutView,
     AuthView,
-    PushView
+    PushView,
+    CameraView
   }
 })
 export default class Home extends Vue {
     private select_mode:any="4";
     private test_status:any=false;
-    private needOpenPrj:any=["3","5","6_1","6_2","6_3"];
+    private needOpenPrj:any=["3","5","6_1","6_2","6_3","6_4"];
     private needStopTest:any=["1","2"];
     private connectStatus:any = {server:0,db:0,link:0};
     get currentProject(){
@@ -165,6 +169,10 @@ export default class Home extends Vue {
               this.$store.state.app_info.pis.write({type:"toDB",route:"binding",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
               this.select_mode=key;
               break;
+            case "5":
+              this.$store.state.app_info.pis.write({type:"toSer",job:"readReport",prjname:this.$store.state.project_info.current_prj});
+              this.select_mode=key;
+              break;
             case "6_1":
               this.$store.state.module_info.enter++;
               this.select_mode=key;
@@ -181,8 +189,8 @@ export default class Home extends Vue {
               this.$store.state.app_info.pis.write({type:"toDB",route:"binding",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
               this.select_mode=key;
               break;
-            case "5":
-              this.$store.state.app_info.pis.write({type:"toSer",job:"readReport",prjname:this.$store.state.project_info.current_prj});
+            case "6_4":
+              this.$store.state.app_info.pis.write({type:"toDB",route:"binding",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
               this.select_mode=key;
               break;
             case "7":

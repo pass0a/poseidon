@@ -51,16 +51,22 @@ function checkCreateTime(data:any,pis:any,Projects:any){
     let v_3_2_2 = new Date(Date.parse("2019-9-4 0:0:0"));
     // 2019-9-17 V3.2.3
     let v_3_2_3 = new Date(Date.parse("2019-9-17 0:0:0"));
+    // 2019-9-20 V3.2.4
+    let v_3_2_4 = new Date(Date.parse("2019-9-23 0:0:0"));
     Projects.findOne({name:data.info.prjname},{__v:0,_id:0},function(err:any,info:any){
         if(info.version){
             switch(info.version){
                 case "3.2.3":
+                    data.info = 3;
+                    break;
+                case "3.2.4":
                     data.info = 0;
                     break;
             }
         }else{
             if(info.date<v_3_2_2)data.info = 1;
             else if(info.date<v_3_2_3)data.info = 2;
+            else if(info.date<v_3_2_4)data.info = 3;
             else data.info = 0;
         }
         pis.write(data);

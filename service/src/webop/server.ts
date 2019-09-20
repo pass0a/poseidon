@@ -207,6 +207,20 @@ export class Server {
 			case 'pushPassoa':
 				this.tolink.send(data);
 				break;
+			case 'savePhoto':
+				let screenPath = this.dirPath+ data.info.prjname +"/screen";
+				if (!fs.existsSync(screenPath)) fs.mkdirSync(screenPath);
+				let imgPath = this.dirPath+ data.info.prjname +"/img";
+				if (!fs.existsSync(imgPath)) fs.mkdirSync(imgPath);
+				fs.writeFileSync(screenPath+"/screen.png",data.info.img_data);
+				if(data.info.type){
+					this.tolink.send(data);
+				}else{
+					fs.writeFileSync(imgPath+"/"+data.info.id+".png",data.info.img_data);
+					data.info = true;
+					this.send(data);
+				}
+				break;
 		}
 	}
 }

@@ -1,6 +1,5 @@
 import { getModel } from "./model";
 import * as mongodb from "mongodb";
-import * as mongoose from 'mongoose';
 
 function getList(data:any,pis:any,CaseModel:any){
     CaseModel.aggregate([

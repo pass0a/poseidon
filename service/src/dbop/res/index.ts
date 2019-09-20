@@ -1,5 +1,4 @@
 import { getModel } from "./model";
-import * as mongoose from 'mongoose';
 
 function getList(data:any,pis:any,ResModel:any){
     ResModel.aggregate([
@@ -45,6 +44,7 @@ function newPrj(data:any,pis:any,ResModel:any){
     let new_arr = [
         {id:"click",name:"图片点击"},
         {id:"assert_pic",name:"图片判断"},
+        {id:"assert_pto",name:"拍摄判断"},
         {id:"click_poi",name:"坐标点击"},
         {id:"slide",name:"轨迹划动"},
         {id:"wait",name:"等待"},
@@ -127,10 +127,14 @@ function poseidonUpdate(data:any,pis:any,ResModel:any){
                         {id:"slide",name:"轨迹划动"},
                         {id:"qg_box",name:"QG BOX"},
                         {id:"freq",name:"FREQ"},
-                        {id:"adb_cmd",name:"ADB指令"}];
+                        {id:"adb_cmd",name:"ADB指令"},
+                        {id:"assert_pto",name:"拍摄判断"}];
             break;
         case 2:
             new_act = [{id:"adb_cmd",name:"ADB指令"}];
+            break;
+        case 3:
+            new_act = [{id:"assert_pto",name:"拍摄判断"}];
             break;
     }
     if(new_act.length)ResModel.insertMany(new_act, function(err:any, msg:any) {

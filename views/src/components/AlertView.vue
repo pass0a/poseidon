@@ -105,6 +105,7 @@ export default class AlertView extends Vue {
                     cid: this.$store.state.case_info.data._id,
                     uid:this.$store.state.login_info._id
                 };
+                console.log(s_info);
                 this.sendReq("toDB","status","delete",s_info);
                 break;
             case 3:

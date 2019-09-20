@@ -1,6 +1,5 @@
 import { getModel } from "./model";
 import * as mongodb from "mongodb";
-import * as mongoose from 'mongoose';
 
 function add(data:any,pis:any,StatusModel:any){
     let info:any = data.info;
