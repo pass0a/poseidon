@@ -12,7 +12,7 @@
 		"dop": "passoa dist/db.js",
 		"dlp": "passoa dist/link.js",
 		"dhp": "passoa dist/http.js",
-		"dev": "passoa dist/server.js"
+		"dev": "passoa dist/sound.js"
 	},
 	"author": "",
 	"license": "ISC",
@@ -35,7 +35,7 @@
 	"dependencies": {
 		"@babel/runtime": "^7.5.5",
 		"@passoa/pack": "^1.0.8",
-		"@passoa/websocket": "^1.0.4",
+		"@passoa/websocket": "^1.0.6",
 		"mongoose": "5.6.9",
 		"@passoa/serialport": "latest",
 		"@passoa/logger": "latest"

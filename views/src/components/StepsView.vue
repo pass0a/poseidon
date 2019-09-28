@@ -220,7 +220,7 @@ export default class StepsView extends Vue {
                 content = it.time+"毫秒";
                 break;
             case "qg_box":
-                content = " ["+this.getResName(it.module)+"] ( "+this.freqtype.get(it.b_type)+" ) "+it.b_volt + " V";
+                content = " ["+this.getResName(it.module)+"] ( "+(it.b_type!=undefined?this.freqtype.get(it.b_type):"大于")+" ) "+it.b_volt + " V";
                 break;
             default:
                 content = " ["+this.getResName(it.module)+"] "+this.getResName(it.id);

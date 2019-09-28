@@ -116,6 +116,11 @@ export class Server {
 				break;
 			// toDBserver
 			case 'toDB':
+				if(data.route=='copyPrj'&&data.job=='copy'){
+					this.todb.copyinfo.end = data.info.end;
+					this.todb.copyinfo.pname = data.info.prjname;
+					this.todb.copyinfo.cname = data.info.msg.name;
+				}
 				this.todb.send(data);
 				break;
 			default:
@@ -205,6 +210,29 @@ export class Server {
 				this.tolink.send(data);
 				break;
 			case 'pushPassoa':
+				this.tolink.send(data);
+				break;
+			case 'savePhoto':
+				let screenPath = this.dirPath+ data.info.prjname +"/screen";
+				if (!fs.existsSync(screenPath)) fs.mkdirSync(screenPath);
+				let imgPath = this.dirPath+ data.info.prjname +"/img";
+				if (!fs.existsSync(imgPath)) fs.mkdirSync(imgPath);
+				fs.writeFileSync(screenPath+"/screen.png",data.info.img_data);
+				if(data.info.type){
+					this.tolink.send(data);
+				}else{
+					fs.writeFileSync(imgPath+"/"+data.info.id+".png",data.info.img_data);
+					data.info = true;
+					this.send(data);
+				}
+				break;
+			case 'testPhoto':
+				if(data.info.ret){
+					let testPhotoPath = this.dirPath+ data.info.prjname +"/tmp";
+					if (!fs.existsSync(testPhotoPath)) fs.mkdirSync(testPhotoPath);
+					fs.writeFileSync(testPhotoPath+"/tmp.png",data.info.img_data);
+				}
+				data.info = data.info.ret;
 				this.tolink.send(data);
 				break;
 		}

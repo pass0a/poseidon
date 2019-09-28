@@ -194,7 +194,7 @@ import { constants } from 'buffer';
   }
 })
 export default class StepsMgrView extends Vue {
-    private actionList:any=["click","assert_pic","click_poi","slide","button","group","adb_cmd"];
+    private actionList:any=["click","assert_pic","assert_pto","click_poi","slide","button","group","adb_cmd"];
     private actionName:any=this.actionList[0];
     private moduleName:any="";
     private rulelist:any;
@@ -225,7 +225,7 @@ export default class StepsMgrView extends Vue {
         sd:[{ required: true, message: '不能为空', trigger: 'blur' }],
         rd:[{ required: true, message: '不能为空', trigger: 'blur' }]
     };
-    private leak:any={group:"组合步骤",click_poi:"坐标点击",slide:"轨迹划动",adb_cmd:"ADB指令"};
+    private leak:any={group:"组合步骤",click_poi:"坐标点击",slide:"轨迹划动",adb_cmd:"ADB指令",assert_pto:"拍摄判断"};
     get ButtonList(){
         this.buttonlist=this.$store.state.steps_info.buttonlist;
         return;

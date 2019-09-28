@@ -1,5 +1,27 @@
 import { getModel } from "./model";
-import * as mongoose from 'mongoose';
+
+let latestVersion :any = {
+    "click" : "图片点击",
+    "assert_pic" : "图片判断",
+    "assert_pto" : "拍摄判断",
+    "click_poi" : "坐标点击",
+    "slide" : "轨迹划动",
+    "wait" : "等待",
+    "operate_tool" : "控制工具板",
+    "button" : "硬按键",
+    "qg_box" : "QG BOX",
+    "group" : "组合步骤",
+    "adb_cmd" : "ADB指令",
+    "freq" : "FREQ",
+    "operate_tool-1" : "打开",
+    "operate_tool-2" : "关闭",
+    "button-1" : "面板按键",
+    "button-2" : "方控按键",
+    "button-1-1" : "HOME",
+    "module-1" : "System",
+    "module-2" : "Radio",
+    "module-3" : "USB"
+}
 
 function getList(data:any,pis:any,ResModel:any){
     ResModel.aggregate([
@@ -42,27 +64,10 @@ function modify(data:any,pis:any,ResModel:any){
 }
 
 function newPrj(data:any,pis:any,ResModel:any){
-    let new_arr = [
-        {id:"click",name:"图片点击"},
-        {id:"assert_pic",name:"图片判断"},
-        {id:"click_poi",name:"坐标点击"},
-        {id:"slide",name:"轨迹划动"},
-        {id:"wait",name:"等待"},
-        {id:"operate_tool",name:"控制工具板"},
-        {id:"button",name:"硬按键"},
-        {id:"qg_box",name:"QG BOX"},
-        {id:"group",name:"组合步骤"},
-        {id:"adb_cmd",name:"ADB指令"},
-        {id:"freq",name:"FREQ"},
-        {id:"operate_tool-1",name:"打开"},
-        {id:"operate_tool-2",name:"关闭"},
-        {id:"button-1",name:"面板按键"},
-        {id:"button-2",name:"方控按键"},
-        {id:"button-1-1",name:"HOME"},
-        {id:"module-1",name:"System"},
-        {id:"module-2",name:"Radio"},
-        {id:"module-3",name:"USB"}
-    ];
+    let new_arr:any = [];
+    for(let id in latestVersion){
+        new_arr.push({id:id,name:latestVersion[id]});
+    }
     // 工具板
     for(let i=1;i<3;i++){
         for(let j=1;j<17;j++){
@@ -119,30 +124,28 @@ function removeID(data:any,pis:any,ResModel:any){
     });
 }
 
-function poseidonUpdate(data:any,pis:any,ResModel:any){
-    let new_act:any = [];
-    switch(data.info.up){
-        case 1:
-            new_act = [{id:"click_poi",name:"坐标点击"},
-                        {id:"slide",name:"轨迹划动"},
-                        {id:"qg_box",name:"QG BOX"},
-                        {id:"freq",name:"FREQ"},
-                        {id:"adb_cmd",name:"ADB指令"}];
-            break;
-        case 2:
-            new_act = [{id:"adb_cmd",name:"ADB指令"}];
-            break;
+function updateVersion(data:any,pis:any,ResModel:any){
+    let up_data:any = [];
+    for(let act of data.info.udata){
+        up_data.push({id:act,name:latestVersion[act]});
+        if(act=="qg_box")up_data.push({id:"freq",name:"FREQ"});
     }
-    if(new_act.length)ResModel.insertMany(new_act, function(err:any, msg:any) {
+    ResModel.insertMany(up_data, function(err:any, msg:any) {
+        if(!err){
+            pis.write(data);
+        }
+    });
+}
+
+function copyPrj(data:any,pis:any,ResModel:any){
+    ResModel.aggregate([
+        { $out:data.info.msg.name+"_res" }
+    ],function(err:any){
         if(!err){
             data.info = true;
             pis.write(data);
         }
     });
-    else{
-        data.info = true;
-        pis.write(data);
-    }
 }
 
 function disposeData(data:any,pis:any){
@@ -163,8 +166,11 @@ function disposeData(data:any,pis:any){
         case "remove_id":
             removeID(data,pis,ResModel);
             break;
-        case "poseidon_up":
-            poseidonUpdate(data,pis,ResModel);
+        case "update_version":
+            updateVersion(data,pis,ResModel);
+            break;
+        case "copy":
+            copyPrj(data,pis,ResModel);
             break;
         default:
             break;

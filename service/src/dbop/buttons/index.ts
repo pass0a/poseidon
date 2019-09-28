@@ -1,5 +1,4 @@
 import { getModel } from "./model";
-import * as mongoose from 'mongoose';
 
 function getList(data:any,pis:any,BtnModel:any){
     BtnModel.aggregate([
@@ -66,6 +65,17 @@ function removeID(data:any,pis:any,BtnModel:any){
     });
 }
 
+function copyPrj(data:any,pis:any,BtnModel:any){
+    BtnModel.aggregate([
+        { $out:data.info.msg.name+"_btn" }
+    ],function(err:any){
+        if(!err){
+            data.info = true;
+            pis.write(data);
+        }
+    });
+}
+
 function disposeData(data:any,pis:any){
     let BtnModel = getModel(data.info.prjname+"_btn");
     switch(data.job){
@@ -85,11 +95,14 @@ function disposeData(data:any,pis:any){
             removeID(data,pis,BtnModel);
             break;
         case "startTest":
-                console.log("btn start");
+            console.log("btn start");
             getList(data,pis,BtnModel);
             break;
         case "replayTest":
             getList(data,pis,BtnModel);
+            break;
+        case "copy":
+            copyPrj(data,pis,BtnModel);
             break;
         default:
             break;

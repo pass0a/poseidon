@@ -1,5 +1,4 @@
 import { getModel } from "./model";
-import * as mongoose from 'mongoose';
 
 function getList(data:any,pis:any,BindingModel:any){
     BindingModel.aggregate([
@@ -81,6 +80,17 @@ function removeID(data:any,pis:any,BindingModel:any){
     }
 }
 
+function copyPrj(data:any,pis:any,BindingModel:any){
+    BindingModel.aggregate([
+        { $out:data.info.msg.name+"_binding" }
+    ],function(err:any){
+        if(!err){
+            data.info = true;
+            pis.write(data);
+        }
+    });
+}
+
 function disposeData(data:any,pis:any){
     let BindingModel = getModel(data.info.prjname+"_binding");
     switch(data.job){
@@ -102,6 +112,9 @@ function disposeData(data:any,pis:any){
             break;
         case "replayTest":
             getList(data,pis,BindingModel);
+            break;
+        case "copy":
+            copyPrj(data,pis,BindingModel);
             break;
         default:
             break;

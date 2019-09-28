@@ -1,13 +1,12 @@
 import { getModel } from "./model";
+import { getCaseModel } from "../cases/model";
 import * as mongodb from "mongodb";
-import * as mongoose from 'mongoose';
 
 function add(data:any,pis:any,StatusModel:any){
     let info:any = data.info;
     let model=new StatusModel({
         module: info.module,
-        cid: createObjectID(info.cid),
-        uid: createObjectID(info.uid)
+        cid: createObjectID(info.cid)
 	});
 	model.save(function (err:any,msg:any){
 		if(!err){
@@ -19,17 +18,32 @@ function add(data:any,pis:any,StatusModel:any){
 
 function addModule(data:any,pis:any,StatusModel:any){
     let info:any = data.info;
-    let addList:any=[];
-    for(let i=0;i<info.changelist.length;i++){
-        addList.push({module:info.module,cid:info.changelist[i],uid:info.uid});
-    }
-    StatusModel.insertMany(addList, function(err:any, msg:any) {
+    StatusModel.deleteMany({module:info.module},(err:any)=>{
         if(!err){
-            data.info = true;
-            pis.write(data);
+            let CaseModel  = getCaseModel(data.info.prjname+"_cases");
+            CaseModel.aggregate([
+                {$match:{
+                    case_module : data.info.module
+                }},
+                {$sort:{
+                    case_module:1,case_id:1
+                }},
+                {$project: {cid:"$_id", module: "$case_module"}}
+            ],function(error:any,docs:any){
+                if(!error){
+                    StatusModel.insertMany(docs, function(er:any, msg:any) {
+                        if(!er){
+                            data.info = true;
+                            pis.write(data);
+                        }
+                    });
+                }
+            });
         }
     });
 }
+
+
 
 function deleteModule(data:any,pis:any,StatusModel:any){
     let info = data.info;
@@ -43,7 +57,7 @@ function deleteModule(data:any,pis:any,StatusModel:any){
 
 function remove(data:any,pis:any,StatusModel:any){
     let info:any = data.info;
-    StatusModel.deleteOne({cid:createObjectID(info.cid),uid:createObjectID(info.uid)},function(err:any){
+    StatusModel.deleteOne({cid:createObjectID(info.cid)},function(err:any){
         if(!err){
             data.info = true;
             pis.write(data);
@@ -59,9 +73,9 @@ function getTestList(data:any,pis:any,StatusModel:any){
             foreignField:"_id",
             as:"cases"
         }},
-        {$match:{
-            "uid":createObjectID(data.info.uid)
-        }},
+        // {$match:{
+        //     "uid":createObjectID(data.info.uid)
+        // }},
         {$project:{
             "_id":0,"__v":0,"cid":0,"uid":0,"cases._id":0,"cases.__v":0
         }},
@@ -114,7 +128,7 @@ function disposeData(data:any,pis:any){
             deleteModule(data,pis,StatusModel);
             break;
         case "startTest":
-                console.log("stat start");
+            console.log("stat start");
             getTestList(data,pis,StatusModel);
             break;
         case "replayTest":

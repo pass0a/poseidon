@@ -18,3 +18,6 @@ let propSchema = new mongoose.Schema({
 export function getModel(modelName:any){
 	return mongoose.model(modelName, propSchema, modelName);
 }
+export function getCaseModel(modelName:any){
+	return mongoose.model(modelName, propSchema, modelName);
+}

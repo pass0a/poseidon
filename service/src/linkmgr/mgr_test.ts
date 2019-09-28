@@ -38,6 +38,10 @@ export class Test_mgr{
 			case 'get_status':
 				this.disposedCompleted(obj.type, this.currentStatus);
 				break;
+			case 'toWeb':
+				let to_web = this.link.getLink('web', 'web');
+				if(to_web)to_web.sendToWebServer(obj);
+				break;
 			default:
 				break;
 		}

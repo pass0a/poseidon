@@ -12,8 +12,6 @@ import group from './group/index';
 import binding from './binding/index';
 import adb from './adb/index';
 
-//config.logmode('rotating', 'passoa', __dirname + '/passoa.log', 1024 * 1024 * 5, 1);
-
 let pis = new pack.packStream();
 let pos = new pack.unpackStream();
 let sv: any;
@@ -147,10 +145,10 @@ function handle(data: any) {
 		case 'adb':
 			adb.disposeData(data, pis);
 			break;
-		case 'poseidon':
-			rule.disposeData(data, pis);
+		case 'newPrj':
 			res.disposeData(data, pis);
-			projects.disposeData(data, pis);
+			rule.disposeData(data, pis);
+			buttons.disposeData(data, pis);
 			break;
 		case 'removeAll':
 			projects.disposeData(data, pis);
@@ -162,13 +160,20 @@ function handle(data: any) {
                 if (!err) {
                     names.forEach(function(e,i,a) {
                         if(delete_collection_list.indexOf(e.name)>-1){
-							mongoose.connection.db.dropCollection(e.name);
+							mongoose.connection.db.dropCollection(e.name);	
 						}
-                        
                     });
                 }
             })
 			pis.write(data);
+			break;
+		case 'copyPrj':
+			rule.disposeData(data, pis);
+			res.disposeData(data, pis);
+			buttons.disposeData(data, pis);
+			group.disposeData(data, pis);
+			binding.disposeData(data, pis);
+			if(!data.info.msg.content)cases.disposeData(data, pis);
 			break;
 		default:
 			break;
