@@ -1,6 +1,15 @@
 import { getModel } from "./model";
 import * as mongodb from "mongodb";
 
+function getTotal(data:any,pis:any,CaseModel:any){
+    CaseModel.count({case_module:data.info.module},function(err:any,count:any){
+        if(!err){
+            data.info.count = count;
+            pis.write(data);
+        } 
+    });
+}
+
 function getList(data:any,pis:any,CaseModel:any){
     CaseModel.aggregate([
         {$lookup:{
@@ -10,13 +19,16 @@ function getList(data:any,pis:any,CaseModel:any){
             as:"c_status"
         }},
         {$match:{
+            case_module : data.info.module
         }},
         {$project:{
             "__v":0,"c_status._id":0,"c_status.__v":0,"c_status.cid":0,"c_status.uid":0
         }},
         {$sort:{
             "case_module":1,"case_id":1
-        }}
+        }},
+        {$skip : data.info.skip},
+        {$limit: 20}
     ],function(err:any,docs:any){
         if(!err){
             for(let ca of docs){
@@ -47,7 +59,9 @@ function addCases(data:any, pis:any, CaseModel:any){
 	});
 	model.save(function (err:any,msg:any){
 		if(!err){
-            data.info=objectIDtoString(msg._id.id);
+            data.info={
+                module : info.case_module
+            };
             pis.write(data);
 		}
 	});
@@ -81,7 +95,7 @@ function modifyCase(data:any,pis:any,CaseModel:any){
 		case_steps:info.case_steps
 		}},function(err:any){
 			if(!err){
-                data.info=true;
+                data.info=info.case_module;
                 pis.write(data);
 			}
         }
@@ -127,6 +141,17 @@ function copySteps(data:any,pis:any,CaseModel:any){
     });
 }
 
+function copyPrj(data:any,pis:any,CaseModel:any){
+    CaseModel.aggregate([
+        { $out:data.info.msg.name+"_cases" }
+    ],function(err:any){
+        if(!err){
+            data.info = true;
+            pis.write(data);
+        }
+    });
+}
+
 function objectIDtoString(buffer:any){
     let str:string = "";
     for(let buf of buffer){
@@ -163,6 +188,12 @@ function disposeData(data:any,pis:any){
             break;
         case "copy_steps":
             copySteps(data,pis,CaseModel);
+            break;
+        case "copy":
+            copyPrj(data,pis,CaseModel);
+            break;
+        case "total":
+            getTotal(data,pis,CaseModel);
             break;
         default:
             break;

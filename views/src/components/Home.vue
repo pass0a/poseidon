@@ -94,7 +94,7 @@ export default class Home extends Vue {
     private select_mode:any="4";
     private test_status:any=false;
     private needOpenPrj:any=["3","5","6_1","6_2","6_3","6_4"];
-    private needStopTest:any=["1","2"];
+    private needStopTest:any=["1","2","6_1","6_2","6_3"];
     private connectStatus:any = {server:0,db:0,link:0};
     get currentProject(){
         if(this.$store.state.project_info.current_prj.length){
@@ -146,27 +146,23 @@ export default class Home extends Vue {
           if(this.warningForAction(key))return;
           switch(key){
             case "1":
-              let p_req = {
-                  type : "toDB",
-                  route : "projects",
-                  job : "list"
-              }
-              this.$store.state.app_info.pis.write(p_req);
+              this.$store.state.app_info.pis.write({type:"toDB",route:"projects",job : "list"});
               break;
             case "2":
+              this.$store.state.app_info.pis.write({type:"toDB",route:"projects",job : "list"});
               this.$store.state.project_info.newflag=true;
               break;
             case "3":
-              if(this.$store.state.editcase_info.refresh_data){
-                let l_req = {
-                    type : "toDB",
-                    route : "cases",
-                    job : "list",
-                    info : {prjname:this.$store.state.project_info.current_prj}
-                }
-                this.$store.state.app_info.pis.write(l_req);
+              this.$store.state.editcase_info.refresh_data = true;
+              let c_pname = this.$store.state.project_info.current_prj;
+              let c_module = this.$store.state.steps_info.rulelist.module;
+              if(c_module.length){
+                this.$store.state.editcase_info.firstModule = c_module[0];
+                this.$store.state.app_info.pis.write({type:"toDB",route:"cases",job:"total",info:{prjname:c_pname,module:c_module[0]}});
+              }else{
+                this.$store.state.editcase_info.firstModule = "";
+                this.$store.state.editcase_info.refresh_data = false;
               }
-              this.$store.state.app_info.pis.write({type:"toDB",route:"binding",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
               this.select_mode=key;
               break;
             case "5":
@@ -186,11 +182,6 @@ export default class Home extends Vue {
               break;
             case "6_3":
               this.$store.state.app_info.pis.write({type:"toSer",job:"readConfig"});
-              this.$store.state.app_info.pis.write({type:"toDB",route:"binding",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
-              this.select_mode=key;
-              break;
-            case "6_4":
-              this.$store.state.app_info.pis.write({type:"toDB",route:"binding",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
               this.select_mode=key;
               break;
             case "7":
@@ -213,15 +204,14 @@ export default class Home extends Vue {
           this.$notify({title: '当前无项目,请选择项目',message: '', type: 'warning',duration:1500});
           return true;
         }
-        return false;
       }
-      else if(this.needStopTest.indexOf(key)!=-1){
+      if(this.needStopTest.indexOf(key)!=-1){
         if(this.test_status){
           this.$notify({title: '测试进行中!!!无法进行操作',message: '', type: 'warning',duration:1500});
           return true;
         }
-        return false;
       }
+      return false;
     }
 }
 </script>

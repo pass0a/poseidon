@@ -61,6 +61,17 @@ function removeID(data:any,pis:any,GroupModel:any){
     }
 }
 
+function copyPrj(data:any,pis:any,GroupModel:any){
+    GroupModel.aggregate([
+        { $out:data.info.msg.name+"_group" }
+    ],function(err:any){
+        if(!err){
+            data.info = true;
+            pis.write(data);
+        }
+    });
+}
+
 function disposeData(data:any,pis:any){
     let GroupModel = getModel(data.info.prjname+"_group");
     switch(data.job){
@@ -82,6 +93,9 @@ function disposeData(data:any,pis:any){
             break;
         case "replayTest":
             getList(data,pis,GroupModel);
+            break;
+        case "copy":
+            copyPrj(data,pis,GroupModel);
             break;
         default:
             break;

@@ -61,8 +61,8 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 export default class CaseResultView extends Vue {
     private caseData:any=[];
     private freqtype:any=new Map([["0","大于"],["1","等于"]]);
-    private stepTitle:any=["未执行","执行成功","执行失败","网络异常"];
-    private stepStatus:any=["wait","finish","error","error"];
+    private stepTitle:any=["未执行","执行成功","执行失败","网络异常","摄像头异常"];
+    private stepStatus:any=["wait","finish","error","error","error"];
     private imgreq:any=0;
     private scrreq:any=0;
     get showflag(){
@@ -93,7 +93,7 @@ export default class CaseResultView extends Vue {
                 else{
                     let error_idx = data.results[0].stepNum;
                     if(error_idx > idx) return content[1];
-                    else if(error_idx == idx) return data.briefResl==2?content[3]:content[2];
+                    else if(error_idx == idx) return data.briefResl==4?content[4]:(data.briefResl==2?content[3]:content[2]);
                     else return content[0];
                 }
             }else return content[0];

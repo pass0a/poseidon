@@ -42,7 +42,7 @@ export default class AlertView extends Vue {
                 break;
             case 1:
                 this.alertInfo.title="新建项目";
-                this.alertInfo.content="是否确定新建项目 : " + this.$store.state.alert_info.info +" ?";
+                this.alertInfo.content="是否确定新建项目 : " + this.$store.state.alert_info.info.name +" ?";
                 this.alertInfo.btn="确定";
                 break;
             case 2:
@@ -86,10 +86,10 @@ export default class AlertView extends Vue {
                 this.$store.state.app_info.pis.write({type:"toSer",job:"saveConfig",info:this.$store.state.setting_info.info});
                 break;
             case 1:
+                this.alertInfo.btn="创建中...";
                 let p_info = {
-                    name : this.$store.state.alert_info.info,
-                    uid : this.$store.state.login_info._id,
-                    version : this.$store.state.version
+                    msg : this.$store.state.alert_info.info,
+                    uid : this.$store.state.login_info._id
                 }
                 this.sendReq("toDB","projects","add",p_info);
                 break;
@@ -105,7 +105,6 @@ export default class AlertView extends Vue {
                     cid: this.$store.state.case_info.data._id,
                     uid:this.$store.state.login_info._id
                 };
-                console.log(s_info);
                 this.sendReq("toDB","status","delete",s_info);
                 break;
             case 3:

@@ -1,5 +1,7 @@
 import { getModel } from "./model";
 
+let latestVersion = ["click","assert_pic","assert_pto","click_poi","slide","wait","operate_tool","button","qg_box","group","adb_cmd"];
+
 function getList(data:any,pis:any,RuleModel:any){
     RuleModel.aggregate([
         {$project:{
@@ -53,7 +55,7 @@ function newPrj(data:any,pis:any,RuleModel:any){
     let new_arr = [
         {
             id: "action",
-            content: ["click","assert_pic","assert_pto","click_poi","slide","wait","operate_tool","button","qg_box","group","adb_cmd"]
+            content: latestVersion
         },
         {
             id: "operate_tool",
@@ -110,35 +112,47 @@ function removeID(data:any,pis:any,RuleModel:any){
     });
 }
 
-function poseidonUpdate(data:any,pis:any,RuleModel:any){
-    let update_arr:any = [];
-    let new_act:any = [];
-    switch(data.info.up){
-        case 1:
-            new_act = ["click_poi","slide","qg_box","adb_cmd"];
-            update_arr = [{id: "qg_box",content: ["freq"]}];
-            break;
-        case 2:
-            new_act = ["adb_cmd"];
-            update_arr = [];
-            break;
-        case 3:
-            new_act = ["assert_pto"];
-            update_arr = [];
-            break;
-    }
-    RuleModel.updateOne({id:"action"},{$push:{content:{$each:new_act}}},function(err:any,mg:any){
+function checkVersion(data:any,pis:any,RuleModel:any){
+    RuleModel.findOne({id:"action"},(err:any,list:any)=>{
         if(!err){
-            if(update_arr.length)RuleModel.insertMany(update_arr,(err:any, msg:any) => {
-                if(!err){
-                    data.info = true;
-                    pis.write(data);
+            let u_data:any=[];
+            for(let act of latestVersion){
+                if(list.content.indexOf(act)<0){
+                    u_data.push(act);
                 }
-            });
-            else {
-                data.info = true;
+            }
+            if(u_data.length){
+                RuleModel.updateOne({id:"action"},{$push:{content:{$each:u_data}}},function(err:any,mg:any){
+                    if(!err){
+                        data.info.upflag = true;
+                        if(u_data.indexOf("qg_box")>-1){
+                            RuleModel.insertOne({id: "qg_box",content: ["freq"]},(error:any)=>{
+                                if(!error){
+                                    data.info.udata = u_data;
+                                    pis.write(data);
+                                }
+                            });
+                        }else{
+                            data.info.udata = u_data;
+                            pis.write(data);
+                        }
+                    }
+                });
+            }else{
+                data.info.upflag = false;
                 pis.write(data);
             }
+        }
+    });
+}
+
+function copyPrj(data:any,pis:any,RuleModel:any){
+    RuleModel.aggregate([
+        { $out:data.info.msg.name+"_rule" }
+    ],function(err:any){
+        if(!err){
+            data.info = true;
+            pis.write(data);
         }
     });
 }
@@ -158,8 +172,11 @@ function disposeData(data:any,pis:any){
         case "remove_id":
             removeID(data,pis,RuleModel);
             break;
-        case "poseidon_up":
-            poseidonUpdate(data,pis,RuleModel);
+        case "check_version":
+            checkVersion(data,pis,RuleModel);
+            break;
+        case "copy":
+            copyPrj(data,pis,RuleModel);
             break;
         default:
             break;

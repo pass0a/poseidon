@@ -61,9 +61,14 @@ export default new Vuex.Store({
 		},
 		editcase_info:{
 			refresh_data:false,
-			update_op:false,
-			ret: true,
-			data:{}
+			copy: 0,
+			ret: false,
+			data:[],
+			module_total:0,
+			firstModule:"",
+			limit:20,
+			current_page:0,
+			casestatus_idx:-1
 		},
 		case_info:{
 			showflag:false,
@@ -91,7 +96,8 @@ export default new Vuex.Store({
 			save_count:0
 		},
 		camera_info:{
-			save_count:0
+			save_count:0,
+			rev_count:0
 		},
 		id_info:{
 			count:0

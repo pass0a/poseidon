@@ -37,11 +37,8 @@ export default class OpenPrj extends Vue {
     }
     private openPrj(prjname:any){
         if(this.$store.state.project_info.current_prj!=prjname){
-            this.$store.state.project_info.current_prj=prjname;
-            this.$store.state.editcase_info.refresh_data=true;
-            this.$store.state.app_info.pis.write({type:"toSer",job:"readStopinfo",prjname:this.$store.state.project_info.current_prj});
-        }
-        this.$store.state.project_info.openflag=false;
+            this.$store.state.app_info.pis.write({type:"toDB",route:"rule",job:"check_version",info:{prjname:prjname}});
+        }else this.$store.state.project_info.openflag=false;
     }
     private deletePrj(prjname:any){
         this.$store.state.alert_info.showflag = true;

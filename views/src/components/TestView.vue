@@ -7,7 +7,7 @@
         <el-link v-model="checkCutScreenStatus" v-show="false"></el-link>
         <el-card class="box-card" shadow="never" style="margin:10px 10px 10px 10px;">
             <el-row :gutter="10">
-                <el-col :span="5"> 
+                <el-col :span="6"> 
                     <el-card class="box-card" style="text-align:center;" shadow="never">
                         <button class="btn_start" @click="startTest()" v-show="btnMode==0||btnMode>4"><i class="el-icon-video-play"></i>开始测试</button>
                         <button class="btn_ready" v-show="btnMode==1"><i class="el-icon-loading"></i>准备中...</button>
@@ -19,7 +19,7 @@
                         </span>
                     </el-card>
                 </el-col>
-                <el-col :span="19">
+                <el-col :span="18">
                     <el-card class="box-card" shadow="never">
                         <div style="width:660px">
                             <el-progress :text-inside="true" :stroke-width="33" :percentage="processNum" status="success"></el-progress>

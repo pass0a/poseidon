@@ -27,7 +27,8 @@ let actionList: any = {
 	button: button,
 	qg_box: qgBox,
 	group: group,
-	adb_cmd : adbCmd
+	adb_cmd : adbCmd,
+	assert_pto: assertPto
 };
 
 async function startTest(data: any) {
@@ -241,7 +242,7 @@ async function disposeStepLoop(idx: any, caseData: any) {
 				});
 			}
 		}
-		let ret = await actionList[cmdStep.action](cmdStep, caseData); // 0: 成功 1: 失败 2: 连接错误 3: 组合步骤进行暂停
+		let ret = await actionList[cmdStep.action](cmdStep, caseData); // 0: 成功 1: 失败 2: 连接错误 3: 组合步骤进行暂停 4: 摄像头异常
 		if (ret != 3) caseData.briefResl = ret;
 		test_log_info.step = cmdStep;
 		test_log_info.ret = ret;
@@ -391,6 +392,24 @@ async function operateTool(cmd: any, caseData?: any) {
 	await notifyToLink({type:'toCom',job:'sendData',info:{name:"relay",cmd:cmd}});
 	return new Promise((resolve) => {
 		resolve(0);
+	});
+}
+
+async function assertPto(cmd: any, caseData?: any){
+	let get_pto:any = await notifyToLink({type:"toWeb",job:"takePhoto"});// 1:摄像头打开成功 0:失败
+	let result: any;
+	if(get_pto){
+		let ret: any = await imageMatch(cmd);
+		if(ret.ret && !ret.obj.valid){
+			if (caseData.case_mode == 1 && cmd.loop == undefined) {
+				await saveScreen(cmd, caseData);
+				caseData.match = Math.floor(ret.obj.val * 10000) / 100;
+			}
+		}else if (!ret.ret) caseData.image = '';
+		result = ret.ret && ret.obj.valid ? 0 : 1;
+	}else result = 4;
+	return new Promise((resolve) => {
+		resolve(result);
 	});
 }
 

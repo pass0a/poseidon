@@ -1,8 +1,10 @@
 <template>
     <div>
         <el-link v-model="updateTableData" v-show="false"></el-link>
-        <el-link v-model="updateCaselist" v-show="false"></el-link>
+        <el-link v-model="copyInfo" v-show="false"></el-link>
         <el-link v-model="testStatus" v-show="false"></el-link>
+        <el-link v-model="showFirstModule" v-show="false"></el-link>
+        <el-link v-model="getCaseStatus" v-show="false"></el-link>
         <el-button-group style="margin:5px 0px 0px 10px;">
             <el-button plain icon="el-icon-plus" size="small" @click="addCase">新建用例</el-button>
             <el-button plain icon="el-icon-check" size="small" @click="changeAllCases(0)">当前全部开启</el-button>
@@ -14,11 +16,11 @@
                 <el-checkbox v-for="it in case_prop_id" :label="it" :key="it">{{case_prop_name[it]}}</el-checkbox>
             </el-checkbox-group>
             <el-table v-loading="tableLoading" :data="current_data" style="width: 100%" height="370" size="mini" stripe border ref="CasesTable">
-                <el-table-column type="index" label="No." width="50"></el-table-column>
+                <el-table-column type="index" label="No." width="50" :index="indexMethod"></el-table-column>
                 <el-table-column v-for="it in isShowRow" :label="case_prop_name[it]" :key="it" :prop="it" resizable></el-table-column>
                 <el-table-column prop="c_status" width="80" label="状态">
 					<template slot-scope="scope">
-						<el-button type="text" @click="changeCaseStatus(scope.$index)"><font size="2" :color="scope.row.c_status.length?'#67C23A':'#909399'">{{scope.row.c_status.length?'开启':'关闭'}}</font></el-button>
+						<el-button type="text" @click="changeCaseStatus(scope.$index)" :disabled="op_idx==scope.$index?true:false"><font size="2" :color="scope.row.c_status.length?'#67C23A':'#909399'">{{scope.row.c_status.length?'开启':'关闭'}}</font></el-button>
 					</template>
 				</el-table-column>
                 <el-table-column label="操作" width="220">
@@ -29,6 +31,14 @@
 					</template>
 				</el-table-column>
             </el-table>
+            <el-pagination
+            @current-change="handleCurrentChange"
+            :current-page="curPage"
+            :page-size="pageSize"
+            layout="total, prev, pager, next, jumper"
+            :total="moduleTotal"
+            style="margin:10px 10px 0px 10px;float:right">
+            </el-pagination>
         </el-tabs>
         <Modal
             v-model="copy_info.copyflag"
@@ -74,13 +84,27 @@ export default class EditCasesView extends Vue {
     private case_prop_id:any=this.$store.state.case_prop_id;
     private case_prop_name:any=this.$store.state.case_prop_name;
     private select_prop:any=this.$store.state.init_checkbox;
+    private pageSize = this.$store.state.editcase_info.limit;
+    private curPage = 1;
     private current_data:any=[];
     private current_case_module:any="";
-    private updateflag:any=0;
-    private caselist:any=[];
     private current_editIdx:any=0;
     private test_status:any=false;
     private copy_info:any={copyflag:false, copyID:"", copy_steps:[], coypType:0, caseID:"", data:{}, loading:false};
+    private op_idx = -1;
+    get moduleTotal(){
+        if(this.$store.state.editcase_info.module_total){
+            this.curPage = 1;
+        }else{
+            this.curPage = 0;
+            this.current_data = [];
+        }
+        return this.$store.state.editcase_info.module_total;
+    }
+    get showFirstModule(){
+        this.current_case_module = this.$store.state.editcase_info.firstModule;
+        return;
+    }
     get isShowRow(){
         let rows:any=[];
         for(let i=0;i<this.case_prop_id.length;i++){
@@ -92,64 +116,13 @@ export default class EditCasesView extends Vue {
         return this.$store.state.editcase_info.refresh_data;
     }
     get updateTableData(){
-        let data=this.$store.state.editcase_info.data;
-        this.caselist=[];
-        if(data.length>0){
-            let firstModule;
-            for(let i=0;i<data.length;i++){
-                if(this.caselist[data[i].case_module]==undefined)this.caselist[data[i].case_module]=[];
-                if(i==0)firstModule=data[i].case_module;
-                this.caselist[data[i].case_module].push(data[i]);
-            }
-            this.current_case_module=firstModule;
-            this.current_data=this.caselist[firstModule];
-        }else{
-            let module_data = this.$store.state.steps_info.rulelist.module;
-            if(module_data&&module_data.length){
-                this.current_case_module=module_data[0];
-                if(this.caselist[module_data[0]]==undefined)this.caselist[module_data[0]]=[];
-                this.current_data=this.caselist[module_data[0]];
-            }else{
-                this.current_case_module="";
-                this.current_data=[];
-            }
-        }
+        this.current_data = this.$store.state.editcase_info.data;
         return;
     }
-    get updateCaselist(){
-        if(this.$store.state.editcase_info.update_op){
-            let module_op = this.$store.state.case_info.data.case_module;
-            switch(this.$store.state.case_info.type){
-                case 0:
-                    if(this.caselist[module_op]==undefined)this.caselist[module_op]=[];
-                    this.caselist[module_op].push(JSON.parse(JSON.stringify(this.$store.state.case_info.data)));
-                    this.current_case_module = module_op;
-                    this.current_data=this.caselist[module_op];
-                    break;
-                case 1:
-                    let data_op=JSON.parse(JSON.stringify(this.$store.state.case_info.data));
-                    let data_edit=this.caselist[module_op][this.current_editIdx];
-                    for(let prop in data_edit){
-                        data_edit[prop]=data_op[prop];
-                    }
-                    break;
-                case 2:
-                    let data_delete:any=this.caselist[module_op];
-                    data_delete.splice(this.current_editIdx,1);
-                    break;
-                case 3:
-                    if(!this.copy_info.coypType){
-                        if(this.caselist[module_op]==undefined)this.caselist[module_op]=[];
-                        this.caselist[module_op].push(JSON.parse(JSON.stringify(this.$store.state.case_info.data)));
-                        this.current_case_module = module_op;
-                        this.current_data=this.caselist[module_op];
-                    }else{
-                        this.copy_info.loading = false;
-                        this.copy_info.copyflag = !this.$store.state.editcase_info.ret;
-                    }
-                    break;
-            }
-            this.$store.state.editcase_info.update_op=false;
+    get copyInfo(){
+        if(this.$store.state.editcase_info.copy>0){
+            this.copy_info.loading = false;
+            this.copy_info.copyflag = !this.$store.state.editcase_info.ret;
         }
         return;
     }
@@ -161,12 +134,38 @@ export default class EditCasesView extends Vue {
         if(this.$store.state.steps_info.rulelist.module)return this.$store.state.steps_info.rulelist.module;
         return [];
     }
+    get getCaseStatus(){
+        let idx = this.$store.state.editcase_info.casestatus_idx;
+        if(idx>-1){
+            this.current_data[idx].c_status=this.current_data[idx].c_status.length?[]:[{type:1}];
+            this.$store.state.editcase_info.casestatus_idx = -1;
+            this.op_idx = -1;
+        }
+        return;
+    }
+    private indexMethod(index:any){
+        return index + 1 + (this.curPage-1)*20;
+    }
+    private handleCurrentChange(page:any){
+        this.curPage = page;
+        this.$store.state.editcase_info.refresh_data = true;
+        let l_req = {
+            type : "toDB",
+            route : "cases",
+            job : "list",
+            info : {prjname:this.$store.state.project_info.current_prj,module:this.current_case_module,skip:this.$store.state.editcase_info.limit*(page-1),limit:this.$store.state.editcase_info.limit}
+        }
+        this.$store.state.app_info.pis.write(l_req);
+    }
     private getResName(id:any){
         return this.$store.state.steps_info.reslist[id];
     }
     private select_module(){
-        this.current_data=this.caselist[this.current_case_module];
-        if(this.current_data==undefined)this.current_data=[];
+        this.op_idx = -1;
+        this.$store.state.editcase_info.casestatus_idx = -1;
+        this.$store.state.editcase_info.firstModule = this.current_case_module;
+        let c_pname = this.$store.state.project_info.current_prj;
+        this.$store.state.app_info.pis.write({type:"toDB",route:"cases",job:"total",info:{prjname:c_pname,module:this.current_case_module}});
     }
     private addCase(){
         this.$store.state.case_info.type = 0;
@@ -174,6 +173,7 @@ export default class EditCasesView extends Vue {
     }
     private editCase(idx:any){
         this.current_editIdx = idx;
+        this.$store.state.editcase_info.current_page = this.curPage;
         this.$store.state.case_info.type = 1;
         this.$store.state.case_info.data = this.current_data[idx];
         this.$store.state.case_info.showflag=true;
@@ -224,6 +224,7 @@ export default class EditCasesView extends Vue {
         }
     }
     private changeCaseStatus(idx:any){
+        this.op_idx = idx;
         let req = {
             type : "toDB",
             route : "status",
@@ -231,41 +232,28 @@ export default class EditCasesView extends Vue {
             info : {
                 prjname:this.$store.state.project_info.current_prj,
                 module:this.current_data[idx].case_module,
-                cid:this.current_data[idx]._id,
-                uid:this.$store.state.login_info._id
-            }
+                cid:this.current_data[idx]._id
+            },
+            idx : idx
         }
         this.$store.state.app_info.pis.write(req);
-        this.current_data[idx].c_status=this.current_data[idx].c_status.length?[]:[{type:1}];
     }
     private changeAllCases(type:number){
-        let changeList:Array<string> = [];
-        for(let i=0;i<this.current_data.length;i++){
-            if(!type){
-                if(!this.current_data[i].c_status.length){
-                    this.current_data[i].c_status = [{type:1}];
-                    changeList.push(this.current_data[i]._id);
-                }
-            }else{
-                if(this.current_data[i].c_status.length){
-                    this.current_data[i].c_status = [];
-                    changeList.push(this.current_data[i]._id);
-                }
-            }
-        }
-        if(changeList.length>0){
+        this.$store.state.editcase_info.refresh_data = true;
+        if(this.$store.state.project_info.current_prj.length>0){
             let req:any = {type : "toDB",route : "status",job:"",info:{}};
             if(!type){
                 req.job = "module_add";
-                req.info = {prjname:this.$store.state.project_info.current_prj, module:this.current_case_module, uid:this.$store.state.login_info._id,changelist:changeList};
+                req.info = {prjname:this.$store.state.project_info.current_prj, module:this.current_case_module, uid:this.$store.state.login_info._id};
             }else{
                 req.job = "module_delete";
                 req.info = {prjname:this.$store.state.project_info.current_prj, module:this.current_case_module, uid:this.$store.state.login_info._id}
             }
-            console.log(req);
             this.$store.state.app_info.pis.write(req);
+        }else{
+            this.$store.state.editcase_info.refresh_data = false;
+            this.$notify({title: '当前模块全部用例已关闭!',message: '', type: 'success',duration:1500});
         }
-        
     }
 }
 </script>

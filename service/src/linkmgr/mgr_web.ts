@@ -93,6 +93,11 @@ export class Web_mgr {
 				obj.info = img_ret?false:true;
 				this.pis.write(obj);
 				break;
+			case "testPhoto":
+				let to_test = this.link.getLink('test', 'test');
+				console.log("888888888-",obj.info);
+				if(to_test)to_test.disposedCompleted("toWeb",obj.info);
+				break;
 			default:
 				break;
 		}
@@ -144,18 +149,18 @@ export class Web_mgr {
 		let execpath = '"' + passoaPath + '" ' + jsPath + ' "' + prjpath + '"';
 		console.log(execpath);
 		let cmd:any = childprs.exec(execpath, { windowsHide: testcfg.windowsHide });
-		// cmd.stdout.removeAllListeners("data");
-        // cmd.stderr.removeAllListeners("data");
-        // cmd.removeAllListeners("close");
-		// cmd.stdout.on('data',(data:any) => {
-        //     console.log('CMD-LOG:', data);
-		// });
-		// cmd.stderr.on('data',(err:any) => {
-        //     console.error('CMD-ERROR', err);
-        // });
-        // cmd.on('close',(code:any) => {
-        //     console.error('CMD-close', code);
-        // });
+		cmd.stdout.removeAllListeners("data");
+        cmd.stderr.removeAllListeners("data");
+        cmd.removeAllListeners("close");
+		cmd.stdout.on('data',(data:any) => {
+            console.log('CMD-LOG:', data);
+		});
+		cmd.stderr.on('data',(err:any) => {
+            console.error('CMD-ERROR', err);
+        });
+        cmd.on('close',(code:any) => {
+            console.error('CMD-close', code);
+        });
 	}
 
 	sendToWebServer(data: any) {

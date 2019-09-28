@@ -9,6 +9,7 @@ import { Server } from './server';
 import { ToLink } from './toLink';
 
 export class ToDB {
+	public copyinfo = {end:0,pname:"",cname:""};
 	private prjdir: any = path.dirname(path.dirname(process.execPath)) + '/data_store/projects/';
 	private pis = new pack.packStream();
 	private pos = new pack.unpackStream();
@@ -78,11 +79,24 @@ export class ToDB {
 					data = {type:'toSer',job:"dbStatus",info:data.info};
 					break;
 				case 'projects':
-					if(data.job == 'add' && data.info.state)fs.mkdirSync(this.prjdir + data.info.name);
+					if(data.job == 'add' && data.info.state)fs.mkdirSync(this.prjdir + data.info.msg.name);
 					break;
 				case 'removeAll': // 删除文件夹
 					let remove_dir = "\""+this.prjdir + data.info.prjname+"\"";
-					childprs.exec("rmdir /s/q "+remove_dir, { windowsHide:true });
+					if(fs.existsSync(this.prjdir + data.info.prjname)){
+						childprs.exec("rmdir /s/q "+remove_dir, { windowsHide:true });
+					}
+					break;
+				case 'copyPrj': // 复制文件夹 
+					this.copyinfo.end--;
+					if(this.copyinfo.end==0){
+						let p_dir = "\""+this.prjdir + this.copyinfo.pname+"/img\"";
+						let c_dir = "\""+this.prjdir + this.copyinfo.cname+"/img\"";
+						if(fs.existsSync(this.prjdir + this.copyinfo.pname+"/img")){
+							let copy_cmd = "xcopy /y/i " + p_dir + " " + c_dir + " /e";
+							childprs.exec(copy_cmd, { windowsHide:true });
+						}
+					}
 					break;
 				default:
 					break;

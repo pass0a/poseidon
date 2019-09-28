@@ -90,11 +90,12 @@ export default class ModuleView extends Vue {
         this.showflag = false;
     }
     private deleteModule(id:any){
-        this.$store.state.alert_info.showflag = true;
         this.$store.state.alert_info.type = 5;
+        this.$store.state.alert_info.info = {};
         this.$store.state.alert_info.info.type = 0;
         this.$store.state.alert_info.info.id = id;
         this.$store.state.alert_info.info.pid = "module";
+        this.$store.state.alert_info.showflag = true;
     }
     private sendSeq(route:any,job:any,msg:any){
         let req = {

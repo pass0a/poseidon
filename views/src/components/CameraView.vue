@@ -3,6 +3,8 @@
         <el-link v-model="ResList" v-show="false"></el-link>
         <el-link v-model="RuleList" v-show="false"></el-link>
         <el-link v-model="updateSaveStatus" v-show="false"></el-link>
+        <el-link v-model="takePhotoForTest" v-show="false"></el-link>
+        <el-link v-model="inScreenView" v-show="false"></el-link>
         <el-card :body-style="{ padding: '8px' }" style="margin:5px 10px 0px 10px;" shadow="never">
             <el-button :type="openBtnStatus.type" plain style="width:180px" :icon="openBtnStatus.icon" :disabled="openBtnStatus.disabled" @click="openCamera">{{openBtnStatus.title}}</el-button>
             <el-button :type="takeBtnStatus.type" plain style="width:180px" :icon="takeBtnStatus.icon" :disabled="takeBtnStatus.disabled" @click="takePhoto">{{takeBtnStatus.title}}</el-button>
@@ -59,8 +61,45 @@ export default class CameraView extends Vue {
     private rulelist:any=[];
     private stop:boolean = false;
     private saveing:boolean = false;
+    private test_count:number = 0;
+    private camera_status:boolean = false;
+    get inScreenView(){
+        if(this.$store.state.home_info.mode!="6_4"){
+            let wid_img:any = document.getElementById("cut");
+            if(wid_img)document.body.removeChild(wid_img);
+            this.saveInfo.type=0;
+        }
+        return;
+    }
     get updateSaveStatus(){
         if(this.$store.state.camera_info.save_count)this.saveCancel();
+        return;
+    }
+    get takePhotoForTest(){
+        if(this.$store.state.camera_info.rev_count>this.test_count){
+            let video:any = document.getElementById("video");
+            if(this.camera_status){
+                this.takeTestPhoto(video);
+            }else{
+                let constraints = {video: {width: 600, height: 400},audio: true};
+                let promise = navigator.mediaDevices.getUserMedia(constraints);
+                promise.then((MediaStream)=> {
+                    video.srcObject = MediaStream;
+                    video.play();
+                    this.takeTestPhoto(video);
+                    this.camera_status = true;
+                }).catch((err)=> {
+                    console.log(err);
+                    let s_req = {
+                        type : "toSer",
+                        job : "testPhoto",
+                        info : {ret:0}
+                    }
+                    this.$store.state.app_info.pis.write(s_req);
+                });
+            }
+            this.test_count++;
+        }
         return;
     }
     get ResList(){
@@ -99,8 +138,6 @@ export default class CameraView extends Vue {
         }
     }
     private checkBinding(type:number,id:string){
-        console.log(id);
-        console.log(this.$store.state.steps_info.bindlist);
         let bind = this.$store.state.steps_info.bindlist[id];
         switch(type){
             case 0:
@@ -125,6 +162,7 @@ export default class CameraView extends Vue {
             this.openBtnStatus.title = "已开启摄像头";
             this.openBtnStatus.disabled = false;
             this.takeBtnStatus.disabled = false;
+            this.camera_status = true;
             // setTimeout(() => {
             //     const tracks = MediaStream.getTracks();
             //     tracks[1].stop();
@@ -286,6 +324,28 @@ export default class CameraView extends Vue {
                 flag=false;
             }
         };
+    }
+    private takeTestPhoto(video:any){
+        setTimeout(() => {
+            let canvas:any = document.getElementById("canvas");
+            let ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, 600, 400);
+            let img = canvas.toDataURL('image/jpeg');
+            let arr = img.split(','),
+                mime = arr[0].match(/:(.*?);/)[1],
+                bstr = atob(arr[1]),
+                n = bstr.length,
+                u8arr = new Uint8Array(n);
+            while (n--) {
+                u8arr[n] = bstr.charCodeAt(n)
+            }
+            let s_req = {
+                type : "toSer",
+                job : "testPhoto",
+                info : {prjname : this.$store.state.project_info.current_prj,ret:1,img_data : u8arr}
+            }
+            this.$store.state.app_info.pis.write(s_req);
+        }, this.camera_status?0:1500);
     }
 }
 </script>

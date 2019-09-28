@@ -16,7 +16,6 @@ import { constants } from 'crypto';
 export default class App extends Vue {
     private ws: any = null;
     private idn:number = 0;
-    private poseidon_up:number = 0;
     created() {
         pis.on("data", (data: any) => {
             this.ws.send(data);
@@ -96,7 +95,17 @@ export default class App extends Vue {
                 console.log("revDB:",data);
                 this.revToDB(data);
                 break;
+            case "toWeb":
+                this.revToWeb(data);
+                break;
             default:
+                break;
+        }
+    }
+    private revToWeb(data:any){
+        switch(data.job){
+            case "takePhoto":
+                this.$store.state.camera_info.rev_count++;
                 break;
         }
     }
@@ -140,7 +149,6 @@ export default class App extends Vue {
                 this.$store.state.test_info.stopflag = 0;
                 this.$store.state.test_info.stopflag = data.info;
                 this.$store.state.req_info.refresh_rl = 0;
-                pis.write({type:"toDB",route:"projects",job:"check",info:{prjname:this.$store.state.project_info.current_prj}});
                 break;
             case "syncRemote":
                 this.$store.state.screen_info.status = data.info.msg.ret;
@@ -210,8 +218,8 @@ export default class App extends Vue {
             case "adb":
                 this.revToDB_adb(data);
                 break;
-            case "poseidon":
-                this.revToDB_poseidon(data);
+            case "status":
+                this.revToDB_status(data);
                 break;
             case "removeAll":
                 if(this.$store.state.project_info.current_prj == data.info.prjname){
@@ -222,16 +230,65 @@ export default class App extends Vue {
                 this.$store.state.home_info.count++;
                 this.$notify({title: '删除成功',message: '', type: 'success',duration:1500});
                 break;
-        }
-    }
-    private revToDB_poseidon(data:any){
-        switch(data.job){
-            case "poseidon_up":
-                this.poseidon_up++;
-                if(this.poseidon_up==3){
+            case "copyPrj":
+                this.$store.state.req_info.new_prj--;
+                if(this.$store.state.req_info.new_prj==0){
+                    this.$store.state.req_info.refresh_rl = 0;
                     pis.write({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
                     pis.write({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                    pis.write({type:"toDB",route:"buttons",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                    pis.write({type:"toDB",route:"binding",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                    this.$store.state.alert_info.showflag=false;
+                    this.$store.state.project_info.newflag=false;
+                    this.$store.state.editcase_info.refresh_data=true;
+                    this.$notify({title: '项目创建成功!',message: '', type: 'success',duration:1500});
                 }
+                break;
+            case "newPrj":
+                this.$store.state.req_info.new_prj--;
+                if(this.$store.state.req_info.new_prj==0){
+                    this.$store.state.req_info.refresh_rl = 0;
+                    pis.write({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                    pis.write({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                    pis.write({type:"toDB",route:"buttons",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                    pis.write({type:"toDB",route:"binding",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                    this.$store.state.alert_info.showflag=false;
+                    this.$store.state.project_info.newflag=false;
+                    this.$store.state.editcase_info.refresh_data=true;
+                    this.$notify({title: '项目创建成功!',message: '', type: 'success',duration:1500});
+                }
+                break;
+        }
+    }
+    private revToDB_status(data:any){
+        switch(data.job){
+            case "add":
+                this.$store.state.editcase_info.casestatus_idx = -1;
+                this.$store.state.editcase_info.casestatus_idx = data.idx;
+                break;
+            case "delete":
+                this.$store.state.editcase_info.casestatus_idx = -1;
+                this.$store.state.editcase_info.casestatus_idx = data.idx;
+                break;
+            case "module_add":
+                let a_req = {
+                    type : "toDB",
+                    route : "cases",
+                    job : "list",
+                    info : {prjname:this.$store.state.project_info.current_prj,module:this.$store.state.editcase_info.firstModule,skip:0,limit:this.$store.state.editcase_info.limit}
+                }
+                this.$store.state.app_info.pis.write(a_req);
+                this.$notify({title: '当前模块全部用例已开启!',message: '', type: 'success',duration:1500});
+                break;
+            case "module_delete":
+                let d_req = {
+                    type : "toDB",
+                    route : "cases",
+                    job : "list",
+                    info : {prjname:this.$store.state.project_info.current_prj,module:this.$store.state.editcase_info.firstModule,skip:0,limit:this.$store.state.editcase_info.limit}
+                }
+                this.$store.state.app_info.pis.write(d_req);
+                this.$notify({title: '当前模块全部用例已关闭!',message: '', type: 'success',duration:1500});
                 break;
         }
     }
@@ -246,11 +303,15 @@ export default class App extends Vue {
         switch(data.job){
             case "add":
                 if(data.info.state){
-                    this.$store.state.req_info.new_prj=0;
-                    this.$store.state.project_info.current_prj = data.info.name;
-                    pis.write({type:"toDB",route:"res",job:"new",info:{prjname:data.info.name}});
-                    pis.write({type:"toDB",route:"rule",job:"new",info:{prjname:data.info.name}});
-                    pis.write({type:"toDB",route:"buttons",job:"new",info:{prjname:data.info.name}});
+                    let prj_name = data.info.msg.name;
+                    this.$store.state.project_info.current_prj = prj_name;
+                    if(!data.info.msg.type){
+                        this.$store.state.req_info.new_prj = 3;
+                        pis.write({type:"toDB",route:"newPrj",job:"new",info:{prjname:prj_name}});
+                    }else{
+                        this.$store.state.req_info.new_prj = data.info.msg.content?5:6;
+                        pis.write({type:"toDB",route:"copyPrj",job:"copy",info:{prjname:data.info.msg.copyprj,msg:data.info.msg,end:data.info.msg.content?5:6}});
+                    }
                 }else{
                     this.$store.state.alert_info.showflag=false;
                     this.$notify({title: '项目已存在',message: '', type: 'error',duration:1500});
@@ -258,16 +319,7 @@ export default class App extends Vue {
                 break;
             case "list":
                 this.$store.state.project_info.prjlist=data.info;
-                this.$store.state.project_info.openflag=true;
-                break;
-            case "check":
-                if(!data.info){
-                    pis.write({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
-                    pis.write({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
-                }else{
-                    this.poseidon_up = 0;
-                    pis.write({type:"toDB",route:"poseidon",job:"poseidon_up",info:{prjname:this.$store.state.project_info.current_prj,up:data.info,version:this.$store.state.version}});
-                }
+                if(this.$store.state.home_info.mode=="1")this.$store.state.project_info.openflag=true;
                 break;
         }
     }
@@ -280,25 +332,32 @@ export default class App extends Vue {
             case "add":
                 if(data.info){
                     this.$store.state.case_info.showflag = false;
-                    this.$store.state.case_info.data._id = data.info;
-                    this.$store.state.case_info.data.c_status = [];
-                    this.$store.state.editcase_info.update_op = true;
+                    this.$store.state.editcase_info.firstModule = data.info.module;
+                    this.$store.state.editcase_info.refresh_data = true;
+                    this.$store.state.app_info.pis.write({type:"toDB",route:"cases",job:"total",info:{prjname:this.$store.state.project_info.current_prj,module:data.info.module}});
                     this.$notify({title: '用例创建成功!',message: '', type: 'success',duration:1500});
                 }else{
                     this.$notify({title: '用例ID已存在',message: '', type: 'error',duration:1500});
                 }
                 break;
             case "modify":
-                if(data.info){
-                    this.$store.state.case_info.showflag=false;
-                    this.$store.state.editcase_info.update_op=true;
-                    this.$notify({title: '用例修改成功!',message: '', type: 'success',duration:1500});
+                this.$store.state.case_info.showflag=false;
+                let page_limit = this.$store.state.editcase_info.limit;
+                let cur_page = this.$store.state.editcase_info.current_page;
+                let l_req = {
+                    type : "toDB",
+                    route : "cases",
+                    job : "list",
+                    info : {prjname:this.$store.state.project_info.current_prj,module:data.info,skip:page_limit*(cur_page-1),limit:page_limit}
                 }
+                this.$store.state.app_info.pis.write(l_req);
+                this.$notify({title: '用例修改成功!',message: '', type: 'success',duration:1500});
                 break;
             case "delete":
                 if(data.info){
                     this.$store.state.alert_info.showflag=false;
-                    this.$store.state.editcase_info.update_op=true;
+                    this.$store.state.editcase_info.refresh_data = true;
+                    this.$store.state.app_info.pis.write({type:"toDB",route:"cases",job:"total",info:{prjname:this.$store.state.project_info.current_prj,module:this.$store.state.editcase_info.firstModule}});
                     this.$notify({title: '用例删除成功!',message: '', type: 'success',duration:1500});
                 }
                 break;
@@ -311,19 +370,36 @@ export default class App extends Vue {
                 this.$notify({title: '模块删除成功!',message: '', type: 'success',duration:1500});
                 break;
             case "copy_steps":
-                this.$store.state.editcase_info.update_op = true;
-                this.$store.state.editcase_info.ret = data.info;
+                this.$store.state.editcase_info.copy++;
                 if(data.info){
-                    this.$store.state.editcase_info.refresh_data = true;
+                    let c_limit = this.$store.state.editcase_info.limit;
+                    let c_page = this.$store.state.editcase_info.current_page;
+                    let c_module = this.$store.state.editcase_info.firstModule;
+                    let c_req = {
+                        type : "toDB",
+                        route : "cases",
+                        job : "list",
+                        info : {prjname:this.$store.state.project_info.current_prj,module:c_module,skip:c_limit*(c_page-1),limit:c_limit}
+                    }
+                    this.$store.state.app_info.pis.write(c_req);
+                    this.$store.state.editcase_info.ret = true;
+                    this.$notify({title: '复制成功!',message: '', type: 'success',duration:1500});
+                }else this.$notify({title: '用例ID不存在!',message: '', type: 'error',duration:1500});
+                break;
+            case "total":
+                this.$store.state.editcase_info.refresh_data = true;
+                this.$store.state.editcase_info.module_total = data.info.count;
+                if(data.info.count>0){
                     let l_req = {
                         type : "toDB",
                         route : "cases",
                         job : "list",
-                        info : {prjname:this.$store.state.project_info.current_prj}
+                        info : {prjname:this.$store.state.project_info.current_prj,module:data.info.module,skip:0,limit:this.$store.state.editcase_info.limit}
                     }
                     this.$store.state.app_info.pis.write(l_req);
-                    this.$notify({title: '复制成功!',message: '', type: 'success',duration:1500});
-                }else this.$notify({title: '用例ID不存在!',message: '', type: 'error',duration:1500});
+                }else{
+                    this.$store.state.editcase_info.refresh_data = false;
+                }
                 break;
         }
     }
@@ -349,20 +425,6 @@ export default class App extends Vue {
                     pis.write({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
                 }
                 break;
-            case "new":
-                this.$store.state.req_info.new_prj++;
-                if(this.$store.state.req_info.new_prj==3){
-                    
-                    this.$store.state.req_info.refresh_rl = 0;
-                    pis.write({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
-                    pis.write({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
-                    pis.write({type:"toDB",route:"buttons",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
-                    this.$store.state.alert_info.showflag=false;
-                    this.$store.state.project_info.newflag=false;
-                    this.$store.state.editcase_info.refresh_data=true;
-                    this.$notify({title: '项目创建成功!',message: '', type: 'success',duration:1500});
-                }
-                break;
             case "modify":
                 if(data.info){
                     this.$store.state.req_info.refresh_rl = 0;
@@ -376,6 +438,15 @@ export default class App extends Vue {
                 if(this.$store.state.req_info.remove_id == 0){
                     pis.write({type:"toDB",route:"rule",job:"remove_id",info:data.info});
                 }
+                break;
+            case "update_version":
+                this.$store.state.project_info.current_prj = data.info.prjname;
+                this.$store.state.editcase_info.refresh_data = true;
+                pis.write({type:"toDB",route:"res",job:"list",info:{prjname:data.info.prjname}});
+                pis.write({type:"toDB",route:"rule",job:"list",info:{prjname:data.info.prjname}});
+                pis.write({type:"toDB",route:"binding",job:"list",info:{prjname:data.info.prjname}});
+                pis.write({type:"toSer",job:"readStopinfo",prjname:data.info.prjname});
+                this.$store.state.project_info.openflag = false;
                 break;
         }
     }
@@ -415,41 +486,28 @@ export default class App extends Vue {
                     pis.write({type:"toDB",route:"adb",job:"add",info:data.info});
                 }
                 break;
-            case "new":
-                this.$store.state.req_info.new_prj++;
-                if(this.$store.state.req_info.new_prj==3){
-                    this.$store.state.req_info.refresh_rl = 0;
-                    pis.write({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
-                    pis.write({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
-                    pis.write({type:"toDB",route:"buttons",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
-                    this.$store.state.alert_info.showflag=false;
-                    this.$store.state.project_info.newflag=false;
-                    this.$store.state.editcase_info.refresh_data=true;
-                    this.$notify({title: '项目创建成功!',message: '', type: 'success',duration:1500});
-                }
-                break;
             case "remove_id":
                 pis.write({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
                 pis.write({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
                 this.$store.state.alert_info.showflag=false;
                 break;
+            case "check_version":
+                if(data.info.upflag){
+                    pis.write({type:"toDB",route:"res",job:"update_version",info:data.info});
+                }else{
+                    this.$store.state.project_info.current_prj = data.info.prjname;
+                    this.$store.state.editcase_info.refresh_data = true;
+                    pis.write({type:"toDB",route:"res",job:"list",info:{prjname:data.info.prjname}});
+                    pis.write({type:"toDB",route:"rule",job:"list",info:{prjname:data.info.prjname}});
+                    pis.write({type:"toDB",route:"binding",job:"list",info:{prjname:data.info.prjname}});
+                    pis.write({type:"toSer",job:"readStopinfo",prjname:data.info.prjname});
+                    this.$store.state.project_info.openflag = false;
+                }
+                break;
         }
     }
     private revToDB_buttons(data:any){
         switch(data.job){
-            case "new":
-                this.$store.state.req_info.new_prj++;
-                if(this.$store.state.req_info.new_prj==3){
-                    this.$store.state.req_info.refresh_rl = 0;
-                    pis.write({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
-                    pis.write({type:"toDB",route:"rule",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
-                    pis.write({type:"toDB",route:"buttons",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
-                    this.$store.state.alert_info.showflag=false;
-                    this.$store.state.project_info.newflag=false;
-                    this.$store.state.editcase_info.refresh_data=true;
-                    this.$notify({title: '项目创建成功!',message: '', type: 'success',duration:1500});
-                }
-                break;
             case "list":
                 let list=JSON.parse(data.info.data);
                 let buttonlist:any={};
