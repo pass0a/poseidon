@@ -54,6 +54,14 @@ steps:
     command: custom
     workingDir: service
     verbose: false
+    customCommand: 'run pm'
+
+- task: Npm@1
+  displayName: 'npm custom'
+  inputs:
+    command: custom
+    workingDir: service
+    verbose: false
     customCommand: 'run build'
 
 - task: Npm@1
