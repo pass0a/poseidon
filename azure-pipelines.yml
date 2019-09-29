@@ -125,5 +125,12 @@ steps:
   inputs:
     sshEndpoint: 'ssh'
     sourceFolder: '$(Build.ArtifactStagingDirectory)'
-    contents: '**'
+    contents: 'Poseidon*'
     targetFolder: '/root/public/poseidon'
+
+- task: CopyFilesOverSSH@0
+  inputs:
+    sshEndpoint: 'ssh'
+    sourceFolder: '$(Build.ArtifactStagingDirectory)'
+    contents: 'Reveal*'
+    targetFolder: '/root/public/reveal'
