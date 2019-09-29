@@ -120,3 +120,10 @@ steps:
     releaseNotesFile: 'ChangeLog'
     addChangeLog: false
   condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
+
+- task: CopyFilesOverSSH@0
+  inputs:
+    sshEndpoint: 'ssh'
+    sourceFolder: '$(Build.ArtifactStagingDirectory)'
+    contents: '**'
+    targetFolder: '/root/public/poseidon'
