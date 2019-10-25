@@ -100,23 +100,34 @@ export class Com_mgr{
 	}
 
 	private async openNeedUarts(uartArray:Array<any>,cfg:any){
+		let comNum:Array<any> = [];
+		let error:boolean = false;
 		for(let i=0;i<uartArray.length;i++){
 			let uart_name = uartArray[i];
 			let uart_info:any = {port:"",info:{}};
             for(let prop in cfg.uarts[uart_name]){
-                if(prop == "port")uart_info.port="COM"+cfg.uarts[uart_name][prop];
+                if(prop == "port"){
+					uart_info.port="COM"+cfg.uarts[uart_name][prop];
+					if(comNum.indexOf(uart_info.port)>-1){
+						error = true;
+					}else comNum.push(uart_info.port);
+				}
                 else uart_info.info[prop]=cfg.uarts[uart_name][prop];
 			}
-			uart_info.id = uart_name;
-			this.uartlist[uart_name] = new Uart();
-			let result = await this.uartlist[uart_name].openUart(uart_info,(name:string)=>{
-				if(this.uartlist[name])this.uartlist[name] = null;
-			})
-			if(!result.ret){
+			let result:any;
+			if(!error){
+				uart_info.id = uart_name;
+				this.uartlist[uart_name] = new Uart();
+				result = await this.uartlist[uart_name].openUart(uart_info,(name:string)=>{
+					if(this.uartlist[name])this.uartlist[name] = null;
+				})
+			}
+			if(error || !result.ret){
 				i-=1;
 				while(i>-1){
-					this.uartlist[uartArray[i]].closeUart();
+					await this.uartlist[uartArray[i]].closeUart();
 					this.uartlist[uartArray[i]] = null;
+					i--;
 				}
 				return new Promise(resolve => {
 					resolve({ret:0});

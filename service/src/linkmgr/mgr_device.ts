@@ -65,14 +65,14 @@ export class Device_mgr{
 				break;
 			case "closeADB":
 				ADB.endADB();
-				result = 1;
+				result.ret = 1;
 				break;
 			case "openLog":
 				result = await this.openLogByADB(data.info);
 				break;
 		}
 		return new Promise(resolve => {
-			resolve(result);
+			resolve(result.ret);
 		});
 	}
 	private openLogByADB(info:any){
@@ -86,11 +86,11 @@ export class Device_mgr{
 						clearTimeout(timer);
 						timer = null;
 					}
-					resolve(0);
+					resolve({ret:1});
 				}
 			})
 			timer = setTimeout( () => {
-                resolve(1);
+                resolve({ret:0});
             },1000);
 		});
 	}
@@ -104,7 +104,7 @@ export class Device_mgr{
 						break;
 					case 1:
 						if(adbInfo.type){
-							if(data.data.indexOf(adbInfo.rev_data)>-1)resolve(0);
+							if(data.data.indexOf(adbInfo.rev_data)>-1)resolve({ret:0});
 						}
 						break;
 					case 2:
@@ -112,14 +112,14 @@ export class Device_mgr{
 							clearTimeout(timer);
 							timer = null;
 						}
-						resolve(data.data);
+						resolve({ret:1,data:data.data});
 						break;
 					default:
 						break;
 				}
 			});
 			timer = setTimeout( () => {
-                resolve(adbInfo.type?2:0);
+                resolve({ret:adbInfo.type?2:0});
             },adbInfo.timeout);
 		});
 	}
@@ -136,6 +136,7 @@ export class Device_mgr{
 						let ct:any;
 						if(data.job == "syncRemote"){
 							ct = await com_link.handleCmd({type:"toCom",job:"startPassoa",cfg:cfg});
+							if(ct.ret)await com_link.handleCmd({type:"toCom",job:"closeCom"});
 						}else{
 							ct = await com_link.handleCmd({type:"toCom",job:"sendData",info:{name:"da_arm",cmd:"start_arm_server",msg:cfg.da_server}});
 						}
@@ -207,10 +208,10 @@ export class Device_mgr{
 		});
 	}
 	private async checkADB(){
-		let result:number = 0;
+		let result:any = {ret:0};
 		let enter_shell:any = await this.startByADB("shell",false,1000);
 		if(enter_shell.ret){
-			result = 1;
+			result = {ret:1};
 			ADB.endADB();
 		}
 		return new Promise(resolve => {

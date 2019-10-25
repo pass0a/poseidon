@@ -12,42 +12,38 @@
         <el-table :data="caseData" style="width: 100%" size="mini" stripe border ref="caseResultTable">
             <el-table-column label="用例ID" prop="case_id" resizable></el-table-column>
             <el-table-column label="测试次数" prop="case_mode" resizable></el-table-column>
-            <el-table-column label="测试结果" prop="briefResl" resizable>
+            <el-table-column label="测试结果" prop="result" resizable>
                 <template>
-                    <span><strong><font size="2" :color="getColor()">{{ getResultTitle() }}</font></strong></span>
+                    <span><strong><font size="2" :color="caseData.length&&!caseData[0].result?'#67C23A':'#F56C6C'">{{ caseData.length&&!caseData[0].result?"OK":"NG" }}</font></strong></span>
                 </template>
             </el-table-column>
-            <!-- <el-table-column label="操作" width="200">
+            <el-table-column label="操作" width="200" v-if="caseData.length&&caseData[0].result">
                 <template slot-scope="scope">
-                    <button class="button" @click="replayCase(scope.$index)" disabled>重新执行</button>
-                    <button class="button" @click="replayCase(scope.$index)" disabled>重新截图</button>
+                    <!-- <el-button type="primary" size="mini" @click="replayCase(scope.$index)" disabled>重新执行</el-button> -->
+                    <el-button type="primary" size="mini" @click="retakeImg(scope.$index)" :disabled="checkAct(scope.$index)">重新截图</el-button>
                 </template>
-            </el-table-column> -->
+            </el-table-column>
         </el-table>
         <div style="margin:10px 0px 0px 10px;" v-if="caseData.length">
             <span><font size="2"><strong>自动化测试步骤</strong></font></span>
             <Steps direction="vertical">
-				<Step v-for="(it,idx) in caseData[0].case_steps" :key="idx" :title="getStepTitleOrStatus(0,idx)" :content="showStep(it)" :status="getStepTitleOrStatus(1,idx)"></Step>
+				<Step v-for="(it,idx) in caseData[0].case_steps" :key="idx" :title="getStepTitle(idx,caseData[0].case_mode)" :content="showStep(it)" :status="getStepStatus(idx,caseData[0].case_mode)"></Step>
 			</Steps>
-            <div v-if="caseData[0].case_mode==1">
-                <div v-if="caseData[0].match!=undefined">
-                    <span><font size="2"><strong>当前匹配度 : {{caseData[0].match}}</strong></font></span><br/>
-                </div>
-                <div v-if="caseData[0].briefResl>0&&caseData[0].image!=undefined&&caseData[0].image!=''">
+            <div v-if="showFailImg()">
+                <div>
+                    <span><font size="2"><strong>当前匹配度 : {{info.match}}</strong></font></span><br/>
                     <span><font size="2"><strong>截图对比</strong></font></span><br/>
-                    <img :src="'http://127.0.0.1:6003/'+'?action=image&image='+caseData[0].image+'&id='+imgreq" style="max-width:100%;max-height:100%;"/>
-                    <img :src="'http://127.0.0.1:6003/'+'?action=image&image='+caseData[0].screen+'&id='+scrreq" style="max-width:100%;max-height:100%;"/>
-                </div>
-                <div v-if="caseData[0].briefResl>0&&caseData[0].image==''">
-                    <img id="screen" src="/src/assets/nopic.png" :draggable="false">
+                    <img :src="'http://127.0.0.1:6003/'+'?action=image&image='+info.image+'&id='+imgreq" style="max-width:100%;max-height:100%;"/>
+                    <img :src="'http://127.0.0.1:6003/'+'?action=image&image='+info.screen+'&id='+scrreq" style="max-width:100%;max-height:100%;"/>
                 </div>
             </div>
-            <div v-else>
+            <div v-show="caseData[0].case_mode>1">
                 <span><font size="2"><strong>测试结果</strong></font></span><br/>
-                <span style="margin:10px 10px 10px 10px">共{{caseData[0].case_mode}}次循环 [ <font color="green">通过：{{caseData[0].case_mode-caseData[0].results.length}}次</font> | <font color="red">失败：{{caseData[0].results.length}}次</font> ] </span>
-                <div v-for="(it,idx) in caseData[0].results" style="margin:5px 5px 10px 10px" :key="idx">
-                    <span><font color="red">第{{it.runNum+1}}次循环测试中: {{it.stepNum+1}}.{{ showStep(caseData[0].case_steps[it.stepNum]) }}</font></span>
-                </div>
+                <span style="margin:10px 10px 10px 10px"><font size="2"><strong>{{ showLoopResult() }}</strong></font></span>
+                <el-table :data="retData" style="width: 100%" height="200" size="mini" border>
+                    <el-table-column label="循环次数序号" prop="loop_id" resizable></el-table-column>
+                    <el-table-column label="失败步骤序号" prop="fail_id" resizable></el-table-column>
+                </el-table>
             </div>
         </div>
         <div slot="footer">
@@ -60,19 +56,43 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 @Component
 export default class CaseResultView extends Vue {
     private caseData:any=[];
+    private retData:any=[];
     private freqtype:any=new Map([["0","大于"],["1","等于"]]);
-    private stepTitle:any=["未执行","执行成功","执行失败","网络异常","摄像头异常"];
+    private stepTitle:any=["未执行","执行成功","执行失败","网络异常","摄像头异常","无图片"];
     private stepStatus:any=["wait","finish","error","error","error"];
     private imgreq:any=0;
     private scrreq:any=0;
+    private info:any={match:0,image:"",screen:""};
+    private retakeAction = ["click","assert_pic","assert_pto"];
     get showflag(){
         if(this.$store.state.report_info.showflag){
-            this.caseData=[];
+            this.caseData = [];
+            this.retData = [];
             this.caseData.push(this.$store.state.report_info.case_data);
+            this.setRetData(this.$store.state.report_info.case_data);
             this.imgreq++;
             this.scrreq++;
         }
         return this.$store.state.report_info.showflag;
+    }
+    private setRetData(data:any){
+        if(data.case_mode>1){
+            for(let i=0;i<data.fail_info.length;i++){
+                this.retData.push({loop_id:data.fail_info[i].case_loop_idx+1,fail_id:data.fail_info[i].case_idx+1});
+            }
+        }
+    }
+    private showFailImg(){
+        if(this.caseData.length&&this.caseData[0].result==1){
+            let info = this.caseData[0].fail_info[0].case_loop_ret[0];
+            if(this.caseData[0].case_mode==1&&info.step_loop_ret==1){
+                if(info.step_loop_info&&info.step_loop_info.image){
+                    this.info = info.step_loop_info;
+                    return true;
+                }
+            }
+        }
+        return false;
     }
     private cancel(){
         this.$store.state.report_info.showflag=false;
@@ -80,23 +100,83 @@ export default class CaseResultView extends Vue {
     private ok(){
         this.$store.state.report_info.showflag=false;
     }
-    private replayCase(){
-
+    private retakeImg(idx:number){
+        let data = this.caseData[0];
+        let fail_idx = data.fail_info[0].case_idx;
+        let fail_info:any = data.case_steps[fail_idx];
+        fail_info.screen = data.fail_info[0].case_loop_ret[0].step_loop_info.screen;
+        fail_info.image = data.fail_info[0].case_loop_ret[0].step_loop_info.image;
+        if(this.checkID(fail_info.id)){
+            this.$store.state.alert_info.type = 7;
+            this.$store.state.alert_info.info = fail_info;
+            this.$store.state.alert_info.showflag = true;
+        }else{
+            this.$notify({title:"图片信息获取失败!",message:"",type:'error',duration:1500});
+        }
     }
-    private getStepTitleOrStatus(type:number,idx:any){
+    private checkID(id:string){
+        let binding_flag = this.$store.state.steps_info.bindlist[id]?true:false;
+        let res_flag = this.$store.state.steps_info.reslist[id]?true:false;
+        return binding_flag&&res_flag;
+    }
+    private checkAct(idx:number){
         if(this.caseData.length){
-            let content = type?this.stepStatus:this.stepTitle;
             let data = this.caseData[0];
-            if(data.briefResl!=undefined){
-                if(data.briefResl==0) return content[1];
-                else if(data.briefResl==-1) return content[0];
-                else{
-                    let error_idx = data.results[0].stepNum;
-                    if(error_idx > idx) return content[1];
-                    else if(error_idx == idx) return data.briefResl==4?content[4]:(data.briefResl==2?content[3]:content[2]);
-                    else return content[0];
+            let fail_idx = data.fail_info[0].case_idx;
+            let fail_act = data.case_steps[fail_idx].action;
+            let step_ret = data.fail_info[0].case_loop_ret[0].step_loop_ret;
+            if(fail_idx==idx && this.retakeAction.indexOf(fail_act)>-1 && step_ret==1){
+                return false;
+            }
+        }
+        return true;
+    }
+    private getStepTitle(idx:any,count:number){
+        if(this.caseData.length){
+            if(count>1) return "";
+            let data = this.caseData[0];
+            if(!data.result){
+                return "执行成功";
+            }else{
+                let fail_idx = data.fail_info[0].case_idx;
+                if(fail_idx > idx) return "执行成功";
+                else if(fail_idx == idx){
+                    if(data.fail_info[0].case_loop_ret>1){
+
+                    }else{
+                        if(data.case_steps[fail_idx].loop!=undefined&&data.case_steps[fail_idx].loop>1){
+                            return "执行失败 ( 失败次数为"+data.fail_info[0].case_loop_ret.length + " )";
+                        }else{
+                            let step_ret = data.fail_info[0].case_loop_ret[0].step_loop_ret;
+                            switch(step_ret){
+                                case 1:
+                                    return "执行失败";
+                                case 2:
+                                    return "网络异常";
+                                case 4:
+                                    return "摄像头异常";
+                                case 5:
+                                    return "无图片";
+                            }
+                        }
+                    }
                 }
-            }else return content[0];
+                else return "未执行";
+            }
+        }
+    }
+    private getStepStatus(idx:any,count:number){
+        if(this.caseData.length){
+            if(count>1) return "process";
+            let data = this.caseData[0];
+            if(!data.result){
+                return "finish";
+            }else{
+                let fail_idx = data.fail_info[0].case_idx;
+                if(fail_idx > idx) return "finish";
+                else if(fail_idx == idx) return "error";
+                else return "wait";
+            }
         }
     }
     private showStep(it:any){
@@ -122,30 +202,8 @@ export default class CaseResultView extends Vue {
         let name = this.$store.state.steps_info.reslist[id];
         return name!=undefined?name:id+"(已删除)";
     }
-    private getColor(){
-        if(this.caseData.length==0)return "";
-        if(this.caseData[0].case_mode==1){
-            return this.caseData[0].briefResl!=undefined?(this.caseData[0].briefResl!=-1?(this.caseData[0].briefResl==0?'#67C23A':'#F56C6C'):'#bbbec4'):'#bbbec4';
-        }else{
-            if(this.caseData[0].results.length){
-                return '#F56C6C';
-            }else{
-                return this.caseData[0].briefResl!=undefined?(this.caseData[0].briefResl!=-1?'#67C23A':'#bbbec4'):'#bbbec4';
-            }
-        }
-    }
-    private getResultTitle(){
-        if(this.caseData.length==0)return "";
-        if(this.caseData[0].case_mode==1){
-            return this.caseData[0].briefResl!=undefined?(this.caseData[0].briefResl!=-1?(this.caseData[0].briefResl==0?'OK':'NG'):'NotTest'):'NotTest';
-        }else{
-            if(this.caseData[0].results.length){
-                return 'NG';
-            }else{
-                return this.caseData[0].briefResl!=undefined?(this.caseData[0].briefResl!=-1?'OK':'NotTest'):'NotTest';
-            }
-        }
-         
+    private showLoopResult(){
+        return "共" + this.caseData[0].case_mode + "次循环, 失败次数为 " +  this.caseData[0].fail_info.length;
     }
 }
 </script>

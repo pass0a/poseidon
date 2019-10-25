@@ -4,21 +4,26 @@ import { Test_mgr } from "./mgr_test";
 import { Web_mgr } from "./mgr_web";
 import { Device_mgr } from "./mgr_device";
 import { Com_mgr } from "./mgr_com";
+import { DB_mgr } from "./mgr_db";
+
 class Linkmgr {
 	private lk:any = [];
 	private app = net.createServer((c:any) =>{
+		console.log("CONNECT---->");
 		let pos:any = new pack.unpackStream();
 		let pis:any = new pack.packStream();
 		pos.on('data', (data:any) => {
 			this.handleCmd(data,pis,pos,c);
 		});
 		pis.on('data', (data:any) => {
+			// console.log(data);
 			c.write(data);
 		});
 		c.on('data', (data:any) => {
 			pos.write(data);
 		});
 		pis.write({ type: 'init' });
+		// console.log(pis);
 	});
 
 	handleCmd(obj:any,pis:any,pos:any,c:any){
@@ -45,6 +50,9 @@ class Linkmgr {
 						break;
 					case 'com':
 						link_obj = new Com_mgr();
+						break;
+					case 'db':
+						link_obj = new DB_mgr();
 						break;
 					default:
 						pis.write({ type: 'auth', state: 'fail', msg: 'Unknow object!!!' });

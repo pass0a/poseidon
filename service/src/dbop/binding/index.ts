@@ -1,4 +1,5 @@
 import { getModel } from "./model";
+import { getEnabledCategories } from "trace_events";
 
 function getList(data:any,pis:any,BindingModel:any){
     BindingModel.aggregate([
@@ -91,6 +92,15 @@ function copyPrj(data:any,pis:any,BindingModel:any){
     });
 }
 
+function getDoc(data:any,pis:any,BindingModel:any) {
+    BindingModel.findOne({id:data.info.id},{_id:0,__v:0,date:0},(err:any,msg:any) => {
+        if(!err){
+            data.data = JSON.parse(JSON.stringify(msg)).content;
+            pis.write(data);
+        }
+    });
+}
+
 function disposeData(data:any,pis:any){
     let BindingModel = getModel(data.info.prjname+"_binding");
     switch(data.job){
@@ -106,15 +116,11 @@ function disposeData(data:any,pis:any){
         case "remove_id":
             removeID(data,pis,BindingModel);
             break;
-        case "startTest":
-                console.log("bind start");
-            getList(data,pis,BindingModel);
-            break;
-        case "replayTest":
-            getList(data,pis,BindingModel);
-            break;
         case "copy":
             copyPrj(data,pis,BindingModel);
+            break;
+        case "getDoc":
+            getDoc(data,pis,BindingModel);
             break;
         default:
             break;

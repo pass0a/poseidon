@@ -180,17 +180,17 @@ export class Server {
 				this.send(data);
 				break;
 			case 'readStopinfo':
-				let stopinfoPath = this.dirPath + data.prjname + '/stopinfo.json';
+				let stopinfoPath = this.dirPath + data.prjname + '/stopInfo.json';
 				data.info = false;
 				if(fs.existsSync(stopinfoPath)){
 					let rj = new util.TextDecoder().decode(fs.readFileSync(stopinfoPath));
 					let stopinfo = JSON.parse(rj);
-					if(stopinfo.idx>-1)data.info = true;
+					if(stopinfo.sid>0)data.info = true;
 				}
 				this.send(data);
 				break;
 			case 'startTest':
-				this.todb.send(data);
+				this.tolink.send(data);
 				break;
 			case 'stopTest':
 				this.tolink.send(data);
@@ -199,9 +199,14 @@ export class Server {
 				this.tolink.send(data);
 				break;
 			case 'replayTest':
-				let stopPath = this.dirPath + data.info.prjname + '/stopinfo.json';
-				fs.writeFileSync(stopPath, JSON.stringify({idx:-1,gid:-1}));
-				this.todb.send(data);
+				let stopPath = this.dirPath + data.info.prjname + '/stopInfo.json';
+				fs.writeFileSync(stopPath, JSON.stringify({sid:0,mid:0}));
+				this.tolink.send(data);
+				break;
+			case 'clearStopInfo':
+				let clearPath = this.dirPath + data.info.prjname + '/stopInfo.json';
+				fs.writeFileSync(clearPath, JSON.stringify({sid:0,mid:0}));
+				this.send(data);
 				break;
 			case 'syncRemote':
 				this.tolink.send(data);
@@ -233,6 +238,9 @@ export class Server {
 					fs.writeFileSync(testPhotoPath+"/tmp.png",data.info.img_data);
 				}
 				data.info = data.info.ret;
+				this.tolink.send(data);
+				break;
+			case 'reTakeImg':
 				this.tolink.send(data);
 				break;
 		}

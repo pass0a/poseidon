@@ -12,6 +12,7 @@ let latestVersion :any = {
     "qg_box" : "QG BOX",
     "group" : "组合步骤",
     "adb_cmd" : "ADB指令",
+    "pcan" : "PCAN",
     "freq" : "FREQ",
     "operate_tool-1" : "打开",
     "operate_tool-2" : "关闭",

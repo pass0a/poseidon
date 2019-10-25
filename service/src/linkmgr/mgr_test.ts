@@ -1,4 +1,6 @@
 import * as pack from "@passoa/pack";
+import QGBox from './res/qgbox/index';
+import Pcan from './res/pcan/index';
 
 export class Test_mgr{
 	private pos:any = new pack.unpackStream();
@@ -42,14 +44,49 @@ export class Test_mgr{
 				let to_web = this.link.getLink('web', 'web');
 				if(to_web)to_web.sendToWebServer(obj);
 				break;
+			case 'toDB':
+				let to_db = this.link.getLink('db', 'db');
+				if(to_db)to_db.sendCmd(obj);
+				break;
+			case "toQgBox":
+				let qbbox_ret = await QGBox.sendBoxApi(obj.info.module, 0, obj.info.cfg);
+				this.disposedCompleted(obj.type, qbbox_ret);
+				break;
+			case "toPcan":
+				this.disposedPcanCmd(obj,obj.info);
+				break;
 			default:
 				break;
 		}
 	};
 
+	private disposedPcanCmd(obj:any,info:any){
+		let ret:any;
+		switch(obj.job){
+			case "open":
+				ret = Pcan.open(info,(ev:any,data:any)=>{
+					// console.log(ev,data);
+				});
+				break;
+			case "send":
+				Pcan.send(obj.data.data,obj.data.id);
+				ret = 1;
+				break;
+			case "close":
+				Pcan.close();
+				ret = 1;
+				break;
+		}
+		this.disposedCompleted(obj.type, {ret:ret});
+	}
+
 	private disposedCompleted(type:any, data:any) {
 		this.pis.write({ type: type, data: data });
 	};
+
+	sendCmd(info:any){
+		this.pis.write(info);
+	}
 
 	create(c:any,obj:any,link:any){
 		this.intc = c;
