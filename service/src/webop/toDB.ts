@@ -16,7 +16,6 @@ export class ToDB {
 	public inst: any;
 	private ser: any;
 	private tolink: any;
-	private req_start_flag : any = 0;
 	private ctflag:boolean = false;
 	constructor() {
 		this.pis.on('data', (data: any) => {
@@ -31,19 +30,19 @@ export class ToDB {
 			this.ser = ser;
 			this.tolink = toLink;
 			let config_info = this.readConfig();
+			this.closeOnEvent();
 			this.inst = net.connect(config_info.port, config_info.ip,() => {
-				this.inst.on('data', (data: any) => {
-					this.pos.write(data);
-				});
 				console.info('connect DB_Server success!');
 				this.ctflag = true;
 				resolve(true);
+			});
+			this.inst.on('data', (data: any) => {
+				this.pos.write(data);
 			});
 			this.inst.on('close', () => {
 				console.info('close DB_Server_connect!');
 			});
 			this.inst.on('error', () => {
-				this.inst = null;
 				if(this.ctflag){
 					this.ctflag = false;
 					this.ser.connect_status.db = 2;
@@ -55,11 +54,6 @@ export class ToDB {
 		});
 	}
 	send(cmd: any) {
-		if(cmd.type=="toSer"){
-			if(cmd.job=="startTest"||cmd.job=="replayTest"){
-				this.req_start_flag = 0;
-			}
-		}
 		this.pis.write(cmd);
 	}
 	close() {
@@ -69,6 +63,13 @@ export class ToDB {
 			this.inst.destroy();
 			resolve(0);
 		});
+	}
+	private closeOnEvent(){
+		if(this.inst){
+			this.inst.removeAllListeners('data');
+			this.inst.removeAllListeners('close');
+			this.inst.removeAllListeners('error');
+		}
 	}
 	private handle(data: any) {
 		// console.log('toDB_rev:', data);
@@ -102,15 +103,6 @@ export class ToDB {
 					break;
 			}
 			if(this.ser.inst)this.ser.send(data);
-		}else if(data.type=='toSer'){
-			let filename = this.prjdir + data.info.prjname + '/'+ data.route +'.json';
-			fs.writeFileSync(filename, data.info.data);
-			this.req_start_flag++;
-			console.log(data.route);
-			if(this.req_start_flag==5){
-				this.tolink.send({type:data.type,job:data.job,info:{prjname:data.info.prjname}});
-				console.log("================");
-			}
 		}
 	}
 	private readConfig() {

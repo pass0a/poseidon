@@ -2,7 +2,7 @@ import { getModel } from "./model";
 import * as mongodb from "mongodb";
 
 function getTotal(data:any,pis:any,CaseModel:any){
-    CaseModel.count({case_module:data.info.module},function(err:any,count:any){
+    CaseModel.countDocuments({case_module:data.info.module},function(err:any,count:any){
         if(!err){
             data.info.count = count;
             pis.write(data);
@@ -25,10 +25,10 @@ function getList(data:any,pis:any,CaseModel:any){
             "__v":0,"c_status._id":0,"c_status.__v":0,"c_status.cid":0,"c_status.uid":0
         }},
         {$sort:{
-            "case_module":1,"case_id":1
+            "case_id":1
         }},
         {$skip : data.info.skip},
-        {$limit: 20}
+        {$limit: data.info.limit}
     ],function(err:any,docs:any){
         if(!err){
             for(let ca of docs){
@@ -152,6 +152,27 @@ function copyPrj(data:any,pis:any,CaseModel:any){
     });
 }
 
+function editInReport(data:any,pis:any,CaseModel:any) {
+    CaseModel.aggregate([
+        {$match:{
+            case_id : data.info.case_id
+        }},
+        {$project:{
+            "__v":0
+        }},
+    ],function(err:any,msg:any){
+        if(!err){
+            if(msg.length){
+                data.info.ret = true;
+                data.info.data = JSON.stringify(msg[0]);
+            }else{
+                data.info.ret = false;
+            }
+            pis.write(data);
+        }
+    });
+}
+
 function objectIDtoString(buffer:any){
     let str:string = "";
     for(let buf of buffer){
@@ -194,6 +215,9 @@ function disposeData(data:any,pis:any){
             break;
         case "total":
             getTotal(data,pis,CaseModel);
+            break;
+        case "editInReport":
+            editInReport(data,pis,CaseModel);
             break;
         default:
             break;

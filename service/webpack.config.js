@@ -23,7 +23,9 @@ const nodeConfig = {
 	entry: {
 		app: './src/main.ts',
 		test: './src/testop/main.ts'
-		
+
+		// candbc: './src/candbc/main.ts'
+
 		// link: './src/linkmgr/main.ts',
 		// server : './src/server/main.ts',
 		// db:'./src/dbop/main.ts',
@@ -81,7 +83,9 @@ const nodeConfig = {
 	},
 	externals: {
 		'@passoa/img': '@passoa/img',
-		'@passoa/cvip': '@passoa/cvip'
+		'@passoa/cvip': '@passoa/cvip',
+		'@passoa/dbcc': '@passoa/dbcc',
+		'@passoa/pcan': '@passoa/pcan'
 	},
 	devtool: 'source-map',
 	target: 'node',

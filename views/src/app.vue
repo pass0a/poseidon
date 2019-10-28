@@ -16,6 +16,10 @@ import { constants } from 'crypto';
 export default class App extends Vue {
     private ws: any = null;
     private idn:number = 0;
+    private callBackInfo:any = {
+        current_act : "",
+        openPrj : 0
+    };
     created() {
         pis.on("data", (data: any) => {
             this.ws.send(data);
@@ -148,7 +152,12 @@ export default class App extends Vue {
             case "readStopinfo":
                 this.$store.state.test_info.stopflag = 0;
                 this.$store.state.test_info.stopflag = data.info;
+                this.$store.state.test_info.stopStatus = data.info;
                 this.$store.state.req_info.refresh_rl = 0;
+                this.revDataEnd();
+                break;
+            case "clearStopInfo":
+                this.$store.state.test_info.stopflag = false;
                 break;
             case "syncRemote":
                 this.$store.state.screen_info.status = data.info.msg.ret;
@@ -186,6 +195,14 @@ export default class App extends Vue {
                 break;
             case "savePhoto":
                 this.$store.state.camera_info.save_count++;
+                break;
+            case "reTakeImg":
+                this.$store.state.alert_info.showflag = false;
+                if(data.info){
+                    this.$notify({title: '重新截图成功',message: '', type: 'success',duration:1500});
+                }else{
+                    this.$notify({title: '重新截图失败',message: '', type: 'error',duration:1500});
+                }
                 break;
         }
     }
@@ -258,6 +275,12 @@ export default class App extends Vue {
                     this.$notify({title: '项目创建成功!',message: '', type: 'success',duration:1500});
                 }
                 break;
+            case "results":
+                this.revToDB_results(data);
+                break;
+            case "pcan":
+                this.revToDB_pcan(data);
+                break;
         }
     }
     private revToDB_status(data:any){
@@ -289,6 +312,11 @@ export default class App extends Vue {
                 }
                 this.$store.state.app_info.pis.write(d_req);
                 this.$notify({title: '当前模块全部用例已关闭!',message: '', type: 'success',duration:1500});
+                break;
+            case "openNgCases":
+                this.$store.state.editcase_info.refresh_data = true;
+                this.$store.state.app_info.pis.write({type:"toDB",route:"cases",job:"total",info:{prjname:data.info.prjname,module:data.info.module}});
+                this.$notify({title: '上次NG用例共 '+data.info.count+" 条, 正在在开启" ,message: '', type: 'success',duration:1500});
                 break;
         }
     }
@@ -401,6 +429,15 @@ export default class App extends Vue {
                     this.$store.state.editcase_info.refresh_data = false;
                 }
                 break;
+            case "editInReport":
+                if(data.info.ret){
+                    this.$store.state.case_info.type = 1;
+                    this.$store.state.case_info.data = JSON.parse(data.info.data);
+                    this.$store.state.case_info.showflag = true; 
+                }else{
+                    this.$notify({title: '用例已被删除无法进行修改!',message: '', type: 'error',duration:1500});
+                }
+                break;
         }
     }
     private revToDB_res(data:any){
@@ -416,6 +453,7 @@ export default class App extends Vue {
                 this.$store.state.steps_info.reslist=reslist;
                 this.$store.state.req_info.refresh_rl++;
                 if(this.$store.state.req_info.refresh_rl == 2)this.$store.state.id_info.count++;
+                this.revDataEnd();
                 break;
             case "add":
                 if(data.info){
@@ -440,13 +478,14 @@ export default class App extends Vue {
                 }
                 break;
             case "update_version":
+                this.callBackInfo.current_act = "openPrj";
+                this.callBackInfo.openPrj = 0;
                 this.$store.state.project_info.current_prj = data.info.prjname;
                 this.$store.state.editcase_info.refresh_data = true;
                 pis.write({type:"toDB",route:"res",job:"list",info:{prjname:data.info.prjname}});
                 pis.write({type:"toDB",route:"rule",job:"list",info:{prjname:data.info.prjname}});
                 pis.write({type:"toDB",route:"binding",job:"list",info:{prjname:data.info.prjname}});
                 pis.write({type:"toSer",job:"readStopinfo",prjname:data.info.prjname});
-                this.$store.state.project_info.openflag = false;
                 break;
         }
     }
@@ -463,6 +502,7 @@ export default class App extends Vue {
                 this.$store.state.steps_info.rulelist=rulelist;
                 this.$store.state.req_info.refresh_rl++;
                 if(this.$store.state.req_info.refresh_rl == 2)this.$store.state.id_info.count++;
+                this.revDataEnd();
                 break;
             case "add":
                 let a_req = {
@@ -482,8 +522,11 @@ export default class App extends Vue {
                 else if(data.info.msg.grouplist&&data.info.msg.id.indexOf('group')>-1){
                     pis.write({type:"toDB",route:"group",job:"add",info:data.info});
                 }
-                else if(data.info.msg.id.indexOf('adb_cmd')>-1,data.info.msg.sd!=undefined){
+                else if(data.info.msg.id.indexOf('adb_cmd')>-1&&data.info.msg.sd!=undefined){
                     pis.write({type:"toDB",route:"adb",job:"add",info:data.info});
+                }
+                else if(data.info.msg.id.indexOf('pcan')>-1&&data.info.msg.data!=undefined){
+                    pis.write({type:"toDB",route:"pcan",job:"add",info:data.info});
                 }
                 break;
             case "remove_id":
@@ -495,13 +538,14 @@ export default class App extends Vue {
                 if(data.info.upflag){
                     pis.write({type:"toDB",route:"res",job:"update_version",info:data.info});
                 }else{
+                    this.callBackInfo.current_act = "openPrj";
+                    this.callBackInfo.openPrj = 0;
                     this.$store.state.project_info.current_prj = data.info.prjname;
                     this.$store.state.editcase_info.refresh_data = true;
                     pis.write({type:"toDB",route:"res",job:"list",info:{prjname:data.info.prjname}});
                     pis.write({type:"toDB",route:"rule",job:"list",info:{prjname:data.info.prjname}});
                     pis.write({type:"toDB",route:"binding",job:"list",info:{prjname:data.info.prjname}});
                     pis.write({type:"toSer",job:"readStopinfo",prjname:data.info.prjname});
-                    this.$store.state.project_info.openflag = false;
                 }
                 break;
         }
@@ -575,6 +619,7 @@ export default class App extends Vue {
                     };
                 }
                 this.$store.state.steps_info.bindlist=bindlist;
+                this.revDataEnd();
                 break;
             case "add":
                 pis.write({type:"toDB",route:"binding",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
@@ -615,6 +660,69 @@ export default class App extends Vue {
                 break;
             case "modify":
                 pis.write({type:"toDB",route:"adb",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                break;
+        }
+    }
+    private revToDB_results(data:any){
+        switch(data.job){
+            case "total":
+                this.$store.state.report_info.refresh_data = true;
+                this.$store.state.report_info.module_total = data.info.count;
+                if(data.info.count>0){
+                    let l_req = {
+                        type : "toDB",
+                        route : "results",
+                        job : "list",
+                        info : {prjname:this.$store.state.project_info.current_prj,module:data.info.module,skip:0,limit:this.$store.state.editcase_info.limit}
+                    }
+                    this.$store.state.app_info.pis.write(l_req);
+                }else{
+                    this.$store.state.report_info.data = [];
+                    this.$store.state.report_info.refresh_data = false;
+                }
+                break;
+            case "list":
+                this.$store.state.report_info.refresh_data = false;
+                this.$store.state.report_info.data = JSON.parse(data.info);
+                break;
+            case "info":
+                this.$store.state.report_info.info = data.info
+                break;
+        }
+    }
+    private revToDB_pcan(data:any){
+        switch (data.job) {
+           case "list":
+                let list=JSON.parse(data.info.data);
+                let pcanlist:any={};
+                for(let i=0;i<list.length;i++){
+                    let id=list[i].id;
+                    pcanlist[id]=list[i].content;
+                }
+                this.$store.state.steps_info.pcanlist=pcanlist;
+                break;
+            case "add":
+                if(data.info){
+                    pis.write({type:"toDB",route:"pcan",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                }
+                break;
+            case "remove_id":
+                pis.write({type:"toDB",route:"pcan",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                break;
+            case "modify":
+                pis.write({type:"toDB",route:"pcan",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+                break;
+            default:
+                break;
+        }
+    }
+    private revDataEnd(){
+        switch (this.callBackInfo.current_act) {
+            case "openPrj":
+                this.callBackInfo.openPrj++;
+                if(this.callBackInfo.openPrj == 4) this.$store.state.project_info.openflag = false;
+                break;
+            default:
                 break;
         }
     }

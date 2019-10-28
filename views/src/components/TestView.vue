@@ -99,6 +99,7 @@ export default class TestView extends Vue {
                 case 4:
                     if(this.testInfo.mode!=6)break;
                     this.$store.state.test_info.testing = false;
+                    this.$store.state.test_info.stopStatus = true;
                     this.statusTitle.t_status="已暂停";
                     this.statusColor.c_status="red";
                     this.statusColor.c_result_ok="#67C23A";
@@ -114,6 +115,7 @@ export default class TestView extends Vue {
                     break;
                 case 6:
                     this.$store.state.test_info.testing = false;
+                    this.$store.state.test_info.stopStatus = false;
                     this.statusTitle.t_status="测试完成";
                     this.statusColor.c_status="#409EFF";
                     this.statusColor.c_result_ok="#67C23A";
@@ -169,7 +171,7 @@ export default class TestView extends Vue {
                 break;
             case 5:
                 if(this.btnMode==3)break;
-                this.updateLogCmd(1,"用例ID : "+this.testInfo.info+" - - - >>> 开始执行 <<< - - - ");
+                this.updateLogCmd(1,"用例ID : "+this.testInfo.info+" - - - >>> 开始执行 <<< - - - 当前用例执行次数 : " + this.testInfo.count);
                 break;
             case 6:
                 this.btnMode=4;
@@ -251,7 +253,7 @@ export default class TestView extends Vue {
                 content = " ["+reslist[step.module]+"] "+reslist[step.id];
                 break;
         }
-        let step_log = action+" ==> "+content + "- - - 执行"+ (ret==0?"成功":"失败");
+        let step_log = action+" ==> "+content + "- - - 执行"+ (ret==0?"成功":"失败") + " [当前步骤执行次数 : " + data.count +"]";
         this.updateLogCmd(1,step_log);
     }
     private showErrorLog(){
@@ -264,6 +266,9 @@ export default class TestView extends Vue {
                 break;
             case 2:
                 this.updateLogCmd(1,"ADB异常!请检查ADB连接状态!!!");
+                break;
+            case 3:
+                this.updateLogCmd(1,"PCAN异常!请检查PCAN连接状态及配置信息!!!");
                 break;
         }
     }

@@ -1,6 +1,6 @@
 import { getModel } from "./model";
 
-let latestVersion = ["click","assert_pic","assert_pto","click_poi","slide","wait","operate_tool","button","qg_box","group","adb_cmd"];
+let latestVersion = ["click","assert_pic","assert_pto","click_poi","slide","wait","operate_tool","button","qg_box","group","adb_cmd","pcan"];
 
 function getList(data:any,pis:any,RuleModel:any){
     RuleModel.aggregate([

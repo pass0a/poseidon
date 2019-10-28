@@ -19,7 +19,7 @@ class ADB{
         this.adb_cmd.stderr.removeAllListeners("data");
         this.adb_cmd.removeAllListeners("close");
         this.adb_cmd.stdout.on('data',(data:any) => {
-            // console.log('ADB-OUT:', data);
+            console.log('ADB-OUT:', data);
             callback({ret:1,data:data});
         });
         this.adb_cmd.stderr.on('data',(err:any) => {

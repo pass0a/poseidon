@@ -70,12 +70,18 @@ export default class AlertView extends Vue {
                 this.alertInfo.content="是否删除项目 : " + this.$store.state.alert_info.info + " ?";
                 this.alertInfo.btn="删除";
                 break;
+            case 7:
+                this.alertInfo.title="重新截图";
+                this.alertInfo.content="已获取 < "+ this.getResName(this.$store.state.alert_info.info.id) +" > 的图片信息是否在结果图中重新截取图片 ?";
+                this.alertInfo.btn="确定";
+                break;
             default:
                 break;
         }
     }
     private getResName(id:string){
-        return this.$store.state.steps_info.reslist[id];
+        let name = this.$store.state.steps_info.reslist[id];
+        return name!=undefined?name:id+"(已删除)";
     }
     private cancel(){
         this.$store.state.alert_info.showflag=false;
@@ -102,8 +108,7 @@ export default class AlertView extends Vue {
                 let s_info = {
                     type:1,
                     prjname:this.$store.state.project_info.current_prj,
-                    cid: this.$store.state.case_info.data._id,
-                    uid:this.$store.state.login_info._id
+                    cid: this.$store.state.case_info.data._id
                 };
                 this.sendReq("toDB","status","delete",s_info);
                 break;
@@ -128,6 +133,7 @@ export default class AlertView extends Vue {
                 }
                 else if(di_info.msg.id.indexOf("button")>-1)this.sendReq("toDB","buttons","remove_id",di_info);
                 else if(di_info.msg.id.indexOf("adb")>-1)this.sendReq("toDB","adb","remove_id",di_info);
+                else if(di_info.msg.id.indexOf("pcan")>-1)this.sendReq("toDB","pcan","remove_id",di_info);
                 else{
                     this.$store.state.req_info.remove_id = 2;
                     this.sendReq("toDB","binding","remove_id",di_info);
@@ -152,6 +158,18 @@ export default class AlertView extends Vue {
                 break;
             case 6:
                 this.$store.state.app_info.pis.write({type:"toDB",route:"removeAll",job:"removeAll",info:{prjname:this.$store.state.alert_info.info}});
+                break;
+            case 7:
+                let img_info = this.$store.state.alert_info.info;
+                let binding_info = this.$store.state.steps_info.bindlist[img_info.id];
+                let re_info = {
+                    prjname:this.$store.state.project_info.current_prj,
+                    msg:{
+                        img_info: img_info,
+                        binding_info: binding_info
+                    }
+                };
+                this.$store.state.app_info.pis.write({type:"toSer",job:"reTakeImg",info:re_info});
                 break;
         }
     }

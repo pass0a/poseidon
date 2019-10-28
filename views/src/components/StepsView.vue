@@ -18,15 +18,17 @@
                 <el-select placeholder="请选择" filterable size="small" style="width:75px" v-model="s_freqtype" v-show="s_action==boxType.act&&s_module==boxType.freq">
                     <el-option v-for="val in freqtype.keys()" :label="freqtype.get(val)" :value="val" :key="val"></el-option>
                 </el-select>
-                <el-input-number v-model="s_box" style="width:130px" controls-position="right" :min="2.529" size="small" v-show="s_module==boxType.freq"></el-input-number>
+                <el-input-number v-model="s_box" style="width:130px" controls-position="right" :min="0" size="small" v-show="s_module==boxType.freq"></el-input-number>
                 <el-select placeholder="请选择" filterable clearable  size="small" style="width:155px" v-model="s_clid" v-show="s_action!=waitType&&s_action!=boxType.act">
                     <el-option v-for="val in Clid" :key="val" :label="getResName(val)" :value="val"></el-option>
                 </el-select>
                 <Checkbox v-model="s_skip" v-show="s_action=='click'">不判断</Checkbox>
                 <el-input-number v-model="s_wait" controls-position="right" :min="0" size="small" v-show="s_action==waitType"></el-input-number>
-                <button class="steps_button" @click="onSet" v-show="s_action==waitType||s_module==boxType.freq">设置</button>
-                <button class="steps_button" @click="changeSel(2)" v-show="s_action!=waitType&&s_module!=boxType.freq">确定</button>
-                <button class="steps_button" style="background-color:#606266"  @click="initOp">取消</button>
+                <el-button-group>
+                    <el-button type="success" size="small" @click="onSet" v-show="s_action==waitType||s_module==boxType.freq">设置</el-button>
+                    <el-button size="small" @click="changeSel(2)" v-show="s_action!=waitType&&s_module!=boxType.freq">确定</el-button>
+                    <el-button type="info" size="small" @click="initOp">取消</el-button>
+                </el-button-group>
             </div>
             <div v-show="idx!=s_idx||s_op==1||s_op>=3">
                 <span><font size="2">{{ showStep(it) }}</font></span>
@@ -34,17 +36,21 @@
                     <i class="el-icon-edit"></i>
                 </a>
                 <span v-show="idx==s_idx&&s_op==1">
-                    <Button type="primary" size="small" @click="editStep(0,idx,it)">修改</Button>
-                    <Button type="success" size="small" @click="editStep(1,idx)">插入</Button>
-                    <Button type="error" size="small" @click="editStep(2,idx)">删除</Button>
-                    <Button type="info" size="small" @click="editStep(3,idx,it)">循环</Button>
-                    <Button type="warning" size="small" @click="showEditBtn(0)">取消</Button>
+                    <el-button-group>
+                        <el-button type="primary" size="mini" @click="editStep(0,idx,it)">修改</el-button>
+                        <el-button type="success" size="mini" @click="editStep(1,idx)">插入</el-button>
+                        <el-button type="danger" size="mini" @click="editStep(2,idx)">删除</el-button>
+                        <el-button type="info" size="mini" @click="editStep(3,idx,it)">循环</el-button>
+                        <el-button type="warning" size="mini" @click="showEditBtn(0)">取消</el-button>
+                    </el-button-group>
                 </span>
                 <span v-show="idx==s_idx&&s_op==4">
                     <el-input-number v-model="s_loop" style="width:100px" controls-position="right" :min="2" size="small" :precision="0"></el-input-number>
-                    <Button type="primary" size="small" @click="editLoop(0,it)">开启循环</Button>
-                    <Button type="error" size="small" @click="editLoop(1,it)">关闭循环</Button>
-                    <Button type="warning" size="small" @click="showEditBtn(0)">取消</Button>
+                    <el-button-group>
+                        <el-button type="primary" size="mini" @click="editLoop(0,it)">开启循环</el-button>
+                        <el-button type="danger" size="mini" @click="editLoop(1,it)">关闭循环</el-button>
+                        <el-button type="warning" size="mini" @click="showEditBtn(0)">取消</el-button>
+                    </el-button-group>
                 </span>
             </div>
         </ul>
@@ -62,7 +68,7 @@
             <el-select placeholder="请选择" filterable size="small" style="width:75px" v-model="s_freqtype" v-show="s_action==boxType.act&&s_module==boxType.freq">
                 <el-option v-for="val in freqtype.keys()" :label="freqtype.get(val)" :value="val" :key="val"></el-option>
             </el-select>
-            <el-input-number v-model="s_box" style="width:130px" controls-position="right" :min="2.529" size="small" v-show="s_module==boxType.freq"></el-input-number>
+            <el-input-number v-model="s_box" style="width:130px" controls-position="right" :min="0" size="small" v-show="s_module==boxType.freq"></el-input-number>
             <el-select placeholder="请选择" filterable clearable  size="small" style="width:155px" v-model="s_clid" v-show="s_action!=waitType&&s_action!=boxType.act" @change="changeSel(2)">
                 <el-option v-for="val in Clid" :key="val" :label="getResName(val)" :value="val" :disabled="checkBinding(0,val)">
                     <span style="float: left">{{ getResName(val) }}</span>
@@ -71,7 +77,7 @@
             </el-select>
             <Checkbox v-model="s_skip" v-show="s_action=='click'">不判断</Checkbox>
             <el-input-number v-model="s_wait" controls-position="right" :min="0" size="small" v-show="s_action==waitType"></el-input-number>
-            <button class="steps_button" @click="onSet" v-show="s_action==waitType||s_module==boxType.freq">设置</button>
+            <el-button type="success" size="small" @click="onSet" v-show="s_action==waitType||s_module==boxType.freq">设置</el-button>
         </div>
     </div>
 </template>
@@ -95,8 +101,9 @@ export default class StepsView extends Vue {
     private steplist:any=[];
     private waitType:string="wait";
     private boxType:any={act:"qg_box",freq:"freq"};
-    private clickType:any=new Map([["0","短按"],["1","长按"]]);
-    private freqtype:any=new Map([["0","大于"],["1","等于"]]);
+    private clickType:any = new Map([["0","短按"],["1","长按"]]);
+    private freqtype:any = new Map([["0","大于"],["1","等于"]]);
+    private wait_type:any = new Map([["0","固定"],["1","随机"]]);
     private op_data:any={
         type:0,
         id:""
@@ -299,18 +306,3 @@ export default class StepsView extends Vue {
     }
 }
 </script>
-<style>
-.steps_button {
-	background-color:#67C23A;
-	border: none;
-    border-radius: 4px;
-    color: white;
-    padding: 3px 12px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 14px;
-    margin: 4px 2px;
-    cursor: pointer;
-}
-</style>
