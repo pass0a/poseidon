@@ -127,6 +127,7 @@ steps:
     sourceFolder: '$(Build.ArtifactStagingDirectory)'
     contents: 'Poseidon*'
     targetFolder: '/root/public/poseidon'
+  condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
 
 - task: CopyFilesOverSSH@0
   inputs:
@@ -134,3 +135,4 @@ steps:
     sourceFolder: '$(Build.ArtifactStagingDirectory)'
     contents: 'Reveal*'
     targetFolder: '/root/public/reveal'
+  condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
