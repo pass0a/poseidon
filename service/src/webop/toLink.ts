@@ -20,15 +20,16 @@ export class ToLink {
 	connect(ser: Server) {
 		return new Promise((resolve) => {
 			this.ser = ser;
+			this.closeOnEvent();
 			this.inst = net.connect(6000, '127.0.0.1', () => {
 				console.info('Web_server_connect!');
-				this.inst.on('data', (data: any) => {
-					this.pos.write(data);
-				});
-				this.inst.on('close', () => {
-					console.info('close Web_server_connect!');
-				});
 				this.proCall=resolve;
+			});
+			this.inst.on('data', (data: any) => {
+				this.pos.write(data);
+			});
+			this.inst.on('close', () => {
+				console.info('close Web_server_connect!');
 			});
 			this.inst.on('error', () => {
 				if(this.c_flag){
@@ -42,6 +43,13 @@ export class ToLink {
 	}
 	send(obj: any): void {
 		this.pis.write(obj);
+	}
+	private closeOnEvent(){
+		if(this.inst){
+			this.inst.removeAllListeners('data');
+			this.inst.removeAllListeners('close');
+			this.inst.removeAllListeners('error');
+		}
 	}
 	private handle(data: any) {
 		switch(data.type){

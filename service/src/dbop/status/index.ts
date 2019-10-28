@@ -1,6 +1,51 @@
 import { getModel } from "./model";
 import { getCaseModel } from "../cases/model";
+import { getResultsModel } from "../results/model";
 import * as mongodb from "mongodb";
+
+function openNgCases(data:any,pis:any,StatusModel:any) {
+    let ResultsModel = getResultsModel(data.info.prjname+"_results");
+    ResultsModel.aggregate([
+        {$lookup:{
+            from:data.info.prjname+"_cases",
+            localField:"cid",
+            foreignField:"_id",
+            as:"cases"
+        }},
+        {$match:{
+            result : 1
+        }},
+        {$project:{
+            "_id":0,"__v":0,"uid":0,"cases.__v":0,"case_info":0
+        }}
+    ],function(err:any,docs:any){
+        if(!err){
+            let testlist = [];
+            for(let ca of docs){
+                if(ca.cases.length){
+                    testlist.push({
+                        module : ca.cases[0].case_module,
+                        cid : ca.cases[0]._id
+                    });
+                }
+            }
+            StatusModel.insertMany(testlist, function(err:any, msg:any) {
+                if(!err){
+                    data.info.count = testlist.length;
+                    pis.write(data);
+                }
+            });
+        }
+    });
+}
+
+function clear(data:any,pis:any,StatusModel:any){
+    StatusModel.deleteMany({},function(err:any){
+        if(!err){
+            openNgCases(data,pis,StatusModel);
+        }
+    });
+}
 
 function add(data:any,pis:any,StatusModel:any){
     let info:any = data.info;
@@ -43,8 +88,6 @@ function addModule(data:any,pis:any,StatusModel:any){
     });
 }
 
-
-
 function deleteModule(data:any,pis:any,StatusModel:any){
     let info = data.info;
     StatusModel.deleteMany({module:info.module},(err:any)=>{
@@ -77,7 +120,7 @@ function getTestList(data:any,pis:any,StatusModel:any){
         //     "uid":createObjectID(data.info.uid)
         // }},
         {$project:{
-            "_id":0,"__v":0,"cid":0,"uid":0,"cases._id":0,"cases.__v":0
+            "_id":0,"__v":0,"cid":0,"uid":0,"cases.__v":0,"cases.case_num":0,"cases.case_dam":0,"cases.case_name":0,"cases.case_level":0,"cases.case_pre":0,"cases.case_op":0,"cases.case_exp":0,"cases.case_assert":0,"cases.case_note":0
         }},
         {$sort:{
             "cases.case_module":1,"cases.case_id":1
@@ -88,8 +131,7 @@ function getTestList(data:any,pis:any,StatusModel:any){
             for(let ca of docs){
                 testlist.push(ca.cases[0]);
             }
-            data.route = "caselist";
-            data.info.data = JSON.stringify(testlist);
+            data.data = JSON.stringify(testlist);
             pis.write(data);
         }
     });
@@ -127,12 +169,11 @@ function disposeData(data:any,pis:any){
         case "module_delete":
             deleteModule(data,pis,StatusModel);
             break;
-        case "startTest":
-            console.log("stat start");
+        case "getTestCases":
             getTestList(data,pis,StatusModel);
             break;
-        case "replayTest":
-            getTestList(data,pis,StatusModel);
+        case "openNgCases":
+            clear(data,pis,StatusModel);
             break;
         default:
             break;

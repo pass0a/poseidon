@@ -81,9 +81,8 @@ export default class CameraView extends Vue {
             if(this.camera_status){
                 this.takeTestPhoto(video);
             }else{
-                let constraints = {video: {width: 600, height: 400},audio: true};
-                let promise = navigator.mediaDevices.getUserMedia(constraints);
-                promise.then((MediaStream)=> {
+                navigator.mediaDevices.getUserMedia({video: { width: 600, height: 400 }})
+                .then((MediaStream)=> {
                     video.srcObject = MediaStream;
                     video.play();
                     this.takeTestPhoto(video);
@@ -151,10 +150,9 @@ export default class CameraView extends Vue {
         this.openBtnStatus.disabled = true;
         this.openBtnStatus.icon = "el-icon-loading";
         this.openBtnStatus.title = "开启中...";
-        let constraints = {video: {width: 600, height: 400},audio: true};
         let video:any = document.getElementById("video");
-        let promise = navigator.mediaDevices.getUserMedia(constraints);
-        promise.then((MediaStream)=> {
+        navigator.mediaDevices.getUserMedia({video: { width: 600, height: 400 }})
+        .then((MediaStream)=> {
             video.srcObject = MediaStream;
             video.play();
             this.openBtnStatus.type = "success";

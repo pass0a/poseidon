@@ -1,7 +1,9 @@
 <template>
     <div>
         <el-link v-model="report" v-show="false"></el-link>
+        <el-link v-model="ResultInfo" v-show="false"></el-link>
         <el-link v-model="testStatus" v-show="false"></el-link>
+        <el-link v-model="showFirstModule" v-show="false"></el-link>
         <el-card class="box-card" shadow="never" style="margin:5px 10px 5px 10px;height:50px">
             <span><font size="3"><strong>测试开始时间: </strong></font></span>
             <span style="margin:0px 0px 0px 10px"><font size="2">{{report_info.startTime}}</font></span>
@@ -21,20 +23,29 @@
             <el-checkbox-group v-model="select_prop">
                 <el-checkbox v-for="it in case_prop_id" :label="it" :key="it">{{case_prop_name[it]}}</el-checkbox>
             </el-checkbox-group>
-            <el-table :data="current_data" style="width: 100%" height="365" size="mini" stripe border ref="reportTable">
+            <el-table :data="current_data" style="width: 100%" height="365" size="mini" stripe border ref="reportTable" v-loading="tableLoading">
                 <el-table-column type="index" label="No." width="50"></el-table-column>
                 <el-table-column v-for="it in isShowRow" :label="case_prop_name[it]" :key="it" :prop="it" resizable></el-table-column>
-                <el-table-column width="150" label="测试结果" prop="briefResl">
+                <el-table-column width="150" label="测试结果" prop="result">
 					<template slot-scope="scope">
-						<span><strong><font size="2" :color="scope.row.briefResl!=undefined?(scope.row.briefResl!=-1?(scope.row.briefResl==0?'#67C23A':'#F56C6C'):'#bbbec4'):'#bbbec4'">{{ scope.row.briefResl!=undefined?(scope.row.briefResl!=-1?(scope.row.briefResl==0?'OK':'NG'):'NotTest'):'NotTest' }}</font></strong></span>
+						<span><strong><font size="2" :color="!scope.row.result?'#67C23A':'#F56C6C'">{{ !scope.row.result?'OK':'NG' }}</font></strong></span>
 					</template>
 				</el-table-column>
-				<el-table-column label="操作" width="150">
+				<el-table-column label="操作" width="200">
 					<template slot-scope="scope">
-						<button class="button" @click="checkCase(scope.$index)">查看</button>
+						<button class="button" @click="checkCase(scope.$index)">查看用例</button>
+                        <button class="button" style="background-color:#4CAF50" @click="editCase(scope.$index)">修改用例</button>
 					</template>
 				</el-table-column>
             </el-table>
+            <el-pagination
+            @current-change="handleCurrentChange"
+            :current-page="curPage"
+            :page-size="pageSize"
+            layout="total, prev, pager, next, jumper"
+            :total="moduleTotal"
+            style="margin:10px 10px 0px 10px;float:right">
+            </el-pagination>
         </el-tabs>
         <div><CaseResultView/></div>
     </div>
@@ -56,10 +67,11 @@ export default class ReportView extends Vue {
     private case_prop_name:any=this.$store.state.case_prop_name;
     private select_prop:any=this.$store.state.init_checkbox;
     private test_status:any=false;
+    private pageSize = this.$store.state.editcase_info.limit;
+    private curPage = 1;
     get report(){
         if(this.$store.state.report_info.data!=""){
-            this.setReportInfo(this.$store.state.report_info.data.testInfo);
-            this.setReportData(this.$store.state.report_info.data.caseData);
+            this.setReportData(this.$store.state.report_info.data);
         }
         return;
     }
@@ -78,52 +90,87 @@ export default class ReportView extends Vue {
         if(this.$store.state.steps_info.rulelist.module)return this.$store.state.steps_info.rulelist.module;
         return [];
     }
+    get tableLoading(){
+        return this.$store.state.report_info.refresh_data;
+    }
+    get showFirstModule(){
+        this.current_case_module = this.$store.state.report_info.firstModule;
+        return;
+    }
+    get ResultInfo(){
+        if(this.$store.state.report_info.info!=""){
+            this.setReportInfo(this.$store.state.report_info.info);
+        }
+        return;
+    }
+    get moduleTotal(){
+        if(this.$store.state.report_info.module_total){
+            this.curPage = 1;
+        }else{
+            this.curPage = 0;
+            this.current_data = [];
+        }
+        return this.$store.state.report_info.module_total;
+    }
+    private handleCurrentChange(page:any){
+        this.curPage = page;
+        this.$store.state.report_info.refresh_data = true;
+        let l_req = {
+            type : "toDB",
+            route : "results",
+            job : "list",
+            info : {prjname:this.$store.state.project_info.current_prj,module:this.current_case_module,skip:this.$store.state.editcase_info.limit*(page-1),limit:this.$store.state.editcase_info.limit}
+        }
+        this.$store.state.app_info.pis.write(l_req);
+    }
     private getResName(id:any){
         let name = this.$store.state.steps_info.reslist[id];
         return name!=undefined?name:id+"(已删除)";
     }
     private setReportInfo(data:any){
         if(data!=null){
-            this.report_info.startTime = data.startTime;
-            this.report_info.endTime = data.endTime;
-            this.report_info.testTime = this.disposedTestTime(data);
-            this.report_info.ngCount = data.ngCount;
-            this.report_info.okCount = data.okCount;
-            this.report_info.passRate =  (data.okCount*100/(data.ngCount+data.okCount)).toFixed(2)+"%";
-        }else{
-            this.report_info.startTime = "";
-            this.report_info.endTime = "";
-            this.report_info.testTime = "";
-            this.report_info.ngCount = 0;
-            this.report_info.okCount = 0;
-            this.report_info.passRate = "";
+            this.report_info.startTime = data.startTime.toLocaleString().split('+')[0];;
+            this.report_info.endTime = data.endTime.toLocaleString().split('+')[0];
+            this.report_info.testTime = this.disposedTestTime(data.startTime,data.endTime);
+            this.report_info.ngCount = data.ng;
+            this.report_info.okCount = data.ok;
+            this.report_info.passRate =  (data.ok*100/(data.ng+data.ok)).toFixed(2)+"%";
         }
     }
-    private disposedTestTime(data:any){
+    private disposedTestTime(startTime:Date, endTime:Date){
+        let info:any={};
+        let value = endTime.getTime() - startTime.getTime();
+        info.days = Math.floor(value / (24 * 3600 * 1000));
+        let value1 = value % (24 * 3600 * 1000);
+        info.hours = Math.floor(value1 / (3600 * 1000));
+        let value2 = value1 % (3600 * 1000);
+        info.minutes = Math.floor(value2 / (60 * 1000));
+        let value3 = value2 % (60 * 1000);
+        info.seconds = Math.floor(value3 / 1000);
+        let value4 = value3 % 1000;
+        info.millisecond = value4;
+        //show
         let time_str="";
-        time_str+=data.days?data.days+"天":"";
-        time_str+=data.hours?data.hours+"小时":"";
-        time_str+=data.minutes?data.minutes+"分钟":"";
-        time_str+=data.seconds?data.seconds+"秒":"";
-        time_str+=data.millisecond?data.millisecond+"毫秒":"";
+        time_str+=info.days?info.days+"天":"";
+        time_str+=info.hours?info.hours+"小时":"";
+        time_str+=info.minutes?info.minutes+"分":"";
+        time_str+=info.seconds?info.seconds+"秒":"";
+        time_str+=info.millisecond?info.millisecond+"毫秒":"";
         return time_str;
     }
     private setReportData(data:any){
-        this.report_data={};
-        let firstModule;
+        this.current_data = [];
         for(let i=0;i<data.length;i++){
-            let case_module = data[i].case_module;
-            if(i==0){
-                this.current_case_module=case_module;
-                firstModule=case_module;
-            }
-            if(this.report_data[case_module]==undefined)this.report_data[case_module]=[];
-            this.report_data[case_module].push(data[i]);
+            let case_info:any = data[i].case_info;
+            case_info.result = data[i].result;
+            case_info.fail_info = data[i].fail_info;
+            this.current_data.push(case_info);
         }
-        this.current_data=this.report_data[firstModule];
     }
     private select_module(tab:any){
-        this.current_data=this.report_data[this.current_case_module];
+        this.$store.state.report_info.firstModule = this.current_case_module;
+        let c_pname = this.$store.state.project_info.current_prj;
+        this.$store.state.app_info.pis.write({type:"toDB",route:"results",job:"total",info:{prjname:c_pname,module:this.current_case_module}});
     }
     private checkCase(idx:any){
         if(this.test_status){
@@ -132,6 +179,10 @@ export default class ReportView extends Vue {
             this.$store.state.report_info.case_data=this.current_data[idx];
             this.$store.state.report_info.showflag=true;
         }
+    }
+    private editCase(idx:number){
+        let case_info = this.current_data[idx];
+        this.$store.state.app_info.pis.write({type:"toDB",route:"cases",job:"editInReport",info:{prjname:this.$store.state.project_info.current_prj,case_id:case_info.case_id}});
     }
 }
 </script>

@@ -4,36 +4,60 @@
         <el-card class="box-card" shadow="never" style="margin:5px 10px 5px 10px">
             <el-tabs type="border-card" tab-position="left" style="height:450px" @tab-click="clickTab" v-model="tabName">
                 <el-tab-pane label="硬件配置" name="0">
-                    <div>
-                        <el-divider content-position="left">工具板</el-divider>
-                        <SetPort style="margin:0px 0px 0px 80px;"/>
-                    </div>
-                    <div>
-                        <el-divider content-position="left">QG BOX</el-divider>
-                        <el-form :model="boxInfo" ref="boxform" label-width="150px">
-                            <el-form-item label="IP地址:">
-                                <el-input size="small" style="width:220px" v-model="box_info.ip"></el-input>
-                            </el-form-item>
-                            <el-form-item label="端口号:">
-                                <el-input size="small" style="width:220px" v-model="box_info.port"></el-input>
-                            </el-form-item>
-                        </el-form>
-                    </div>
+                    <el-collapse v-model="activeName" accordion>
+                        <el-collapse-item title="工具板" name="1">
+                            <SetPort style="margin:0px 0px 0px 80px;"/>
+                        </el-collapse-item>
+                        <el-collapse-item title="QG BOX" name="2">
+                            <el-form :model="boxInfo" ref="boxform" label-width="150px">
+                                <el-form-item label="IP地址:">
+                                    <el-input size="small" style="width:220px" v-model="box_info.ip"></el-input>
+                                </el-form-item>
+                                <el-form-item label="端口号:">
+                                    <el-input size="small" style="width:220px" v-model="box_info.port"></el-input>
+                                </el-form-item>
+                            </el-form>
+                        </el-collapse-item>
+                        <el-collapse-item title="PCAN" name="3">
+                            <el-form :model="pcanInfo" ref="boxform" label-width="120px" :inline="true">
+                                <el-form-item label="Baudrate:">
+                                    <el-select v-model="pcanInfo.baudrate" size="small" style="width:130px">
+                                        <el-option v-for="val in pcan_option.baudrate" :label="val" :value="val" :key="val"></el-option>
+                                    </el-select>
+                                </el-form-item>
+                                <el-form-item label="Hardware Type:">
+                                    <el-select v-model="pcanInfo.hardware_type" size="small" style="width:130px">
+                                        <el-option v-for="val in pcan_option.hardware_type" :label="val" :value="val" :key="val"></el-option>
+                                    </el-select>
+                                </el-form-item>
+                                <el-form-item label="I/O Port:">
+                                    <el-select v-model="pcanInfo.io_port" size="small" style="width:100px">
+                                        <el-option v-for="val in pcan_option.io_port" :label="val" :value="val" :key="val"></el-option>
+                                    </el-select>
+                                </el-form-item>
+                                <el-form-item label="Interrupt:">
+                                    <el-select v-model="pcanInfo.interrupt" size="small" style="width:100px">
+                                        <el-option v-for="val in pcan_option.interrupt" :label="val" :value="val" :key="val"></el-option>
+                                    </el-select>
+                                </el-form-item>
+                            </el-form>
+                        </el-collapse-item>
+                    </el-collapse>
                 </el-tab-pane>
-                <el-tab-pane label="软件配置" name="1" disabled>
-                    <el-form :model="testInfo" ref="testform" label-width="190px">
-                        <el-form-item label="用例失败时是否退出测试:">
+                <el-tab-pane label="软件配置" name="1">
+                    <el-form :model="testInfo" ref="testform" label-width="200px">
+                        <el-form-item label="循环测试失败时是否退出测试:">
                             <el-radio-group v-model="testInfo.error_exit">
                                 <el-radio :label="0">是</el-radio>
                                 <el-radio :label="1">否</el-radio>
                             </el-radio-group>
                         </el-form-item>
-                        <el-form-item label="用例失败时是否播放提示音:">
+                        <!-- <el-form-item label="用例失败时是否播放提示音:">
                             <el-radio-group v-model="testInfo.error_music">
                                 <el-radio :label="0">是</el-radio>
                                 <el-radio :label="1">否</el-radio>
                             </el-radio-group>
-                        </el-form-item>
+                        </el-form-item> -->
                         <el-form-item label="图片匹配度(0 ~ 100):">
                             <el-input-number style="width:130px" v-model="testInfo.match" controls-position="right" :min="0" :max="100" size="small"></el-input-number>
                         </el-form-item>
@@ -140,11 +164,19 @@ export default class SettingView extends Vue {
     private select_server:any=0;
     private db_server_info:any={};
     private da_server_info:any={};
-    private test_info:any={};
+    private test_info:any={error_exit:0,error_music:1,match:90};
     private box_info:any={};
     private log_info:any={};
+    private pcan_info:any={};
     private test_status:any=false;
     private uarts:any=["relay","da_arm","log"];
+    private activeName:any = "1";
+    private pcan_option = {
+        baudrate : ["baud_1m","baud_800k","baud_500k","baud_250k","baud_125k","baud_100k","baud_50k","baud_20k","baud_10k","baud_5k","baud_33333k","baud_47619k","baud_95238k","baud_83333k"],
+        hardware_type : ["ISA_82C200","ISA_SJA1000","ISA_PHYTEC","DNG_82C200","DNG_82C200_EPP","DNG_SJA1000","DNG_SJA1000_EPP"],
+        io_port : ["0100","0120","0140","0200","0220","0240","0260","0278","0280","02A0","02C0","02E0","02E8","02F8","0300","0320","0340","0360","0378","0380","03BC","03E0","03E8","03F8"],
+        interrupt : ["3","4","5","7","9","10","11","12","15"]
+    }
     private created() {
         this.$store.state.setting_info.select_serial = this.uarts[0];
     }
@@ -172,6 +204,11 @@ export default class SettingView extends Vue {
         if(this.$store.state.setting_info.info.log_info!=undefined)this.log_info = this.$store.state.setting_info.info.log_info;
         else this.log_info = {open:false,type:0,adb_cmd:"",others_flag:0,others_cmd:""};
         return;
+    }
+    get pcanInfo(){
+        if(this.$store.state.setting_info.info.pcan_info!=undefined)this.pcan_info = this.$store.state.setting_info.info.pcan_info;
+        else this.pcan_info = {baudrate:"baud_100k",hardware_type:"ISA_82C200",io_port:"0100",interrupt:"3"};
+        return this.pcan_info;
     }
     private selectStartMd(name:any){
         if(name==0)this.$store.state.setting_info.select_serial = this.uarts[1];
@@ -207,6 +244,7 @@ export default class SettingView extends Vue {
             this.$notify({title: '测试进行中!!!无法进行操作',message: '', type: 'warning',duration:1500});
         }else{
             if(this.$store.state.setting_info.info.log_info==undefined)this.$store.state.setting_info.info.log_info = this.log_info;
+            if(this.$store.state.setting_info.info.pcan_info==undefined)this.$store.state.setting_info.info.pcan_info = this.pcan_info;
             this.$store.state.alert_info.showflag = true;
             this.$store.state.alert_info.type = 0;
         }

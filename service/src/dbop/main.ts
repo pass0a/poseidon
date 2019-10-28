@@ -11,10 +11,15 @@ import status from './status/index';
 import group from './group/index';
 import binding from './binding/index';
 import adb from './adb/index';
+import results from './results/index';
+import pcan from './pcan/index';
 
 let pis = new pack.packStream();
 let pos = new pack.unpackStream();
 let sv: any;
+let l_pis = new pack.packStream();
+let l_pos = new pack.unpackStream();
+let ints: any;
 let DB_URL = 'mongodb://127.0.0.1/poseidon_data';
 let options = { useNewUrlParser: true, ssl: false };
 let db_status : number = 0;
@@ -66,6 +71,7 @@ function createServer() {
 		});
 	}).listen(6002);
 	if(db_status != 1)connectDB();
+	connectLink();
 }
 
 async function connectDB(){
@@ -84,6 +90,88 @@ async function connectDB(){
 	}
 	req.info = db_status;
 	if(sv)pis.write(req);
+}
+
+async function connectLink(){
+	l_pis.on('data', (data: any) => {
+		ints.write(data);
+	});
+	l_pos.on('data', (data: any) => {
+		switch(data.type){
+			case "init":
+				l_pis.write({type:"info",class:"db",name:"db"});
+				break;
+			case "auth":
+				console.log("db_auth success!!!");
+				break;
+			case "toDB":
+				handleLink(data);
+				break;
+			default:
+				break;
+		}
+	});
+	let num = 10;
+	while(num){
+		if(await toLink())break;
+		num--;
+		if(num==0)break;
+		await wait(100);
+	}
+}
+
+async function handleLink(data:any) {
+	switch(data.route){
+		case "results":
+			results.disposeData(data, l_pis);
+			break;
+		case "status":
+			status.disposeData(data, l_pis);
+			break;
+		case "binding":
+			binding.disposeData(data, l_pis);
+			break;
+		case "buttons":
+			buttons.disposeData(data, l_pis);
+			break;
+		case 'adb':
+			adb.disposeData(data, l_pis);
+			break;
+		case 'group':
+			group.disposeData(data, l_pis);
+			break;
+		case 'pcan':
+			pcan.disposeData(data, l_pis);
+			break;
+	}
+}
+
+async function toLink(){
+	return new Promise(resolve => {
+		closeOnEvent();
+		ints = net.connect(6000,"127.0.0.1",() => {
+			console.info("db-link connect!!!");
+			resolve(1);
+		});
+		ints.on("data",(data:any) => {
+			l_pos.write(data);
+		});
+		ints.on("close",() => {
+			console.info("close db-link socket!!!");
+		});
+		ints.on("error",() => {
+			console.error("db-link error!!!");
+			resolve(0);
+		});
+	});
+}
+
+function closeOnEvent(){
+	if(ints){
+		ints.removeAllListeners('data');
+		ints.removeAllListeners('close');
+		ints.removeAllListeners('error');
+	}
 }
 
 async function wait(time:any){
@@ -107,6 +195,7 @@ async function mongooseConnect(){
 }
 
 function handle(data: any) {
+	// console.log(data.route);
 	switch (data.route) {
 		case 'connect':
 			data.info = db_status;
@@ -174,6 +263,12 @@ function handle(data: any) {
 			group.disposeData(data, pis);
 			binding.disposeData(data, pis);
 			if(!data.info.msg.content)cases.disposeData(data, pis);
+			break;
+		case 'results':
+			results.disposeData(data, pis);
+			break;
+		case 'pcan':
+			pcan.disposeData(data, pis);
 			break;
 		default:
 			break;

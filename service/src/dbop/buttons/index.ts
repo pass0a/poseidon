@@ -76,6 +76,15 @@ function copyPrj(data:any,pis:any,BtnModel:any){
     });
 }
 
+function getDoc(data:any,pis:any,BtnModel:any) {
+    BtnModel.findOne({id:data.info.id},{_id:0,__v:0},(err:any,msg:any) => {
+        if(!err){
+            data.data = JSON.parse(JSON.stringify(msg));
+            pis.write(data);
+        }
+    });
+}
+
 function disposeData(data:any,pis:any){
     let BtnModel = getModel(data.info.prjname+"_btn");
     switch(data.job){
@@ -94,16 +103,11 @@ function disposeData(data:any,pis:any){
         case "remove_id":
             removeID(data,pis,BtnModel);
             break;
-        case "startTest":
-            console.log("btn start");
-            getList(data,pis,BtnModel);
-            break;
-        case "replayTest":
-            getList(data,pis,BtnModel);
-            break;
         case "copy":
             copyPrj(data,pis,BtnModel);
             break;
+        case "getDoc":
+            getDoc(data,pis,BtnModel);
         default:
             break;
     }

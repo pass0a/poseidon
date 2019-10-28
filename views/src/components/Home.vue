@@ -94,7 +94,7 @@ export default class Home extends Vue {
     private select_mode:any="4";
     private test_status:any=false;
     private needOpenPrj:any=["3","5","6_1","6_2","6_3","6_4"];
-    private needStopTest:any=["1","2","6_1","6_2","6_3"];
+    private needStopTest:any=["1","2","3","5","6_1","6_2","6_3","6_4","8"];
     private connectStatus:any = {server:0,db:0,link:0};
     get currentProject(){
         if(this.$store.state.project_info.current_prj.length){
@@ -166,7 +166,15 @@ export default class Home extends Vue {
               this.select_mode=key;
               break;
             case "5":
-              this.$store.state.app_info.pis.write({type:"toSer",job:"readReport",prjname:this.$store.state.project_info.current_prj});
+              let c_pname = this.$store.state.project_info.current_prj;
+              let c_module = this.$store.state.steps_info.rulelist.module;
+              if(c_module.length){
+                this.$store.state.app_info.pis.write({type:"toDB",route:"results",job:"info",info:{prjname:c_pname}});
+                this.$store.state.report_info.firstModule = c_module[0];
+                this.$store.state.app_info.pis.write({type:"toDB",route:"results",job:"total",info:{prjname:c_pname,module:c_module[0]}});
+              }else{
+                this.$store.state.report_info.firstModule = "";
+              }
               this.select_mode=key;
               break;
             case "6_1":
@@ -178,6 +186,7 @@ export default class Home extends Vue {
               this.$store.state.app_info.pis.write({type:"toDB",route:"group",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
               this.$store.state.app_info.pis.write({type:"toDB",route:"binding",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
               this.$store.state.app_info.pis.write({type:"toDB",route:"adb",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
+              this.$store.state.app_info.pis.write({type:"toDB",route:"pcan",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
               this.select_mode=key;
               break;
             case "6_3":

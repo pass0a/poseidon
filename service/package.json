@@ -12,7 +12,7 @@
 		"dop": "passoa dist/db.js",
 		"dlp": "passoa dist/link.js",
 		"dhp": "passoa dist/http.js",
-		"dev": "passoa dist/sound.js"
+		"dev": "passoa dist/candbc.js"
 	},
 	"author": "",
 	"license": "ISC",

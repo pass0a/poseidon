@@ -43,7 +43,8 @@ export default new Vuex.Store({
 			info : {},
 			count : 0,
 			testing : false,
-			stopflag : false 
+			stopflag : false,
+			stopStatus: false
 		},
 		setting_info:{
 			info:{},
@@ -55,9 +56,13 @@ export default new Vuex.Store({
 			info:{}
 		},
 		report_info:{
+			refresh_data:false,
+			module_total:0,
+			firstModule:"",
 			data:"",
 			showflag:false,
-			case_data:{}
+			case_data:{},
+			info:""
 		},
 		editcase_info:{
 			refresh_data:false,
@@ -75,6 +80,9 @@ export default new Vuex.Store({
 			type:0,
 			data:{}
 		},
+		pcan_info:{
+			data:[]
+		},
 		steps_info:{
 			reslist:{},
 			rulelist:{},
@@ -83,6 +91,7 @@ export default new Vuex.Store({
 			adblist:{},
 			bindlist:{},
 			steplist:[],
+			pcanlist:{},
 			op_data:{
 				type:0,
 				id:""

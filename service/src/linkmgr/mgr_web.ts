@@ -1,15 +1,16 @@
 import * as pack from '@passoa/pack';
+import * as Cvip from '@passoa/cvip';
 import * as childprs from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
 import ADB from "./res/adb/adb";
+import { logger } from '@passoa/logger';
 
 export class Web_mgr {
 	private pos: any = new pack.unpackStream();
 	private pis: any = new pack.packStream();
 	private intc: any;
 	private link: any;
-	private cvip: any;
 	constructor() {
 		this.pis.on('data', (data: any) => {
 			this.intc.write(data);
@@ -31,7 +32,7 @@ export class Web_mgr {
 				break;
 			case 'stopTest':
 				let test_link = this.link.getLink('test', 'test');
-				test_link.stopTest();
+				if(test_link)test_link.stopTest();
 				break;
 			case 'replayTest':
 				let jsPath_r = '"' + __dirname + '/test.js"';
@@ -42,7 +43,6 @@ export class Web_mgr {
 				if(device_link)device_link.handleWebJob(obj);
 				break;
 			case 'saveCutImage':
-				if(!this.cvip)this.cvip = require("@passoa/cvip");
 				let passoaPath = process.execPath;
 				let prjPath = path.dirname(path.dirname(passoaPath)) + '/data_store/projects/' + obj.info.prjname;
 				let screenPath = prjPath + '/screen/screen.png';
@@ -50,7 +50,7 @@ export class Web_mgr {
 				if (!fs.existsSync(imgPath)) fs.mkdirSync(imgPath);
 				let icon_info = obj.info.cut_info;
 				let iconPath = imgPath + '/' + icon_info.id + '.png';
-				let ret = this.cvip.imageCut(
+				let ret = Cvip.imageCut(
 					screenPath,
 					iconPath,
 					16,
@@ -63,7 +63,7 @@ export class Web_mgr {
 				break;
 			case "pushPassoa":
 				if(obj.info.type=="adb"){
-					let cmd = "push \""+path.dirname(process.execPath)+"/remote/"+obj.info.version+"/. \""+obj.info.path;
+					let cmd = "push \""+path.dirname(process.execPath)+"/remote/"+obj.info.version+"/.\" "+obj.info.path;
 					let push_ret:any = await this.pushByADB(cmd,true,30000);
 					if(!push_ret.ret)obj.info = false;
 					else{
@@ -76,12 +76,11 @@ export class Web_mgr {
 				}
 				break;
 			case "savePhoto":
-				if(!this.cvip)this.cvip = require("@passoa/cvip");
 				let passoa_path = process.execPath;
 				let prj_path = path.dirname(path.dirname(passoa_path)) + '/data_store/projects/' + obj.info.prjname;
 				let screen_path = prj_path + '/screen/screen.png';
 				let img_path = prj_path + '/img/' + obj.info.id + ".png";
-				let img_ret = this.cvip.imageCut(
+				let img_ret = Cvip.imageCut(
 					screen_path,
 					img_path,
 					16,
@@ -95,8 +94,29 @@ export class Web_mgr {
 				break;
 			case "testPhoto":
 				let to_test = this.link.getLink('test', 'test');
-				console.log("888888888-",obj.info);
 				if(to_test)to_test.disposedCompleted("toWeb",obj.info);
+				break;
+			case "reTakeImg":
+				let img_info = obj.info.msg.img_info;
+				let binding_info = obj.info.msg.binding_info;
+				if(img_info.action == "assert_pto" && binding_info.content.type==0){
+					Cvip.imageSave(img_info.screen, img_info.image, 16);
+					obj.info = true;
+					this.pis.write(obj);
+				}else{
+					let ctn = img_info.action == "assert_pto"?binding_info.content.info:binding_info.content;
+					let img_ret = Cvip.imageCut(
+						img_info.screen,
+						img_info.image,
+						16,
+						ctn.x1,
+						ctn.y1,
+						ctn.w,
+						ctn.h
+					);
+					obj.info = img_ret?false:true;
+					this.pis.write(obj);
+				}
 				break;
 			default:
 				break;
@@ -145,19 +165,26 @@ export class Web_mgr {
 	startJS(obj: any, jsPath: any) {
 		let testcfg: any = require('./testcfg.json');
 		let passoaPath = process.execPath;
-		let prjpath = path.dirname(path.dirname(passoaPath)) + '/data_store/projects/' + obj.info.prjname;
+		let prjpath = obj.info.prjname;
 		let execpath = '"' + passoaPath + '" ' + jsPath + ' "' + prjpath + '"';
 		console.log(execpath);
+
+		let logDirPath = path.dirname(path.dirname(passoaPath)) + '/data_store/projects/' + prjpath +"/log";
+		if (!fs.existsSync(logDirPath)) fs.mkdirSync(logDirPath);
+		let loger = new logger();
+		let test_log = fs.createWriteStream(logDirPath+'/testlog.txt');
+
 		let cmd:any = childprs.exec(execpath, { windowsHide: testcfg.windowsHide });
-		cmd.stdout.removeAllListeners("data");
-        cmd.stderr.removeAllListeners("data");
-        cmd.removeAllListeners("close");
-		cmd.stdout.on('data',(data:any) => {
-            console.log('CMD-LOG:', data);
-		});
-		cmd.stderr.on('data',(err:any) => {
-            console.error('CMD-ERROR', err);
-        });
+		cmd.stdout.pipe(loger).pipe(test_log);
+		// cmd.stdout.removeAllListeners("data");
+        // cmd.stderr.removeAllListeners("data");
+        // cmd.removeAllListeners("close");
+		// cmd.stdout.on('data',(data:any) => {
+        //     console.log('CMD-LOG:', data.toString());
+		// });
+		// cmd.stderr.on('data',(err:any) => {
+        //     console.error('CMD-ERROR', err);
+        // });
         cmd.on('close',(code:any) => {
             console.error('CMD-close', code);
         });

@@ -30,6 +30,7 @@ export class Com {
 	}
 	connectLink(){
 		return new Promise(resolve => {
+			this.closeOnEvent();
 			this.ints = net.connect(6000,"127.0.0.1",() => {
 				console.info("com-link connect!!!");
 				resolve(1);
@@ -45,6 +46,13 @@ export class Com {
 				resolve(0);
 			});
 		});
+	}
+	private closeOnEvent(){
+		if(this.ints){
+			this.ints.removeAllListeners('data');
+			this.ints.removeAllListeners('close');
+			this.ints.removeAllListeners('error');
+		}
 	}
 	static create() {
 		new Com().start();

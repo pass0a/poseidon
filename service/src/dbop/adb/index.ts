@@ -48,6 +48,17 @@ function modify(data:any,pis:any,AdbModel:any){
     );
 }
 
+function copyPrj(data:any,pis:any,AdbModel:any){
+    AdbModel.aggregate([
+        { $out:data.info.msg.name+"_adb" }
+    ],function(err:any){
+        if(!err){
+            data.info = true;
+            pis.write(data);
+        }
+    });
+}
+
 function removeID(data:any,pis:any,AdbModel:any){
     let info:any = data.info.msg;
     switch(info.type){
@@ -70,6 +81,15 @@ function removeID(data:any,pis:any,AdbModel:any){
     }
 }
 
+function getDoc(data:any,pis:any,AdbModel:any) {
+    AdbModel.findOne({id:data.info.id},{_id:0,__v:0},(err:any,msg:any) => {
+        if(!err){
+            data.data = JSON.parse(JSON.stringify(msg));
+            pis.write(data);
+        }
+    });
+}
+
 function disposeData(data:any,pis:any){
     let AdbModel = getModel(data.info.prjname+"_adb");
     switch(data.job){
@@ -82,15 +102,14 @@ function disposeData(data:any,pis:any){
         case "modify":
             modify(data,pis,AdbModel);
             break;
+        case "copy":
+            copyPrj(data,pis,AdbModel);
+            break;
         case "remove_id":
             removeID(data,pis,AdbModel);
             break;
-        case "startTest":
-            console.log("adb start");
-            getList(data,pis,AdbModel);
-            break;
-        case "replayTest":
-            getList(data,pis,AdbModel);
+        case "getDoc":
+            getDoc(data,pis,AdbModel);
             break;
         default:
             break;

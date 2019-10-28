@@ -29,7 +29,7 @@
                         </template>
                     </el-table-column>
                     <el-table-column prop="id" label="ID"></el-table-column>
-                    <el-table-column prop="id" label="是否绑定图片(点击可查看)" v-if="actionName=='click'||actionName=='assert_pic'">
+                    <el-table-column prop="id" label="是否绑定图片(点击可查看)" v-if="actionName=='click'||actionName=='assert_pic'||actionName=='assert_pto'">
                         <template slot-scope="scope">
                             <el-button type="text" @click="checkImg(scope.row.id)"><font size="2" :color="bingId(0,scope.row.id)">{{bingId(1,scope.row.id)}}</font></el-button>
                         </template>
@@ -65,7 +65,7 @@
         </Modal>
         <Modal
             v-model="showflag"
-            :width="add_info.action=='group'?650:500"
+            :width="add_info.action=='group'||add_info.action=='pcan'?650:500"
             :closable="false"
             :mask-closable="false">
             <p slot="header">
@@ -121,6 +121,9 @@
                         <el-input style="width:250px" placeholder="请输入返回的消息" v-model="add_info.rd"></el-input>
                     </el-form-item>
                 </div>
+                <div v-if="add_info.action=='pcan'&&add_type">
+                    <PcanView/>
+                </div>
             </el-form>
             <span slot="footer">
                 <el-button type="info" @click="cancel">取消</el-button>
@@ -130,7 +133,7 @@
         </Modal>
         <Modal
             v-model="editflag"
-            :width="actionName=='group'?650:430"
+            :width="actionName=='group'||actionName=='pcan'?650:430"
             :closable="false"
             :mask-closable="false">
             <p slot="header">
@@ -175,6 +178,9 @@
                     <span><font size="2">步骤组合</font></span>
                     <StepsView/>
                 </div>
+                <div v-if="actionName=='pcan'&&edit_info.type">
+                    <PcanView/>
+                </div>
             </el-form>
             <span slot="footer">
                 <el-button type="info" @click="editCancel">取消</el-button>
@@ -187,14 +193,15 @@
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
 import StepsView from "./StepsView.vue";
-import { constants } from 'buffer';
+import PcanView from "./PcanView.vue";
 @Component({
-  components: {
-      StepsView
-  }
+    components: {
+        StepsView,
+        PcanView
+    }
 })
 export default class StepsMgrView extends Vue {
-    private actionList:any=["click","assert_pic","assert_pto","click_poi","slide","button","group","adb_cmd"];
+    private actionList:any=["click","assert_pic","assert_pto","click_poi","slide","button","group","adb_cmd","pcan"];
     private actionName:any=this.actionList[0];
     private moduleName:any="";
     private rulelist:any;
@@ -309,8 +316,10 @@ export default class StepsMgrView extends Vue {
                 let info = this.adblist[id];
                 this.edit_info.sd = info.sd;
                 this.edit_info.tp = info.tp;
-                this.edit_info.tt = info.tp?info.sd:3000;
-                this.edit_info.rd = info.tp?info.sd:"";
+                this.edit_info.tt = info.tp?info.tt:3000;
+                this.edit_info.rd = info.tp?info.rd:"";
+            }else if(id.indexOf("pcan")>-1){
+                this.$store.state.pcan_info.data=JSON.parse(JSON.stringify(this.$store.state.steps_info.pcanlist[id]));
             }
         }
         this.editflag = true;
@@ -338,6 +347,8 @@ export default class StepsMgrView extends Vue {
                 if(this.actionName=="group"){
                     this.$store.state.steps_info.steplist=[];
                     this.$store.state.steps_info.op_data = {type:1};
+                }else if(this.actionName=="pcan"){
+                    this.$store.state.pcan_info.data = [];
                 }
                 this.title="添加三级选项";
                 break;
@@ -366,9 +377,13 @@ export default class StepsMgrView extends Vue {
                         else if(this.add_info.action=="adb_cmd"){
                             req.pid =  this.add_info.module;
                             req.sd = this.add_info.sd;
-                            req.tp =  this.add_info.tp;
+                            req.tp = this.add_info.tp;
                             req.tt = req.tp?this.add_info.tt : 0;
                             req.rd = req.tp?this.add_info.rd : "";
+                        }
+                        else if(this.add_info.action=="pcan"){
+                            req.pid = this.add_info.module;
+                            req.data = this.$store.state.pcan_info.data
                         }
                         break;
                     case 2:
@@ -414,6 +429,10 @@ export default class StepsMgrView extends Vue {
                         rd : this.edit_info.tp?this.edit_info.rd:""
                     }
                     this.sendReq("adb","modify",msg);
+                }
+                else if(this.edit_info.id.indexOf("pcan")>-1){
+                    let m_cont = this.$store.state.pcan_info.data;
+                    this.sendReq("pcan","modify",{id:this.edit_info.id,data:m_cont});
                 }
                 this.editflag = false;
             }

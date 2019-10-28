@@ -9,6 +9,7 @@
             <el-button plain icon="el-icon-plus" size="small" @click="addCase">新建用例</el-button>
             <el-button plain icon="el-icon-check" size="small" @click="changeAllCases(0)">当前全部开启</el-button>
             <el-button plain icon="el-icon-close" size="small" @click="changeAllCases(1)">当前全部关闭</el-button>
+            <el-button plain icon="el-icon-document-remove" size="small" @click="openNGCase">开启 NG 用例</el-button>
         </el-button-group>
         <el-tabs type="border-card" tab-position="bottom" style="margin:5px 10px 10px 10px;" v-model="current_case_module" @tab-click="select_module">
             <el-tab-pane v-for="it of ModuleData" :label="getResName(it)" :key="it" :name="it"></el-tab-pane>
@@ -67,13 +68,27 @@
                 <el-button type="primary" v-show="copy_info.loading" icon="el-icon-loading" disabled>复制中</el-button>
             </span>
         </Modal>
+        <Modal
+            v-model="stopStatus.flag"
+            width="450"
+            :closable="false"
+            :mask-closable="false">
+            <p slot="header">
+                <i class="el-icon-warning"></i>
+                <span>状态改变</span>
+            </p>
+            <h3>当前测试处于暂停状态, 若改变用例状态, 测试将重新开始</h3>
+            <span slot="footer">
+                <el-button type="info" @click="statusCancel">取消</el-button>
+                <el-button type="primary" @click="statusOk">确定</el-button>
+            </span>
+        </Modal>
         <div><CaseInfoView/></div>
     </div>
 </template>
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
 import CaseInfoView from "./CaseInfoView.vue";
-import { truncate } from 'fs';
 @Component({
   components: {
       CaseInfoView
@@ -92,6 +107,7 @@ export default class EditCasesView extends Vue {
     private test_status:any=false;
     private copy_info:any={copyflag:false, copyID:"", copy_steps:[], coypType:0, caseID:"", data:{}, loading:false};
     private op_idx = -1;
+    private stopStatus = {flag:false, op:0, idx:0,};
     get moduleTotal(){
         if(this.$store.state.editcase_info.module_total){
             this.curPage = 1;
@@ -189,12 +205,18 @@ export default class EditCasesView extends Vue {
         this.copy_info.copyflag = true;
     }
     private deleteCase(idx:any){
-        this.current_editIdx = idx;
-        this.$store.state.alert_info.showflag = true;
-        this.$store.state.alert_info.type = 2;
-        this.$store.state.case_info.type  = 2;
-        this.$store.state.case_info.data = this.current_data[idx];
-        this.$store.state.alert_info.info = this.current_data[idx].case_id;
+        if(this.$store.state.test_info.stopStatus){
+            this.stopStatus.op = 2;
+            this.stopStatus.idx = idx;
+            this.stopStatus.flag = true;
+        }else{
+            this.current_editIdx = idx;
+            this.$store.state.alert_info.showflag = true;
+            this.$store.state.alert_info.type = 2;
+            this.$store.state.case_info.type  = 2;
+            this.$store.state.case_info.data = this.current_data[idx];
+            this.$store.state.alert_info.info = this.current_data[idx].case_id;
+        }
     }
     private copyCancel(){
         this.copy_info.copyflag = false;
@@ -224,36 +246,104 @@ export default class EditCasesView extends Vue {
         }
     }
     private changeCaseStatus(idx:any){
-        this.op_idx = idx;
-        let req = {
-            type : "toDB",
-            route : "status",
-            job : this.current_data[idx].c_status.length?"delete":"add",
-            info : {
-                prjname:this.$store.state.project_info.current_prj,
-                module:this.current_data[idx].case_module,
-                cid:this.current_data[idx]._id
-            },
-            idx : idx
-        }
-        this.$store.state.app_info.pis.write(req);
-    }
-    private changeAllCases(type:number){
-        this.$store.state.editcase_info.refresh_data = true;
-        if(this.$store.state.project_info.current_prj.length>0){
-            let req:any = {type : "toDB",route : "status",job:"",info:{}};
-            if(!type){
-                req.job = "module_add";
-                req.info = {prjname:this.$store.state.project_info.current_prj, module:this.current_case_module, uid:this.$store.state.login_info._id};
-            }else{
-                req.job = "module_delete";
-                req.info = {prjname:this.$store.state.project_info.current_prj, module:this.current_case_module, uid:this.$store.state.login_info._id}
+        if(this.$store.state.test_info.stopStatus){
+            this.stopStatus.op = 1;
+            this.stopStatus.idx = idx;
+            this.stopStatus.flag = true;
+        }else{
+            this.op_idx = idx;
+            let req = {
+                type : "toDB",
+                route : "status",
+                job : this.current_data[idx].c_status.length?"delete":"add",
+                info : {
+                    prjname:this.$store.state.project_info.current_prj,
+                    module:this.current_data[idx].case_module,
+                    cid:this.current_data[idx]._id
+                },
+                idx : idx
             }
             this.$store.state.app_info.pis.write(req);
-        }else{
-            this.$store.state.editcase_info.refresh_data = false;
-            this.$notify({title: '当前模块全部用例已关闭!',message: '', type: 'success',duration:1500});
         }
+    }
+    private changeAllCases(type:number){
+        if(this.$store.state.test_info.stopStatus){
+            this.stopStatus.op = 0;
+            this.stopStatus.idx = type;
+            this.stopStatus.flag = true;
+        }else{
+            this.$store.state.editcase_info.refresh_data = true;
+            if(this.$store.state.project_info.current_prj.length>0){
+                let req:any = {type : "toDB",route : "status",job:"",info:{}};
+                if(!type){
+                    req.job = "module_add";
+                    req.info = {prjname:this.$store.state.project_info.current_prj, module:this.current_case_module, uid:this.$store.state.login_info._id};
+                }else{
+                    req.job = "module_delete";
+                    req.info = {prjname:this.$store.state.project_info.current_prj, module:this.current_case_module, uid:this.$store.state.login_info._id}
+                }
+                this.$store.state.app_info.pis.write(req);
+            }else{
+                this.$store.state.editcase_info.refresh_data = false;
+                this.$notify({title: '当前模块全部用例已关闭!',message: '', type: 'success',duration:1500});
+            }
+        }
+    }
+    private statusCancel(){
+        this.stopStatus.flag = false;
+    }
+    private statusOk(){
+        let req = {
+            type:"toSer",
+            job:"clearStopInfo",
+            info:{prjname:this.$store.state.project_info.current_prj}
+        }
+        this.$store.state.app_info.pis.write(req);
+        this.$store.state.test_info.stopStatus = false;
+        this.$store.state.test_info.stopflag = 0;
+        this.$store.state.test_info.stopflag = false;
+        switch (this.stopStatus.op) {
+            case 0:
+                this.changeAllCases(this.stopStatus.idx);
+                break;
+            case 1:
+                this.changeCaseStatus(this.stopStatus.idx);
+                break;
+            case 2:
+                this.deleteCaseById(this.stopStatus.idx);
+                break;
+            default:
+                break;
+        }
+        this.stopStatus.flag = false;
+    }
+    private deleteCaseById(idx:any){
+        let c_info = {
+            type:"toDB",
+            route: "cases",
+            job:"delete",
+            info:{prjname:this.$store.state.project_info.current_prj,
+            _id: this.current_data[idx]._id}
+        }
+        this.$store.state.app_info.pis.write(c_info);
+        let s_info = {
+            type:"toDB",
+            route: "status",
+            job:"delete",
+            info:{type:1,
+            prjname:this.$store.state.project_info.current_prj,
+            cid: this.current_data[idx]._id}
+        }
+        this.$store.state.app_info.pis.write(s_info);
+    }
+    private openNGCase(){
+        let info = {
+            type:"toDB",
+            route: "status",
+            job:"openNgCases",
+            info:{prjname:this.$store.state.project_info.current_prj,module:this.current_case_module}
+        }
+        this.$store.state.app_info.pis.write(info);
     }
 }
 </script>
