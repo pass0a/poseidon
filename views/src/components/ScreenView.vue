@@ -205,7 +205,7 @@ export default class ScreenView extends Vue {
     private ok(){
         if(this.s_clid&&this.s_clid.length){
             this.saveStatus=true;
-            let bind_info:any = {type:"toDB",route:"binding",job:"add",info:{prjname:this.$store.state.project_info.current_prj,msg:{id:this.s_clid,pid:this.s_module,content:""}}}; 
+            let bind_info:any = {type:"toDB",route:"binding",job:"add",info:{prjname:this.$store.state.project_info.current_prj,msg:{id:this.s_clid,pid:this.s_module,content:this.info}}}; 
             switch(this.bind_type){
                 case 0:
                     let s_req = {
@@ -216,10 +216,10 @@ export default class ScreenView extends Vue {
                     this.$store.state.app_info.pis.write(s_req);
                     break;
                 case 1:
-                    bind_info.info.msg.content = this.info;
+                    // bind_info.info.msg.content = this.info;
                     break;
                 case 2:
-                    bind_info.info.msg.content = this.info;
+                    // bind_info.info.msg.content = this.info;
                     break;
             }
             this.$store.state.app_info.pis.write(bind_info);

@@ -47,7 +47,7 @@
 import { Component, Prop, Vue } from "vue-property-decorator";
 @Component
 export default class PcanView extends Vue {
-    private pcan_info = {data:[],len:8};
+    private pcan_info:any = {data:[],len:8};
     private showInput = false;
     private idx=-1;
     private op=-1;
@@ -110,7 +110,7 @@ export default class PcanView extends Vue {
     private cpot(){}
     private ok(){
         let candata=this.disposeData(1,this.can_data);
-		let canid=this.disposeData(0,this.can_id);
+        let canid=this.disposeData(0,this.can_id);
         switch (this.op) {
             case 0:
                 this.pcan_info.data.push({data:candata,id:canid});
@@ -130,7 +130,7 @@ export default class PcanView extends Vue {
     private cancel(){
         this.showInput = false;
     }
-    private disposeData(ft,data){
+    private disposeData(ft:any,data:any){
         if(ft){
             for(let i=0;i<data.length;i++){
                 let str="";

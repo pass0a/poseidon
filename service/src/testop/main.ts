@@ -13,6 +13,7 @@ let current_type:string="",ToLink="tolink",ToDB="toDB",stepsWaitTime=1500,adb_cm
 let caseInfo:any={start_idx:0,img_idx:0,com_len:2};
 let progress_info = { current: 0, total: 0 };
 let log_info:any = {id:"",status:false,filename:""};
+let saveOneInMode:boolean = false;
 let actionList: any = {
 	wait: wait,
 	click: click,
@@ -93,6 +94,7 @@ async function runSteps(caseContent:any) {
 	// 执行用例循环
 	let stopflag = false;
 	let caseLoopList:any = [];
+	saveOneInMode = false; // 每条用例的循环模式只保留首次失败的图片
 	for (let i = 0; i < caseContent.case_mode; i++) {
 		await notifyToLinkMgr({ type: ToLink, mode: 5, info: caseContent.case_id, count: i+1 }); // 用例开始执行通知
 		for (let j = 0; j < caseContent.case_steps.length; j++) {
@@ -186,7 +188,8 @@ async function click(cmd: any, caseData: any) {
 				result = rev ? 0 : 2;
 			}else{
 				if(cmd.click_skip) result = 0;// 点击不判断
-				else if (caseData.case_mode == 1 && cmd.loop == undefined || !caseInfo.config.test_info.error_exit) {
+				else if (!saveOneInMode || !caseInfo.config.test_info.error_exit) {
+					saveOneInMode = true;
 					note = {image:"",screen:"",match:""};
 					note.image = prjpath + '/img/' + cmd.id + '.png';
 					note.screen = prjpath + '/tmp/' + caseInfo.img_idx++ + '.png';
@@ -213,7 +216,8 @@ async function assertPic(cmd: any, caseData: any) {
 			let match_num = Math.floor(match_ret.obj.val * 10000) / 100;
 			if(match_ret.obj.valid || match_num >= caseInfo.config.test_info.match) result = 0;
 			else{
-				if(caseData.case_mode == 1 && cmd.loop == undefined || !caseInfo.config.test_info.error_exit){
+				if(!saveOneInMode || !caseInfo.config.test_info.error_exit){
+					saveOneInMode = true;
 					note = {image:"",screen:"",match:""};
 					note.image = prjpath + '/img/' + cmd.id + '.png';
 					note.screen = prjpath + '/tmp/' + caseInfo.img_idx++ + '.png';
@@ -285,7 +289,8 @@ async function assertPto(cmd: any, caseData: any){
 		else{
 			let match_num = Math.floor(match_ret.obj.val * 10000) / 100;
 			if(!match_ret.obj.valid && match_num <= caseInfo.config.test_info.match){
-				if(caseData.case_mode == 1 && cmd.loop == undefined || !caseInfo.config.test_info.error_exit){
+				if(!saveOneInMode || !caseInfo.config.test_info.error_exit){
+					saveOneInMode = true;
 					note = {image:"",screen:"",match:""};
 					note.image = prjpath + '/img/' + cmd.id + '.png';
 					note.screen = prjpath + '/tmp/' + caseInfo.img_idx++ + '.png';

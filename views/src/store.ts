@@ -129,9 +129,10 @@ export default new Vuex.Store({
 		init_checkbox:["case_id","case_pre","case_op","case_exp"],
 		push_info:{
 			count:0,
-			revdata:{}
+			revdata:{},
+			log:""
 		},
-		version:"3.2.4"
+		version:"3.2.5"
 	},
 	mutations:{}
 });
