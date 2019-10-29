@@ -75,7 +75,7 @@ steps:
 - script: |
    cp service/node_modules/@passoa/ depends/passoa/msvc/node_modules/@passoa/ -rf
   displayName: 'install node_mudules/@passoa'
-  condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
+  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
 
 
 - task: nsis@1
@@ -83,14 +83,14 @@ steps:
     scriptFile: 'reveal.nsi'
     justInclude: 'no'
     includeMorePlugins: 'no'
-  condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
+  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
 
 - task: nsis@1
   inputs:
     scriptFile: 'poseidon.nsi'
     justInclude: 'no'
     includeMorePlugins: 'no'
-  condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
+  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
 
 - task: ArchiveFiles@2
   inputs:
@@ -99,7 +99,7 @@ steps:
     archiveType: '7z'
     archiveFile: '$(Build.ArtifactStagingDirectory)/Reveal-$(Build.SourceBranchName)-$(Build.BuildId).7z'
     replaceExistingArchive: true
-  condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
+  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
 
 - task: ArchiveFiles@2
   inputs:
@@ -108,7 +108,7 @@ steps:
     archiveType: '7z'
     archiveFile: '$(Build.ArtifactStagingDirectory)/Poseidon-$(Build.SourceBranchName)-$(Build.BuildId).7z'
     replaceExistingArchive: true
-  condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
+  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
 
 - task: GitHubRelease@0
   inputs:
@@ -119,7 +119,7 @@ steps:
     tagSource: 'auto'
     releaseNotesFile: 'ChangeLog'
     addChangeLog: false
-  condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
+  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
 
 - task: CopyFilesOverSSH@0
   inputs:
@@ -127,7 +127,7 @@ steps:
     sourceFolder: '$(Build.ArtifactStagingDirectory)'
     contents: 'Poseidon*'
     targetFolder: '/root/public/poseidon'
-  condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
+  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
 
 - task: CopyFilesOverSSH@0
   inputs:
@@ -135,4 +135,4 @@ steps:
     sourceFolder: '$(Build.ArtifactStagingDirectory)'
     contents: 'Reveal*'
     targetFolder: '/root/public/reveal'
-  condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
+  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
