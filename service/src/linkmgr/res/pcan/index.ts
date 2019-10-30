@@ -1,5 +1,3 @@
-import * as Pcan from '@passoa/pcan';
-
 class PCAN{
 	private	baudrate:any = {
         baud_1m:     0x0014,
@@ -26,20 +24,22 @@ class PCAN{
         DNG_SJA1000:     0x05,
         DNG_SJA1000_EPP: 0x06
     };
+    private Pcan:any;
 	open(info:any,fn:any){
 		let config = {
 			baudrate : this.baudrate[info.baudrate],
 			hardware_type : this.hardware_type[info.hardware_type],
 			io_port : parseInt(info.io_port,16),
 			interrupt : parseInt(info.interrupt,10)
-		}
-		return Pcan.initPcan(config,fn);
+        }
+        if(!this.Pcan)this.Pcan = require("@passoa/pcan");
+		return this.Pcan.initPcan(config,fn);
     }
     send(data:Buffer,id:number){
-        return Pcan.send(data,id);
+        return this.Pcan.send(data,id);
     }
     close(){
-        return Pcan.uninitPcan();
+        if(this.Pcan)return this.Pcan.uninitPcan();
     }
 }
 export default new PCAN();

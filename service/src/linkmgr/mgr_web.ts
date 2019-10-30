@@ -1,5 +1,4 @@
 import * as pack from '@passoa/pack';
-import * as Cvip from '@passoa/cvip';
 import * as childprs from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -11,6 +10,7 @@ export class Web_mgr {
 	private pis: any = new pack.packStream();
 	private intc: any;
 	private link: any;
+	private Cvip: any;
 	constructor() {
 		this.pis.on('data', (data: any) => {
 			this.intc.write(data);
@@ -50,7 +50,8 @@ export class Web_mgr {
 				if (!fs.existsSync(imgPath)) fs.mkdirSync(imgPath);
 				let icon_info = obj.info.cut_info;
 				let iconPath = imgPath + '/' + icon_info.id + '.png';
-				let ret = Cvip.imageCut(
+				if(!this.Cvip)this.Cvip = require("@passoa/cvip");
+				let ret = this.Cvip.imageCut(
 					screenPath,
 					iconPath,
 					16,
@@ -80,7 +81,8 @@ export class Web_mgr {
 				let prj_path = path.dirname(path.dirname(passoa_path)) + '/data_store/projects/' + obj.info.prjname;
 				let screen_path = prj_path + '/screen/screen.png';
 				let img_path = prj_path + '/img/' + obj.info.id + ".png";
-				let img_ret = Cvip.imageCut(
+				if(!this.Cvip)this.Cvip = require("@passoa/cvip");
+				let img_ret = this.Cvip.imageCut(
 					screen_path,
 					img_path,
 					16,
@@ -99,13 +101,14 @@ export class Web_mgr {
 			case "reTakeImg":
 				let img_info = obj.info.msg.img_info;
 				let binding_info = obj.info.msg.binding_info;
+				if(!this.Cvip)this.Cvip = require("@passoa/cvip");
 				if(img_info.action == "assert_pto" && binding_info.content.type==0){
-					Cvip.imageSave(img_info.screen, img_info.image, 16);
+					this.Cvip.imageSave(img_info.screen, img_info.image, 16);
 					obj.info = true;
 					this.pis.write(obj);
 				}else{
 					let ctn = img_info.action == "assert_pto"?binding_info.content.info:binding_info.content;
-					let img_ret = Cvip.imageCut(
+					let img_ret = this.Cvip.imageCut(
 						img_info.screen,
 						img_info.image,
 						16,
@@ -131,6 +134,8 @@ export class Web_mgr {
 					case 0:
 						break;
 					case 1:
+						data.data[data.data.length-1] = 0x20;
+						this.pis.write({ type:"toSer", job: "pushLog", info:data.data.toString() });
 						break;
 					case 2:
 						if(timer){

@@ -20,7 +20,7 @@
             <el-table-column label="操作" width="200" v-if="caseData.length&&caseData[0].result">
                 <template slot-scope="scope">
                     <!-- <el-button type="primary" size="mini" @click="replayCase(scope.$index)" disabled>重新执行</el-button> -->
-                    <el-button type="primary" size="mini" @click="retakeImg(scope.$index)" :disabled="checkAct(scope.$index)">重新截图</el-button>
+                    <el-button type="primary" size="mini" @click="retakeImg(scope.$index)" :disabled="checkAct()">重新截图</el-button>
                 </template>
             </el-table-column>
         </el-table>
@@ -31,14 +31,14 @@
 			</Steps>
             <div v-if="showFailImg()">
                 <div>
-                    <span><font size="2"><strong>当前匹配度 : {{info.match}}</strong></font></span><br/>
-                    <span><font size="2"><strong>截图对比</strong></font></span><br/>
+                    <span><font size="3"><strong>当前匹配度 : {{info.match}}</strong></font></span><br/>
+                    <span><font size="3"><strong>截图对比 (若为循环则只保留首次失败图片)</strong></font></span><br/>
                     <img :src="'http://127.0.0.1:6003/'+'?action=image&image='+info.image+'&id='+imgreq" style="max-width:100%;max-height:100%;"/>
                     <img :src="'http://127.0.0.1:6003/'+'?action=image&image='+info.screen+'&id='+scrreq" style="max-width:100%;max-height:100%;"/>
                 </div>
             </div>
             <div v-show="caseData[0].case_mode>1">
-                <span><font size="2"><strong>测试结果</strong></font></span><br/>
+                <span><font size="3"><strong>测试结果</strong></font></span><br/>
                 <span style="margin:10px 10px 10px 10px"><font size="2"><strong>{{ showLoopResult() }}</strong></font></span>
                 <el-table :data="retData" style="width: 100%" height="200" size="mini" border>
                     <el-table-column label="循环次数序号" prop="loop_id" resizable></el-table-column>
@@ -64,6 +64,7 @@ export default class CaseResultView extends Vue {
     private scrreq:any=0;
     private info:any={match:0,image:"",screen:""};
     private retakeAction = ["click","assert_pic","assert_pto"];
+    private retakeIdx:any = {i:-1,j:-1};
     get showflag(){
         if(this.$store.state.report_info.showflag){
             this.caseData = [];
@@ -84,11 +85,13 @@ export default class CaseResultView extends Vue {
     }
     private showFailImg(){
         if(this.caseData.length&&this.caseData[0].result==1){
-            let info = this.caseData[0].fail_info[0].case_loop_ret[0];
-            if(this.caseData[0].case_mode==1&&info.step_loop_ret==1){
-                if(info.step_loop_info&&info.step_loop_info.image){
-                    this.info = info.step_loop_info;
-                    return true;
+            for(let i=0;i<this.caseData[0].fail_info.length;i++){
+                for(let j=0;j<this.caseData[0].fail_info[i].case_loop_ret.length;j++){
+                    let info = this.caseData[0].fail_info[i].case_loop_ret[j];
+                    if(info.step_loop_ret==1&&info.step_loop_info&&info.step_loop_info.image){
+                        this.info = info.step_loop_info;
+                        return true;
+                    }
                 }
             }
         }
@@ -102,10 +105,10 @@ export default class CaseResultView extends Vue {
     }
     private retakeImg(idx:number){
         let data = this.caseData[0];
-        let fail_idx = data.fail_info[0].case_idx;
+        let fail_idx = data.fail_info[this.retakeIdx.i].case_idx;
         let fail_info:any = data.case_steps[fail_idx];
-        fail_info.screen = data.fail_info[0].case_loop_ret[0].step_loop_info.screen;
-        fail_info.image = data.fail_info[0].case_loop_ret[0].step_loop_info.image;
+        fail_info.screen = data.fail_info[this.retakeIdx.i].case_loop_ret[this.retakeIdx.j].step_loop_info.screen;
+        fail_info.image = data.fail_info[this.retakeIdx.i].case_loop_ret[this.retakeIdx.j].step_loop_info.image;
         if(this.checkID(fail_info.id)){
             this.$store.state.alert_info.type = 7;
             this.$store.state.alert_info.info = fail_info;
@@ -119,14 +122,22 @@ export default class CaseResultView extends Vue {
         let res_flag = this.$store.state.steps_info.reslist[id]?true:false;
         return binding_flag&&res_flag;
     }
-    private checkAct(idx:number){
+    private checkAct(){
         if(this.caseData.length){
             let data = this.caseData[0];
-            let fail_idx = data.fail_info[0].case_idx;
-            let fail_act = data.case_steps[fail_idx].action;
-            let step_ret = data.fail_info[0].case_loop_ret[0].step_loop_ret;
-            if(fail_idx==idx && this.retakeAction.indexOf(fail_act)>-1 && step_ret==1){
-                return false;
+            for(let i=0;i<data.fail_info.length;i++){
+                let fail_idx = data.fail_info[i].case_idx;
+                let fail_act = data.case_steps[fail_idx].action;
+                if(this.retakeAction.indexOf(fail_act)>-1){
+                    for(let j=0;j<data.fail_info[i].case_loop_ret.length;j++){
+                        let step_ret = data.fail_info[i].case_loop_ret[j].step_loop_ret;
+                        if(step_ret==1){
+                            this.retakeIdx.i=i;
+                            this.retakeIdx.j=j;
+                            return false;
+                        }
+                    }
+                }
             }
         }
         return true;

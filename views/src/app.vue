@@ -88,7 +88,7 @@ export default class App extends Vue {
     private revHandle(data:any){
         switch(data.type){
             case "toSer":
-                console.log("revSer:",data);
+                if(data.job!="pushLog")console.log("revSer:",data);
                 this.revToSer(data);
                 break;
             case "tolink":
@@ -192,6 +192,9 @@ export default class App extends Vue {
                 this.$store.state.push_info.count++;
                 this.$store.state.push_info.revdata = data.info;
                 this.$notify({title: data.info?'推送成功!':"推送失败!",message:data.info?"":"ADB异常!",type: data.info?"success":'error',duration:1500});
+                break;
+            case "pushLog":
+                this.$store.state.push_info.log = data.info;
                 break;
             case "savePhoto":
                 this.$store.state.camera_info.save_count++;
