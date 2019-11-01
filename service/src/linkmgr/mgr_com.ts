@@ -110,6 +110,7 @@ export class Com_mgr{
 					uart_info.port="COM"+cfg.uarts[uart_name][prop];
 					if(comNum.indexOf(uart_info.port)>-1){
 						error = true;
+						break;
 					}else comNum.push(uart_info.port);
 				}
                 else uart_info.info[prop]=cfg.uarts[uart_name][prop];
@@ -119,7 +120,6 @@ export class Com_mgr{
 				uart_info.id = uart_name;
 				this.uartlist[uart_name] = new Uart();
 				result = await this.uartlist[uart_name].openUart(uart_info,(name:string)=>{
-					if(this.uartlist[name])this.uartlist[name] = null;
 				})
 			}
 			if(error || !result.ret){
