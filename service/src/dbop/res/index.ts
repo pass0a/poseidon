@@ -13,6 +13,7 @@ let latestVersion :any = {
     "group" : "组合步骤",
     "adb_cmd" : "ADB指令",
     "pcan" : "PCAN",
+    "dbc" : "DBC",
     "freq" : "FREQ",
     "operate_tool-1" : "打开",
     "operate_tool-2" : "关闭",

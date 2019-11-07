@@ -243,6 +243,13 @@ export class Server {
 			case 'reTakeImg':
 				this.tolink.send(data);
 				break;
+			case 'readDbc':
+				let dbcPath = this.dirPath+ data.prjname +"/dbc.json";
+				if(fs.existsSync(dbcPath)){
+					data.data = new util.TextDecoder().decode(fs.readFileSync(dbcPath));
+				}
+				this.send(data);
+				break;
 		}
 	}
 }

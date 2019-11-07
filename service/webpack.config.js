@@ -23,9 +23,7 @@ const nodeConfig = {
 	entry: {
 		app: './src/main.ts',
 		test: './src/testop/main.ts'
-
 		// candbc: './src/candbc/main.ts'
-
 		// link: './src/linkmgr/main.ts',
 		// server : './src/server/main.ts',
 		// db:'./src/dbop/main.ts',

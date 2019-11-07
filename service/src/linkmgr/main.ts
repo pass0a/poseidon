@@ -16,10 +16,11 @@ class Linkmgr {
 			this.handleCmd(data,pis,pos,c);
 		});
 		pis.on('data', (data:any) => {
-			// console.log(data);
+			console.log(data);
 			c.write(data);
 		});
 		c.on('data', (data:any) => {
+			console.log(data);
 			pos.write(data);
 		});
 		pis.write({ type: 'init' });

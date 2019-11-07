@@ -18,21 +18,21 @@ Pcan.initPcan(config,(ev,data)=>{
 });
 
 function main() {
-    let dbc_file:any = JSON.parse(new util.TextDecoder().decode(fs.readFileSync("D:/projectList/poseidon/binary/service/dist/123.json")));
-    for(let i=0;i<dbc_file.messages.length;i++){
-        messagesList[dbc_file.messages[i].name] = {
-            data : new Uint8Array(dbc_file.messages[i].dlc),
-            id : dbc_file.messages[i].id
+    let dbc_file:any = JSON.parse(new util.TextDecoder().decode(fs.readFileSync("D:/projectList/poseidon/binary/service/dist/dbc.json")));
+    for(let i=0;i<dbc_file.Message_List.length;i++){
+        messagesList[dbc_file.Message_List[i].name] = {
+            data : new Uint8Array(dbc_file.Message_List[i].dlc),
+            id : dbc_file.Message_List[i].id
         }
-        if(dbc_file.messages[i].name == "DATC_PE_03"){
-            console.log(dbc_file.messages[i].id);
-            console.log(dbc_file.messages[i].dlc);
-            for(let j=0;j<dbc_file.messages[i].signals.length;j++){
-                if(dbc_file.messages[i].signals[j].name=="DATC_AutoDisp"){
-                    console.log(dbc_file.messages[i].signals[j]);
-                    if(dbc_file.messages[i].signals[j].endianess=="motorola"){
-                        messagesList[dbc_file.messages[i].name].data = disposedForMotorola(messagesList[dbc_file.messages[i].name],dbc_file.messages[i].signals[j],0x01);
-                        console.log(messagesList[dbc_file.messages[i].name]);
+        if(dbc_file.Message_List[i].name == "DATC_PE_03"){
+            console.log(dbc_file.Message_List[i].id);
+            console.log(dbc_file.Message_List[i].dlc);
+            for(let j=0;j<dbc_file.Message_List[i].signals.length;j++){
+                if(dbc_file.Message_List[i].signals[j].name=="DATC_AutoDisp"){
+                    console.log(dbc_file.Message_List[i].signals[j]);
+                    if(dbc_file.Message_List[i].signals[j].endianess=="motorola"){
+                        messagesList[dbc_file.Message_List[i].name].data = disposedForMotorola(messagesList[dbc_file.Message_List[i].name],dbc_file.Message_List[i].signals[j],0x01);
+                        console.log(messagesList[dbc_file.Message_List[i].name]);
                     }
                 }
             }

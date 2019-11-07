@@ -7,7 +7,8 @@ let propSchema = new mongoose.Schema({
 	end_time: { type:Date, default: Date.now },
 	result : Number,
 	case_info : Object, 
-	fail_info : Object
+	fail_info : Object,
+	tested_mode : Number
 });
 
 export function getModel(modelName:any){

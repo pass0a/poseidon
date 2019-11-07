@@ -9,7 +9,7 @@ import * as os from "os";
 let prjname:string = process.argv[2];
 let prjpath:string = path.dirname(path.dirname(process.execPath)) + "/data_store/projects/" + prjname;
 let pis:any,pos:any,c:any,backCall: any;
-let current_type:string="",ToLink="tolink",ToDB="toDB",stepsWaitTime=1500,adb_cmd_isExist=false,pcan_isExist=false;
+let current_type:string="",ToLink="tolink",ToDB="toDB",stepsWaitTime=1500,adb_cmd_isExist=false,pcan_isExist=false,dbc_isExist=false;
 let caseInfo:any={start_idx:0,img_idx:0,com_len:2};
 let progress_info = { current: 0, total: 0 };
 let log_info:any = {id:"",status:false,filename:""};
@@ -26,7 +26,8 @@ let actionList: any = {
 	group: group,
 	adb_cmd : adbCmd,
 	assert_pto: assertPto,
-	pcan : pcan
+	pcan : pcan,
+	dbc : dbc
 };
 
 startTest();
@@ -44,7 +45,7 @@ async function startTest(){
 			await startLog();
 			await runTest();
 		} else {
-			await notifyToLinkMgr({ type: ToLink, mode: 0, error_code: ret.error_code }); // error 0:串口异常 1:无测试用例 2:ADB异常 3:Pcan异常
+			await notifyToLinkMgr({ type: ToLink, mode: 0, error_code: ret.error_code }); // error 0:串口异常 1:无测试用例 2:ADB异常 3:Pcan异常 4:DBC不存在
 			await endTest();
 		}
 	}
@@ -54,15 +55,12 @@ async function runTest() {
 	// 执行用例
 	let stopflag = false;
 	for (let i = caseInfo.start_idx; i < caseInfo.caselist.length; i++) {
-		let start_time = new Date();
 		let result: any = await runSteps(caseInfo.caselist[i]);
 		if (result.stop) {
 			caseInfo.start_idx = i;
 			caseInfo.img_idx = caseInfo.img_idx++;
 			stopflag = true;
 			break; // 暂停退出
-		}else{
-			await recordResultToDB(result.data,caseInfo.caselist[i],start_time);
 		}
 		progress_info.current = i+1;
 		await notifyToLinkMgr({ type: ToLink, mode: 2, info: progress_info }); // 进度更新通知
@@ -73,7 +71,7 @@ async function runTest() {
 	await endTest();
 }
 
-async function recordResultToDB(data:any,case_info:any,start_time:Date) {
+async function recordResultToDB(data:any,case_info:any,start_time:Date,mode_idx:number) {
 	let record_info = {
 		prjname : prjname,
 		msg : {
@@ -81,10 +79,12 @@ async function recordResultToDB(data:any,case_info:any,start_time:Date) {
 			module : case_info.case_module,
 			start_time : start_time,
 			result : data.length?1:0,
-			fail_info : data
+			fail_info : data,
+			tested_mode : mode_idx + 1
 		}
 	};
-	await notifyToLinkMgr({ type:"toDB",route:"results",job:"add",info: record_info});
+	let record_job = mode_idx==0?"add":"modify"; 
+	await notifyToLinkMgr({ type:"toDB",route:"results",job:record_job,info: record_info});
 	return new Promise((resolve) => {
 		resolve(0);
 	});
@@ -92,6 +92,7 @@ async function recordResultToDB(data:any,case_info:any,start_time:Date) {
 
 async function runSteps(caseContent:any) {
 	// 执行用例循环
+	let start_time = new Date();
 	let stopflag = false;
 	let caseLoopList:any = [];
 	saveOneInMode = false; // 每条用例的循环模式只保留首次失败的图片
@@ -108,10 +109,12 @@ async function runSteps(caseContent:any) {
 				break;
 			}
 		}
+		if(stopflag)break;
+		await recordResultToDB(caseLoopList,caseContent,start_time,i);
 		if(caseLoopList.length>0&&!caseInfo.config.test_info.error_exit) break;
 	}
 	return new Promise((resolve) => {
-		resolve({ stop: stopflag, data:caseLoopList });
+		resolve({ stop: stopflag});
 	});
 }
 
@@ -372,6 +375,36 @@ async function group(cmd: any, caseData: any) {
 	});
 }
 
+async function dbc(cmd: any, caseData: any) {
+	let dbcCmd:any = await notifyToLinkMgr({type:"toDBC", info:findMessageAndSignal(cmd)});
+	await notifyToLinkMgr({type:'toPcan',job:'send',data:dbcCmd});
+	return new Promise((resolve) => {
+		resolve({ret:0});
+	});
+}
+
+function findMessageAndSignal(cmd:any) {
+	let info:any={message:{id:0,name:"",dlc:0},signal:{},value:0,physics:false};
+	for(let i=0;i<caseInfo.dbcInfo.Message_List.length;i++){
+		if(caseInfo.dbcInfo.Message_List[i].name == cmd.module){
+			info.message.id = caseInfo.dbcInfo.Message_List[i].id;
+			info.message.name = caseInfo.dbcInfo.Message_List[i].name;
+			info.message.dlc = caseInfo.dbcInfo.Message_List[i].dlc;
+			for(let j=0;j<caseInfo.dbcInfo.Message_List[i].signals.length;j++){
+				if(caseInfo.dbcInfo.Message_List[i].signals[j].name == cmd.id){
+					info.signal =  caseInfo.dbcInfo.Message_List[i].signals[j];
+					break;
+				}
+			}
+			info.physics = cmd.title!=undefined?false:true;
+			info.value = cmd.val;
+			break;
+		}
+	}
+	console.log(info);
+	return info;
+}
+
 async function saveScreen(screenPath: string) {
 	let tmpPath = prjpath + '/tmp/tmp.png';
 	Cvip.imageSave(tmpPath, screenPath, 16);
@@ -404,7 +437,7 @@ async function readyForTest() {
 	progress_info.total = caseInfo.caselist.length;
 	if (progress_info.total) {
         let tmppath = prjpath + '/tmp';
-        if(!fs.existsSync(tmppath))fs.mkdirSync(tmppath);
+		if(!fs.existsSync(tmppath))fs.mkdirSync(tmppath);
 		let uartsSet = new Set();
 		let runtime = 0;
         LogOpen(uartsSet);// Log
@@ -415,6 +448,10 @@ async function readyForTest() {
 				if (uartsSet.size != caseInfo.com_len) await checkNeedCom(data.case_steps[j],uartsSet);
 				if (data.case_steps[j].action == 'adb_cmd' && !adb_cmd_isExist)adb_cmd_isExist = true;
 				else if(data.case_steps[j].action == 'pcan' && !pcan_isExist)pcan_isExist = true;
+				else if(data.case_steps[j].action == 'dbc' && !dbc_isExist){
+					pcan_isExist = true;
+					dbc_isExist = true;
+				}
 				if (data.case_steps[j].action == 'wait') case_run_time += data.case_steps[j].time;
 				else {
 					if (j < data.case_steps.length - 1) {
@@ -430,18 +467,27 @@ async function readyForTest() {
 		ready_info = { ret: ret, runtime: runtime };
 		if (!ret) ready_info.error_code = 0;
 		else {
-			if ((ret && caseInfo.config.da_server.type == 1)||adb_cmd_isExist){
+			// if ((ret && caseInfo.config.da_server.type == 1)||adb_cmd_isExist){
 				// 检测ADB是否打开
 				// if(!await notifyToLinkMgr({type:'toDevice',job:'checkADB'})){
 				// 	ready_info.ret = 0;
 				// 	ready_info.error_code = 2;
 				// }
-			}
+			// }
 			if(pcan_isExist){
 				let pcan_status:any = await notifyToLinkMgr({type:'toPcan',job:'open',info:caseInfo.config.pcan_info});
 				if(!pcan_status.ret){
 					ready_info.ret = 0;
 					ready_info.error_code = 3;
+				}
+			}
+			if(dbc_isExist){
+				let dbc_path = prjpath + "/dbc.json";
+				if(!fs.existsSync(dbc_path)){
+					ready_info.ret = 0;
+					ready_info.error_code = 4;
+				}else{
+					caseInfo.dbcInfo = JSON.parse(new util.TextDecoder().decode(fs.readFileSync(dbc_path)));
 				}
 			}
 		}
@@ -549,7 +595,7 @@ async function readStopInfo() {
 
 function notifyToLinkMgr(info: any) {
 	return new Promise((resolve) => {
-        current_type = info.type;
+		current_type = info.type;
 		backCall = (val:any)=>{
 			resolve(val);
 		};

@@ -13,6 +13,7 @@ import binding from './binding/index';
 import adb from './adb/index';
 import results from './results/index';
 import pcan from './pcan/index';
+import dbc from './dbc/index';
 
 let pis = new pack.packStream();
 let pos = new pack.unpackStream();
@@ -241,7 +242,7 @@ function handle(data: any) {
 			break;
 		case 'removeAll':
 			projects.disposeData(data, pis);
-			let delete_collection_list = ["cases","rule","res","btn","group","binding","status","adb"];
+			let delete_collection_list = ["cases","rule","res","btn","group","binding","status","adb","dbc"];
 			for(let i=0;i<delete_collection_list.length;i++){
 				delete_collection_list[i] = data.info.prjname + "_" +delete_collection_list[i];
 			}
@@ -269,6 +270,9 @@ function handle(data: any) {
 			break;
 		case 'pcan':
 			pcan.disposeData(data, pis);
+			break;
+		case 'dbc':
+			dbc.disposeData(data, pis);
 			break;
 		default:
 			break;

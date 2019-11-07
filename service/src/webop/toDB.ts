@@ -7,6 +7,7 @@ import * as util from 'util';
 import * as os from 'os';
 import { Server } from './server';
 import { ToLink } from './toLink';
+import ConvertDBC from "../candbc/convert";
 
 export class ToDB {
 	public copyinfo = {end:0,pname:"",cname:""};
@@ -71,7 +72,7 @@ export class ToDB {
 			this.inst.removeAllListeners('error');
 		}
 	}
-	private handle(data: any) {
+	private async handle(data: any) {
 		// console.log('toDB_rev:', data);
 		if(data.type=='toDB'){
 			switch(data.route){
@@ -97,6 +98,11 @@ export class ToDB {
 							let copy_cmd = "xcopy /y/i " + p_dir + " " + c_dir + " /e";
 							childprs.exec(copy_cmd, { windowsHide:true });
 						}
+					}
+					break;
+				case 'dbc':
+					if(data.job == 'add'|| data.job == 'modify'){
+						await ConvertDBC.convertFile(data.info.msg.path, this.prjdir+data.info.prjname+"/dbc.json");
 					}
 					break;
 				default:

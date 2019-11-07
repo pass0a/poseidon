@@ -207,6 +207,13 @@ export default class App extends Vue {
                     this.$notify({title: '重新截图失败',message: '', type: 'error',duration:1500});
                 }
                 break;
+            case "readDbc":
+                if(data.data){
+                    this.$store.state.dbc_info.data = JSON.parse(data.data);
+                }else{
+                    this.$store.state.dbc_info.data = {};
+                }
+                break;
         }
     }
     private revToDB(data:any){
@@ -283,6 +290,9 @@ export default class App extends Vue {
                 break;
             case "pcan":
                 this.revToDB_pcan(data);
+                break;
+            case "dbc":
+                this.revToDB_dbc(data);
                 break;
         }
     }
@@ -488,6 +498,7 @@ export default class App extends Vue {
                 pis.write({type:"toDB",route:"res",job:"list",info:{prjname:data.info.prjname}});
                 pis.write({type:"toDB",route:"rule",job:"list",info:{prjname:data.info.prjname}});
                 pis.write({type:"toDB",route:"binding",job:"list",info:{prjname:data.info.prjname}});
+                pis.write({type:"toDB",route:"dbc",job:"getDoc",info:{prjname:data.info.prjname}});
                 pis.write({type:"toSer",job:"readStopinfo",prjname:data.info.prjname});
                 break;
         }
@@ -548,6 +559,7 @@ export default class App extends Vue {
                     pis.write({type:"toDB",route:"res",job:"list",info:{prjname:data.info.prjname}});
                     pis.write({type:"toDB",route:"rule",job:"list",info:{prjname:data.info.prjname}});
                     pis.write({type:"toDB",route:"binding",job:"list",info:{prjname:data.info.prjname}});
+                    pis.write({type:"toDB",route:"dbc",job:"getDoc",info:{prjname:data.info.prjname}});
                     pis.write({type:"toSer",job:"readStopinfo",prjname:data.info.prjname});
                 }
                 break;
@@ -719,11 +731,30 @@ export default class App extends Vue {
                 break;
         }
     }
+    private revToDB_dbc(data:any){
+        switch (data.job) {
+            case "add":
+                pis.write({type:"toSer",job:"readDbc",prjname:data.info.prjname});
+                this.$notify({title: '打开成功!',message: '', type: 'success',duration:1500});
+                break;
+            case "modify":
+                pis.write({type:"toSer",job:"readDbc",prjname:data.info.prjname});
+                this.$notify({title: '打开成功!',message: '', type: 'success',duration:1500});
+                break;
+            case "getDoc":
+                this.$store.state.dbc_info.path = data.info;
+                pis.write({type:"toSer",job:"readDbc",prjname:this.$store.state.project_info.current_prj});
+                this.revDataEnd();
+                break;
+            default:
+                break;
+        }
+    }
     private revDataEnd(){
         switch (this.callBackInfo.current_act) {
             case "openPrj":
                 this.callBackInfo.openPrj++;
-                if(this.callBackInfo.openPrj == 4) this.$store.state.project_info.openflag = false;
+                if(this.callBackInfo.openPrj == 5) this.$store.state.project_info.openflag = false;
                 break;
             default:
                 break;
