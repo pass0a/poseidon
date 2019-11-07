@@ -65,6 +65,7 @@ export default class CaseResultView extends Vue {
     private info:any={match:0,image:"",screen:""};
     private retakeAction = ["click","assert_pic","assert_pto"];
     private retakeIdx:any = {i:-1,j:-1};
+    private tested_mode:number;
     get showflag(){
         if(this.$store.state.report_info.showflag){
             this.caseData = [];
@@ -78,6 +79,7 @@ export default class CaseResultView extends Vue {
     }
     private setRetData(data:any){
         if(data.case_mode>1){
+            this.tested_mode = data.tested_mode;
             for(let i=0;i<data.fail_info.length;i++){
                 this.retData.push({loop_id:data.fail_info[i].case_loop_idx+1,fail_id:data.fail_info[i].case_idx+1});
             }
@@ -202,6 +204,10 @@ export default class CaseResultView extends Vue {
             case "qg_box":
                 content = " ["+this.getResName(it.module)+"] ( "+this.freqtype.get(it.b_type)+" ) "+it.b_volt + " V";
                 break;
+            case "dbc":
+                let title = it.title!=undefined?it.title:it.val
+                content = " [" + it.module + "] <" + it.id +"> " +  title; 
+                break;
             default:
                 content = " ["+this.getResName(it.module)+"] "+this.getResName(it.id);
                 break;
@@ -214,7 +220,7 @@ export default class CaseResultView extends Vue {
         return name!=undefined?name:id+"(已删除)";
     }
     private showLoopResult(){
-        return "共" + this.caseData[0].case_mode + "次循环, 失败次数为 " +  this.caseData[0].fail_info.length;
+        return "共" + this.caseData[0].case_mode + "次循环, 已执行循环次数为 " + this.tested_mode + ", 失败次数为 " +  this.caseData[0].fail_info.length;
     }
 }
 </script>

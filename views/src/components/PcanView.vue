@@ -2,7 +2,8 @@
     <div>
         <el-form label-position="right" ref="pcanform" :model="PcanData" label-width="115px" size="small">
             <el-form-item label="发送数据:">
-                <el-button icon="el-icon-plus" size="mini" @click="onAdd()" v-show="!showInput"></el-button><br/>
+                <el-button icon="el-icon-plus" size="mini" @click="onAdd()" v-show="!showInput"></el-button>
+                <br/>
                 <div v-for="(it,index) in pcan_info.data" :key="index">
                     <span>{{ showData(it) }}</span>
                     <a @click.prevent="editShow(index)">

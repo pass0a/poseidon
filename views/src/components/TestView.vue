@@ -249,6 +249,10 @@ export default class TestView extends Vue {
             case "qg_box":
                 content = " ["+reslist[step.module]+"] ( "+this.freqtype.get(step.b_type)+" ) "+step.b_volt + " V";
                 break;
+            case "dbc":
+                let title = step.title!=undefined?step.title:step.val
+                content = " [" + step.module + "] <" + step.id +"> " +  title; 
+                break;
             default:
                 content = " ["+reslist[step.module]+"] "+reslist[step.id];
                 break;
@@ -270,11 +274,20 @@ export default class TestView extends Vue {
             case 3:
                 this.updateLogCmd(1,"PCAN异常!请检查PCAN连接状态及配置信息!!!");
                 break;
+            case 4:
+                this.updateLogCmd(1,"DBC文件不存在!!!");
+                break;
         }
     }
     private updateLogCmd(type:number,info?:any){
-        if(!type)this.logCmd="";
+        if(!type){
+            this.logCmd = "";
+        }
         else{
+            if(this.logCmd.length>5000){
+                let idx = this.logCmd.indexOf("\r",1000);
+                this.logCmd = this.logCmd.substring(idx+1);
+            }
             let logTime = "[ " + (new Date()).toLocaleString() + " ] ";
             this.logCmd+=logTime+" "+info+"\r";
         }

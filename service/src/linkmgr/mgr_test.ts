@@ -1,6 +1,7 @@
 import * as pack from "@passoa/pack";
 import QGBox from './res/qgbox/index';
 import Pcan from './res/pcan/index';
+import DBC from '../candbc/index';
 
 export class Test_mgr{
 	private pos:any = new pack.unpackStream();
@@ -16,7 +17,6 @@ export class Test_mgr{
 			this.handleCmd(data);
 		});
 	}
-
 	private async handleCmd(obj: any) {
 		switch (obj.type) {
 			case 'tolink':
@@ -55,11 +55,15 @@ export class Test_mgr{
 			case "toPcan":
 				this.disposedPcanCmd(obj,obj.info);
 				break;
+			case "toDBC":
+				let dbc_data = DBC.getDBC_sendData(obj.info.message, obj.info.signal, obj.info.value, obj.info.physics);
+				console.log(dbc_data);
+				this.disposedCompleted(obj.type,dbc_data);
+				break;
 			default:
 				break;
 		}
 	};
-
 	private disposedPcanCmd(obj:any,info:any){
 		let ret:any;
 		switch(obj.job){
@@ -79,15 +83,12 @@ export class Test_mgr{
 		}
 		this.disposedCompleted(obj.type, {ret:ret});
 	}
-
 	private disposedCompleted(type:any, data:any) {
 		this.pis.write({ type: type, data: data });
 	};
-
 	sendCmd(info:any){
 		this.pis.write(info);
 	}
-
 	create(c:any,obj:any,link:any){
 		this.intc = c;
 		this.link = link;
@@ -100,7 +101,6 @@ export class Test_mgr{
 		});
 		this.pis.write({ type: 'auth', state: 'ok' });
 	}
-
 	stopTest() {
 		this.currentStatus = false;
 	}

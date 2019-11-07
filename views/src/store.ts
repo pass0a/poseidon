@@ -83,6 +83,10 @@ export default new Vuex.Store({
 		pcan_info:{
 			data:[]
 		},
+		dbc_info:{
+			path:"",
+			data:{}
+		},
 		steps_info:{
 			reslist:{},
 			rulelist:{},
@@ -132,7 +136,7 @@ export default new Vuex.Store({
 			revdata:{},
 			log:""
 		},
-		version:"3.2.5"
+		version:"3.2.6"
 	},
 	mutations:{}
 });

@@ -13,22 +13,38 @@
                 </el-select>
                 <el-input-number v-model="s_clicktime" style="width:100px" controls-position="right" :min="1500" size="small" v-show="showClickTime(s_clicktype)"></el-input-number>
                 <el-select placeholder="请选择" filterable size="small" style="width:140px" v-model="s_module" v-show="s_action!=waitType" @change="changeSel(1)">
-                    <el-option v-for="val in Module" :key="val" :label="getResName(val)" :value="val"></el-option>
+                    <el-option v-for="val in Module" :key="s_action=='dbc'?val.name:val" :label="s_action=='dbc'?val.name:getResName(val)" :value="s_action=='dbc'?val.name:val"></el-option>
                 </el-select>
                 <el-select placeholder="请选择" filterable size="small" style="width:75px" v-model="s_freqtype" v-show="s_action==boxType.act&&s_module==boxType.freq">
                     <el-option v-for="val in freqtype.keys()" :label="freqtype.get(val)" :value="val" :key="val"></el-option>
                 </el-select>
                 <el-input-number v-model="s_box" style="width:130px" controls-position="right" :min="0" size="small" v-show="s_module==boxType.freq"></el-input-number>
-                <el-select placeholder="请选择" filterable clearable  size="small" style="width:155px" v-model="s_clid" v-show="s_action!=waitType&&s_action!=boxType.act">
-                    <el-option v-for="val in Clid" :key="val" :label="getResName(val)" :value="val"></el-option>
+                <el-select placeholder="请选择" filterable clearable  size="small" style="width:155px" v-model="s_clid" v-show="s_action!=waitType&&s_action!=boxType.act" @change="changeSel(4)">
+                    <el-option v-for="val in Clid" :key="s_action=='dbc'?val.name:val" :label="s_action=='dbc'?val.name:getResName(val)" :value="s_action=='dbc'?val.name:val" :disabled="checkBinding(0,s_action=='dbc'?val.name:val)">
+                        <span style="float: left">{{ s_action=='dbc'?val.name:getResName(val) }}</span>
+                        <span style="float: right" v-if="s_action!='dbc'"><font :color="checkBinding(1,val)">{{ checkBinding(2,val) }}</font></span>
+                    </el-option>
                 </el-select>
-                <Checkbox v-model="s_skip" v-show="s_action=='click'">不判断</Checkbox>
-                <el-input-number v-model="s_wait" controls-position="right" :min="0" size="small" v-show="s_action==waitType"></el-input-number>
-                <el-button-group>
-                    <el-button type="success" size="small" @click="onSet" v-show="s_action==waitType||s_module==boxType.freq">设置</el-button>
-                    <el-button size="small" @click="changeSel(2)" v-show="s_action!=waitType&&s_module!=boxType.freq">确定</el-button>
-                    <el-button type="info" size="small" @click="initOp">取消</el-button>
-                </el-button-group>
+                <el-select placeholder="请选择" filterable clearable size="small" style="width:155px" v-model="s_val" v-if="s_action=='dbc'&&checkValType()">
+                    <el-option v-for="val in Values.em_num" :key="val" :label="getDdcVal(val)" :value="val"></el-option>
+                </el-select>
+                <div v-if="s_action=='dbc'&&!checkValType()&&s_clid!=''">
+                    <span><font size="2">{{ showSignalRange() }}</font></span>
+                    <el-input-number v-model="s_num" controls-position="right" size="small" style="margin:5px 0px 0px 0px"></el-input-number>
+                    <el-button-group>
+                        <el-button type="success" size="small" @click="onSet">设置</el-button>
+                        <el-button type="info" size="small" @click="initOp">取消</el-button>
+                    </el-button-group>
+                </div>
+                <div v-else>
+                    <Checkbox v-model="s_skip" v-show="s_action=='click'">不判断</Checkbox>
+                    <el-input-number v-model="s_wait" controls-position="right" :min="0" size="small" v-show="s_action==waitType"></el-input-number>
+                    <el-button-group style="margin:5px 0px 0px 0px">
+                        <el-button type="success" size="small" @click="onSet" v-show="s_action==waitType||s_module==boxType.freq">设置</el-button>
+                        <el-button type="success" size="small" @click="changeSel(s_action=='dbc'?3:2)" v-show="s_action!=waitType&&s_module!=boxType.freq">确定</el-button>
+                        <el-button type="info" size="small" @click="initOp">取消</el-button>
+                    </el-button-group>
+                </div>
             </div>
             <div v-show="idx!=s_idx||s_op==1||s_op>=3">
                 <span><font size="2">{{ showStep(it) }}</font></span>
@@ -63,18 +79,26 @@
             </el-select>
             <el-input-number v-model="s_clicktime" style="width:100px" controls-position="right" :min="1500" size="small" v-show="showClickTime(s_clicktype)"></el-input-number>
             <el-select placeholder="请选择" filterable size="small" style="width:140px" v-model="s_module" v-show="s_action!=waitType" @change="changeSel(1)">
-                <el-option v-for="val in Module" :key="val" :label="getResName(val)" :value="val"></el-option>
+                <el-option v-for="val in Module" :key="s_action=='dbc'?val.name:val" :label="s_action=='dbc'?val.name:getResName(val)" :value="s_action=='dbc'?val.name:val"></el-option>
             </el-select>
             <el-select placeholder="请选择" filterable size="small" style="width:75px" v-model="s_freqtype" v-show="s_action==boxType.act&&s_module==boxType.freq">
                 <el-option v-for="val in freqtype.keys()" :label="freqtype.get(val)" :value="val" :key="val"></el-option>
             </el-select>
             <el-input-number v-model="s_box" style="width:130px" controls-position="right" :min="0" size="small" v-show="s_module==boxType.freq"></el-input-number>
             <el-select placeholder="请选择" filterable clearable  size="small" style="width:155px" v-model="s_clid" v-show="s_action!=waitType&&s_action!=boxType.act" @change="changeSel(2)">
-                <el-option v-for="val in Clid" :key="val" :label="getResName(val)" :value="val" :disabled="checkBinding(0,val)">
-                    <span style="float: left">{{ getResName(val) }}</span>
-                    <span style="float: right"><font :color="checkBinding(1,val)">{{ checkBinding(2,val) }}</font></span>
+                <el-option v-for="val in Clid" :key="s_action=='dbc'?val.name:val" :label="s_action=='dbc'?val.name:getResName(val)" :value="s_action=='dbc'?val.name:val" :disabled="checkBinding(0,s_action=='dbc'?val.name:val)">
+                    <span style="float: left">{{ s_action=='dbc'?val.name:getResName(val) }}</span>
+                    <span style="float: right" v-if="s_action!='dbc'"><font :color="checkBinding(1,val)">{{ checkBinding(2,val) }}</font></span>
                 </el-option>
             </el-select>
+            <el-select placeholder="请选择" filterable clearable size="small" style="width:155px" v-model="s_val" v-if="s_action=='dbc'&&checkValType()" @change="changeSel(3)">
+                <el-option v-for="val in Values.em_num" :key="val" :label="getDdcVal(val)" :value="val"></el-option>
+            </el-select>
+            <div v-if="s_action=='dbc'&&!checkValType()&&s_clid!=''">
+                <span><font size="2">{{ showSignalRange() }}</font></span>
+                <el-input-number v-model="s_num" controls-position="right" size="small" style="margin:5px 0px 0px 0px"></el-input-number>
+                <el-button type="success" size="small" @click="onSet">设置</el-button>
+            </div>
             <Checkbox v-model="s_skip" v-show="s_action=='click'">不判断</Checkbox>
             <el-input-number v-model="s_wait" controls-position="right" :min="0" size="small" v-show="s_action==waitType"></el-input-number>
             <el-button type="success" size="small" @click="onSet" v-show="s_action==waitType||s_module==boxType.freq">设置</el-button>
@@ -83,6 +107,7 @@
 </template>
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
+import { types } from 'util';
 @Component
 export default class StepsView extends Vue {
     private Action:any=[];
@@ -108,6 +133,9 @@ export default class StepsView extends Vue {
         type:0,
         id:""
     }
+    private s_val:any = "";
+    private s_num:Number=0;
+    private Values:any;
     get clearInfo(){
         if(this.$store.state.case_info.showflag){
             this.initOp();
@@ -124,13 +152,65 @@ export default class StepsView extends Vue {
         return;
     }
     get Module(){
-        return this.$store.state.steps_info.rulelist[this.s_action]!=undefined?this.$store.state.steps_info.rulelist[this.s_action]:[];
+        if(this.s_action=="dbc"){
+            if(this.$store.state.dbc_info.data.Message_List){
+                return this.$store.state.dbc_info.data.Message_List;
+            }else return [];
+            
+        }else{
+            return this.$store.state.steps_info.rulelist[this.s_action]!=undefined?this.$store.state.steps_info.rulelist[this.s_action]:[];
+        }
     }
     get Clid(){
-        return this.$store.state.steps_info.rulelist[this.s_module]!=undefined?this.$store.state.steps_info.rulelist[this.s_module]:[];
+        if(this.s_action=="dbc"){
+            if(this.$store.state.dbc_info.data.Message_List){
+                for(let i=0;i<this.$store.state.dbc_info.data.Message_List.length;i++){
+                    if(this.$store.state.dbc_info.data.Message_List[i].name == this.s_module){
+                        return this.$store.state.dbc_info.data.Message_List[i].signals;
+                    }
+                }
+                return [];
+            }else return [];
+        }else{
+            return this.$store.state.steps_info.rulelist[this.s_module]!=undefined?this.$store.state.steps_info.rulelist[this.s_module]:[];
+        }   
+    }    
+    private checkValType(){
+        if(this.$store.state.dbc_info.data.Values_List){
+            for(let i=0;i<this.$store.state.dbc_info.data.Values_List.length;i++){
+                if(this.$store.state.dbc_info.data.Values_List[i].name == this.s_clid){
+                    this.Values = this.$store.state.dbc_info.data.Values_List[i];
+                    return true;
+                }
+            }
+            return false;
+        }
+        return false;
+    }
+    private getDdcVal(idx:number){
+        for(let i=0;i<this.Values.em_num.length;i++){
+            if(this.Values.em_num[i]==idx){
+                return this.Values.em_str[i]
+            }
+        }
+        return "";
     }
     private getResName(id:any){
-        return this.$store.state.steps_info.reslist[id];
+        return this.$store.state.steps_info.reslist[id]!=undefined?this.$store.state.steps_info.reslist[id]:id;   
+    }
+    private showSignalRange(){
+        let messageList = this.$store.state.dbc_info.data.Message_List;
+        for(let i=0;i<messageList.length;i++){
+            if(messageList[i].name == this.s_module){
+                let signalsList = messageList[i].signals;
+                for(let j=0;j<signalsList.length;j++){
+                    if(signalsList[j].name == this.s_clid){
+                        return "有效范围 [ "+ signalsList[j].minimum + " ~ " + signalsList[j].maximum + " ]";
+                    }
+                }
+            }
+        }
+        return "";
     }
     private checkBinding(type:number,id:string){
         let needCheckArr = ["click","assert_pic","click_poi","slide"];
@@ -159,6 +239,10 @@ export default class StepsView extends Vue {
                 this.s_clid="";
                 break;
             case 2:
+                if(this.s_action=="dbc"){
+                    this.s_val = "";
+                    break;
+                }
                 if(this.s_clid!=undefined&&this.s_clid.length>0){
                     let obj:any = {action:this.s_action,module:this.s_module,id:this.s_clid};
                     if(this.s_action=="button"||this.s_action=="click"||this.s_action=="click_poi"){
@@ -188,6 +272,22 @@ export default class StepsView extends Vue {
                     if(this.s_op!=0)this.initOp();
                 }
                 break;
+            case 3:
+                if(this.s_clid!=undefined&&this.s_clid.length>0){
+                    if(this.s_val>=0&&typeof this.s_val == "number"){
+                        let vobj:any = {action:this.s_action,module:this.s_module,id:this.s_clid,val:this.s_val,title:this.getDdcVal(this.s_val)};
+                        if(this.s_op==0)this.steplist.push(vobj);
+                        else if(this.s_op==2)this.steplist[this.s_idx]=vobj;
+                        else if(this.s_op==3)this.steplist.splice(this.s_idx,0,vobj);
+                        if(this.s_op!=0)this.initOp();
+                    }
+                }
+                break;
+            case 4:
+                if(this.s_action=="dbc"){
+                    this.s_val = "";
+                }
+                break;
         }
     }
     private onSet(){
@@ -198,6 +298,8 @@ export default class StepsView extends Vue {
         }else if(this.s_module == this.boxType.freq){
             if(this.s_box==undefined)this.s_box=2.529;
             obj = {action:this.s_action,module:this.s_module,b_volt:this.s_box,b_type:this.s_freqtype};
+        }else if(this.s_action == "dbc"){
+            obj = {action:this.s_action,module:this.s_module,id:this.s_clid,val:this.s_num};
         }
         if(this.s_op==0)this.steplist.push(obj);
         else if(this.s_op==2)this.steplist[this.s_idx]=obj;
@@ -216,6 +318,8 @@ export default class StepsView extends Vue {
         this.s_wait=100;
         this.s_loop=2;
         this.s_skip=false;
+        this.s_val="";
+        this.s_num=0;
     }
     private showStep(it:any){
         let action=this.getResName(it.action);
@@ -228,6 +332,10 @@ export default class StepsView extends Vue {
                 break;
             case "qg_box":
                 content = " ["+this.getResName(it.module)+"] ( "+(it.b_type!=undefined?this.freqtype.get(it.b_type):"大于")+" ) "+it.b_volt + " V";
+                break;
+            case "dbc":
+                let title = it.title!=undefined?it.title:it.val
+                content = " [" + it.module + "] <" + it.id +"> " +  title; 
                 break;
             default:
                 content = " ["+this.getResName(it.module)+"] "+this.getResName(it.id);
@@ -275,6 +383,13 @@ export default class StepsView extends Vue {
                         this.s_clicktime=item.click_time;
                     }
                     if(item.action=="click")this.s_skip=item.click_skip?true:false;
+                    if(item.action=="dbc"){
+                        if(item.title!=undefined){
+                            this.s_val = item.val;
+                        }else{
+                            this.s_num = item.val;
+                        }
+                    }
                 }
                 break;
             case 1:

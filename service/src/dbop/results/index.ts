@@ -39,7 +39,8 @@ function add(data:any,pis:any,DBModel:any){
                 start_time : info.start_time,
                 result : info.result,
                 case_info : msg1[0], 
-                fail_info : info.fail_info
+                fail_info : info.fail_info,
+                tested_mode : info.tested_mode
             });
             model.save(function (err:any,msg2:any){
                 if(!err){
@@ -120,6 +121,22 @@ function getRet(data:any,pis:any,DBModel:any) {
     });
 }
 
+function modify(data:any,pis:any,DBModel:any) {
+    let info:any = data.info.msg;
+    DBModel.updateOne({cid:createObjectID(info.cid)},{$set: {
+		result : info.result,
+        fail_info : info.fail_info,
+        tested_mode : info.tested_mode
+		}},function(err:any){
+			if(!err){
+                data.info = "";
+                data.data = true;
+                pis.write(data);
+			}
+        }
+    );
+}
+
 function createObjectID(id:string){
     return mongodb.ObjectId.createFromHexString(id);
 }
@@ -144,6 +161,9 @@ function disposeData(data:any,pis:any){
             break;
         case "getRet":
             getRet(data,pis,DBModel);
+            break;
+        case "modify":
+            modify(data,pis,DBModel);
             break;
         default:
             break;

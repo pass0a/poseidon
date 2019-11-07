@@ -164,6 +164,7 @@ export default class ReportView extends Vue {
             let case_info:any = data[i].case_info;
             case_info.result = data[i].result;
             case_info.fail_info = data[i].fail_info;
+            case_info.tested_mode = data[i].tested_mode;
             this.current_data.push(case_info);
         }
     }

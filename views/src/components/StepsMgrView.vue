@@ -1,16 +1,21 @@
 <template>
     <div>
+        <el-link v-model="DbcPath" v-show="false"></el-link>
         <el-link v-model="ButtonList" v-show="false"></el-link>
         <el-link v-model="AdbList" v-show="false"></el-link>
         <el-link v-model="updateShowflage" v-show="false"></el-link>
         <el-tabs type="border-card" style="margin:5px 10px 10px 10px;" v-model="actionName" @tab-click="clickAction()">
 			<el-tab-pane v-for="it in actionList" :name="it" :key="it" :label="getResName(it)"></el-tab-pane>
-            <el-button-group style="margin:0px 0px 10px 0px;" v-show="actionName.length>1&&actionName!='button'">
+            <el-button-group style="margin:0px 0px 10px 0px;" v-show="actionName.length>1&&actionName!='button'&&actionName!='dbc'">
                 <el-button plain icon="el-icon-plus" size="small" @click="addID(0)">添加二级选项</el-button>
                 <el-button plain icon="el-icon-plus" size="small" @click="addID(1)">添加三级选项</el-button>
             </el-button-group>
             <el-button style="margin:0px 0px 10px 0px;" plain icon="el-icon-plus" size="small" @click="addID(2)" v-show="actionName.length>1&&actionName=='button'">添加硬按键</el-button>
-            <el-tabs tab-position="left" v-model="moduleName" @tab-click="clickModule()">
+            <div v-show="actionName.length>1&&actionName=='dbc'">
+                <el-button style="margin:0px 0px 10px 0px;" plain icon="el-icon-folder-opened" size="small" @click="openDBC()">打开DBC文件</el-button>
+                <span style="margin:0px 0px 10px 30px;"><font size="2">当前打开DBC文件 : {{ dbcPath }}</font></span>
+            </div>
+            <el-tabs tab-position="left" v-model="moduleName" @tab-click="clickModule()" v-show="actionName!='dbc'">
 				<el-tab-pane v-for="it in Module" :name="it" :key="it">
                     <span slot="label">
                         {{getResName(it)}}  
@@ -22,7 +27,7 @@
                         </a>
                     </span>
                 </el-tab-pane>
-                <el-table :data="TableData" style="width: 100%" height="370" size="mini" stripe border ref="stepsTable" :empty-text="emptyText()">
+                <el-table :data="TableData" style="width: 100%" height="370" size="mini" stripe border ref="stepsTable" :empty-text="emptyText()" v-show="actionName!='dbc'">
                     <el-table-column prop="id" label="名称">
                         <template slot-scope="scope">
                             <span>{{ getResName(scope.row.id) }}</span>
@@ -201,7 +206,7 @@ import PcanView from "./PcanView.vue";
     }
 })
 export default class StepsMgrView extends Vue {
-    private actionList:any=["click","assert_pic","assert_pto","click_poi","slide","button","group","adb_cmd","pcan"];
+    private actionList:any=["click","assert_pic","assert_pto","click_poi","slide","button","group","adb_cmd","pcan","dbc"];
     private actionName:any=this.actionList[0];
     private moduleName:any="";
     private rulelist:any;
@@ -215,6 +220,7 @@ export default class StepsMgrView extends Vue {
     private add_type:any=0;
     private title:any="";
     private count:any=0;
+    private dbcPath:string = "空";
     private loading:boolean = false;
     private add_info:any= {action:"",module:"",name:"",event:"/dev/input/event1",event_down_1:"",event_down_2:"",event_up_1:"",event_up_2:"",grouplist:[],sd:"",rd:"",tp:0,tt:3000};
     private edit_info:any = {id:"",name:"",event:"",event_down_1:"",event_down_2:"",event_up_1:"",event_up_2:"",type:0,sd:"",rd:"",tp:0,tt:3000};
@@ -233,6 +239,10 @@ export default class StepsMgrView extends Vue {
         rd:[{ required: true, message: '不能为空', trigger: 'blur' }]
     };
     private leak:any={group:"组合步骤",click_poi:"坐标点击",slide:"轨迹划动",adb_cmd:"ADB指令",assert_pto:"拍摄判断"};
+    get DbcPath(){
+        this.dbcPath = this.$store.state.dbc_info.path;
+        return;
+    }
     get ButtonList(){
         this.buttonlist=this.$store.state.steps_info.buttonlist;
         return;
@@ -498,6 +508,18 @@ export default class StepsMgrView extends Vue {
             }
         }
         this.$store.state.app_info.pis.write(req);
+    }
+    private openDBC(){
+        let usl:any = window;
+        let filepath = usl.pathByUserSelect();
+        if(filepath.length==0||filepath==undefined) return;
+        else if(filepath.indexOf(".dbc")>-1){
+            let job = this.dbcPath=="空"?"add":"modify";
+            this.sendReq("dbc", job, { path:filepath });
+            this.dbcPath = filepath;
+        }else{
+            this.$notify({title: '请选择正确的DBC文件!',message: '', type: 'error',duration:1500});
+        }
     }
 }
 </script>

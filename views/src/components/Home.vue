@@ -166,12 +166,12 @@ export default class Home extends Vue {
               this.select_mode=key;
               break;
             case "5":
-              let c_pname = this.$store.state.project_info.current_prj;
-              let c_module = this.$store.state.steps_info.rulelist.module;
-              if(c_module.length){
-                this.$store.state.app_info.pis.write({type:"toDB",route:"results",job:"info",info:{prjname:c_pname}});
-                this.$store.state.report_info.firstModule = c_module[0];
-                this.$store.state.app_info.pis.write({type:"toDB",route:"results",job:"total",info:{prjname:c_pname,module:c_module[0]}});
+              let p_pname = this.$store.state.project_info.current_prj;
+              let p_module = this.$store.state.steps_info.rulelist.module;
+              if(p_module.length){
+                this.$store.state.app_info.pis.write({type:"toDB",route:"results",job:"info",info:{prjname:p_pname}});
+                this.$store.state.report_info.firstModule = p_module[0];
+                this.$store.state.app_info.pis.write({type:"toDB",route:"results",job:"total",info:{prjname:p_pname,module:p_module[0]}});
               }else{
                 this.$store.state.report_info.firstModule = "";
               }
