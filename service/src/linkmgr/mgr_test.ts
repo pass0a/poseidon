@@ -56,7 +56,7 @@ export class Test_mgr{
 				this.disposedPcanCmd(obj,obj.info);
 				break;
 			case "toDBC":
-				let dbc_data = DBC.getDBC_sendData(obj.info.message, obj.info.signal, obj.info.value, obj.info.physics);
+				let dbc_data = DBC.getDBC_sendData(obj.info.msg, obj.info.sgn, obj.info.val);
 				console.log(dbc_data);
 				this.disposedCompleted(obj.type,dbc_data);
 				break;

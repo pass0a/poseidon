@@ -1,6 +1,9 @@
 import * as Pcan from '@passoa/pcan';
+import ConvertDBC from "../candbc/convert";
 import * as util from "util";
 import * as fs from "fs";
+
+ConvertDBC.convertFile("C:/Users/huangzepeng/Desktop/20180821_SU2_2019______18.08.01.dbc", "D:/projectList/poseidon/binary/service/dist/dbc.json");
 
 let config = {
     baudrate : 0x432F,
@@ -10,12 +13,12 @@ let config = {
 };
 let messagesList:any = {};
 
-Pcan.initPcan(config,(ev,data)=>{
-    console.log(ev,data);
-    main();
-    Pcan.send(messagesList["DATC_PE_03"].data,messagesList["DATC_PE_03"].id);
-    Pcan.uninitPcan();
-});
+// Pcan.initPcan(config,(ev,data)=>{
+//     console.log(ev,data);
+//     main();
+//     Pcan.send(messagesList["DATC_PE_03"].data,messagesList["DATC_PE_03"].id);
+//     Pcan.uninitPcan();
+// });
 
 function main() {
     let dbc_file:any = JSON.parse(new util.TextDecoder().decode(fs.readFileSync("D:/projectList/poseidon/binary/service/dist/dbc.json")));

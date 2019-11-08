@@ -13,20 +13,20 @@
                 </el-select>
                 <el-input-number v-model="s_clicktime" style="width:100px" controls-position="right" :min="1500" size="small" v-show="showClickTime(s_clicktype)"></el-input-number>
                 <el-select placeholder="请选择" filterable size="small" style="width:140px" v-model="s_module" v-show="s_action!=waitType" @change="changeSel(1)">
-                    <el-option v-for="val in Module" :key="s_action=='dbc'?val.name:val" :label="s_action=='dbc'?val.name:getResName(val)" :value="s_action=='dbc'?val.name:val"></el-option>
+                    <el-option v-for="val in Module" :key="val" :label="s_action=='dbc'?val:getResName(val)" :value="val"></el-option>
                 </el-select>
                 <el-select placeholder="请选择" filterable size="small" style="width:75px" v-model="s_freqtype" v-show="s_action==boxType.act&&s_module==boxType.freq">
                     <el-option v-for="val in freqtype.keys()" :label="freqtype.get(val)" :value="val" :key="val"></el-option>
                 </el-select>
                 <el-input-number v-model="s_box" style="width:130px" controls-position="right" :min="0" size="small" v-show="s_module==boxType.freq"></el-input-number>
                 <el-select placeholder="请选择" filterable clearable  size="small" style="width:155px" v-model="s_clid" v-show="s_action!=waitType&&s_action!=boxType.act" @change="changeSel(4)">
-                    <el-option v-for="val in Clid" :key="s_action=='dbc'?val.name:val" :label="s_action=='dbc'?val.name:getResName(val)" :value="s_action=='dbc'?val.name:val" :disabled="checkBinding(0,s_action=='dbc'?val.name:val)">
-                        <span style="float: left">{{ s_action=='dbc'?val.name:getResName(val) }}</span>
+                    <el-option v-for="val in Clid" :key="val" :label="s_action=='dbc'?val:getResName(val)" :value="val" :disabled="checkBinding(0,val)">
+                        <span style="float: left">{{ s_action=='dbc'?val:getResName(val) }}</span>
                         <span style="float: right" v-if="s_action!='dbc'"><font :color="checkBinding(1,val)">{{ checkBinding(2,val) }}</font></span>
                     </el-option>
                 </el-select>
                 <el-select placeholder="请选择" filterable clearable size="small" style="width:155px" v-model="s_val" v-if="s_action=='dbc'&&checkValType()">
-                    <el-option v-for="val in Values.em_num" :key="val" :label="getDdcVal(val)" :value="val"></el-option>
+                    <el-option v-for="(val,index) in Values.em_num" :key="val" :label="Values.em_str[index]" :value="val"></el-option>
                 </el-select>
                 <div v-if="s_action=='dbc'&&!checkValType()&&s_clid!=''">
                     <span><font size="2">{{ showSignalRange() }}</font></span>
@@ -79,20 +79,20 @@
             </el-select>
             <el-input-number v-model="s_clicktime" style="width:100px" controls-position="right" :min="1500" size="small" v-show="showClickTime(s_clicktype)"></el-input-number>
             <el-select placeholder="请选择" filterable size="small" style="width:140px" v-model="s_module" v-show="s_action!=waitType" @change="changeSel(1)">
-                <el-option v-for="val in Module" :key="s_action=='dbc'?val.name:val" :label="s_action=='dbc'?val.name:getResName(val)" :value="s_action=='dbc'?val.name:val"></el-option>
+                <el-option v-for="val in Module" :key="val" :label="s_action=='dbc'?val:getResName(val)" :value="val"></el-option>
             </el-select>
             <el-select placeholder="请选择" filterable size="small" style="width:75px" v-model="s_freqtype" v-show="s_action==boxType.act&&s_module==boxType.freq">
                 <el-option v-for="val in freqtype.keys()" :label="freqtype.get(val)" :value="val" :key="val"></el-option>
             </el-select>
             <el-input-number v-model="s_box" style="width:130px" controls-position="right" :min="0" size="small" v-show="s_module==boxType.freq"></el-input-number>
             <el-select placeholder="请选择" filterable clearable  size="small" style="width:155px" v-model="s_clid" v-show="s_action!=waitType&&s_action!=boxType.act" @change="changeSel(2)">
-                <el-option v-for="val in Clid" :key="s_action=='dbc'?val.name:val" :label="s_action=='dbc'?val.name:getResName(val)" :value="s_action=='dbc'?val.name:val" :disabled="checkBinding(0,s_action=='dbc'?val.name:val)">
-                    <span style="float: left">{{ s_action=='dbc'?val.name:getResName(val) }}</span>
+                <el-option v-for="val in Clid" :key="val" :label="s_action=='dbc'?val:getResName(val)" :value="val" :disabled="checkBinding(0,val)">
+                    <span style="float: left">{{ s_action=='dbc'?val:getResName(val) }}</span>
                     <span style="float: right" v-if="s_action!='dbc'"><font :color="checkBinding(1,val)">{{ checkBinding(2,val) }}</font></span>
                 </el-option>
             </el-select>
             <el-select placeholder="请选择" filterable clearable size="small" style="width:155px" v-model="s_val" v-if="s_action=='dbc'&&checkValType()" @change="changeSel(3)">
-                <el-option v-for="val in Values.em_num" :key="val" :label="getDdcVal(val)" :value="val"></el-option>
+                <el-option v-for="(val,index) in Values.em_num" :key="val" :label="Values.em_str[index]" :value="val"></el-option>
             </el-select>
             <div v-if="s_action=='dbc'&&!checkValType()&&s_clid!=''">
                 <span><font size="2">{{ showSignalRange() }}</font></span>
@@ -153,37 +153,30 @@ export default class StepsView extends Vue {
     }
     get Module(){
         if(this.s_action=="dbc"){
-            if(this.$store.state.dbc_info.data.Message_List){
-                return this.$store.state.dbc_info.data.Message_List;
+            if(this.$store.state.dbc_info.data.Messages_List){
+                return this.$store.state.dbc_info.data.Messages_List;
             }else return [];
-            
         }else{
             return this.$store.state.steps_info.rulelist[this.s_action]!=undefined?this.$store.state.steps_info.rulelist[this.s_action]:[];
         }
     }
     get Clid(){
         if(this.s_action=="dbc"){
-            if(this.$store.state.dbc_info.data.Message_List){
-                for(let i=0;i<this.$store.state.dbc_info.data.Message_List.length;i++){
-                    if(this.$store.state.dbc_info.data.Message_List[i].name == this.s_module){
-                        return this.$store.state.dbc_info.data.Message_List[i].signals;
-                    }
-                }
-                return [];
+            if(this.$store.state.dbc_info.data.Messages_Info&&this.s_module!=""){
+                return this.$store.state.dbc_info.data.Messages_Info[this.s_module].signals;
             }else return [];
         }else{
             return this.$store.state.steps_info.rulelist[this.s_module]!=undefined?this.$store.state.steps_info.rulelist[this.s_module]:[];
         }   
     }    
     private checkValType(){
-        if(this.$store.state.dbc_info.data.Values_List){
-            for(let i=0;i<this.$store.state.dbc_info.data.Values_List.length;i++){
-                if(this.$store.state.dbc_info.data.Values_List[i].name == this.s_clid){
-                    this.Values = this.$store.state.dbc_info.data.Values_List[i];
-                    return true;
-                }
-            }
-            return false;
+        if(this.$store.state.dbc_info.data.Signals_Info&&this.s_clid!=""){
+            if(!this.$store.state.dbc_info.data.Signals_Info[this.s_clid].physics){
+                this.Values = this.$store.state.dbc_info.data.Signals_Info[this.s_clid].value;
+                return true;
+            }else{
+                return false;
+            }   
         }
         return false;
     }
@@ -199,18 +192,12 @@ export default class StepsView extends Vue {
         return this.$store.state.steps_info.reslist[id]!=undefined?this.$store.state.steps_info.reslist[id]:id;   
     }
     private showSignalRange(){
-        let messageList = this.$store.state.dbc_info.data.Message_List;
-        for(let i=0;i<messageList.length;i++){
-            if(messageList[i].name == this.s_module){
-                let signalsList = messageList[i].signals;
-                for(let j=0;j<signalsList.length;j++){
-                    if(signalsList[j].name == this.s_clid){
-                        return "有效范围 [ "+ signalsList[j].minimum + " ~ " + signalsList[j].maximum + " ]";
-                    }
-                }
-            }
+        let signal_info = this.$store.state.dbc_info.data.Signals_Info[this.s_clid];
+        if(signal_info.physics) {
+            return "有效范围 [ "+ signal_info.minimum + " ~ " + signal_info.maximum + " ]";
+        }else {
+            return "";
         }
-        return "";
     }
     private checkBinding(type:number,id:string){
         let needCheckArr = ["click","assert_pic","click_poi","slide"];

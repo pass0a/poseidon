@@ -1,6 +1,6 @@
 class DBC{
 	private messagesList:any = {};
-	getDBC_sendData(msg:any, sgn:any ,value:any,physics:boolean){
+	getDBC_sendData(msg:any, sgn:any ,value:any){
 		if(this.messagesList[msg.name]==undefined){
 			this.messagesList[msg.name] = {
 				data : new Uint8Array(msg.dlc),
@@ -8,13 +8,13 @@ class DBC{
 			}
 		}
 		if(sgn.endianess == "motorola"){
-			this.messagesList[msg.name].data = this.disposedForMotorola(this.messagesList[msg.name].data, sgn, value, physics);
+			this.messagesList[msg.name].data = this.disposedForMotorola(this.messagesList[msg.name].data, sgn, value);
 		}else{
-			this.messagesList[msg.name].data = this.disposedForIntel(this.messagesList[msg.name].data, sgn, value, physics);
+			this.messagesList[msg.name].data = this.disposedForIntel(this.messagesList[msg.name].data, sgn, value);
 		}
 		return this.messagesList[msg.name];
 	}
-	private disposedForMotorola(data:any, sgn:any, value:any, physics:boolean) {
+	private disposedForMotorola(data:any, sgn:any, value:any) {
 		let buffer = data;
 		// motorola
 		let jl:any = [];
@@ -28,7 +28,7 @@ class DBC{
 		// console.log(Math.floor(start_bit/8));
 		// console.log(start_bit%8);
 		// console.log(start_idx);
-		let akt = physics?((value-sgn.offset)/sgn.scaling):value;
+		let akt = sgn.physics?((value-sgn.offset)/sgn.scaling):value;
 		for(let i=start_idx;i<start_idx+len;i++){
 			jl[i] = (akt >> (start_idx+len-1-i)) & 0x01;
 		}
@@ -38,7 +38,7 @@ class DBC{
 		}
 		return new Buffer(op);
 	}
-	private disposedForIntel(data:any, sgn:any, value:any, physics:boolean){
+	private disposedForIntel(data:any, sgn:any, value:any){
 		let buffer = data;
 		let jt:any = [];
 		for(let i=0;i<buffer.length;i++){
@@ -47,7 +47,7 @@ class DBC{
 			}
 		}
 		let start_bit = sgn.startbit,len = sgn.bitlength;
-		let akt = physics?(value-sgn.offset)/sgn.scaling:value;
+		let akt = sgn.physics?(value-sgn.offset)/sgn.scaling:value;
 		for(let i=start_bit;i<start_bit+len;i++){
 			jt[i] = (akt >> i-start_bit) & 0x01;
 		}

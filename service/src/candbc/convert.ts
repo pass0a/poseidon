@@ -3,13 +3,15 @@ import * as util from "util";
 
 class ConvertDBC{
     private convertDBC:any = {
-        Message_List : [],
-        Values_List : []
+        Messages_List : [],
+        Messages_Info : {},
+        Signals_Info : {}
     }
     convertFile(dbc_path:any, json_path:any){
         return new Promise((resolve) => {
-            this.convertDBC.Message_List = [];
-            this.convertDBC.Values_List = [];
+            this.convertDBC.Messages_List = [];
+            this.convertDBC.Messages_Info = {};
+            this.convertDBC.Signals_Info = {};
             let buf:any="";
             let f = new fs.ReadStream(dbc_path);
             f.on("open", () => {
@@ -55,7 +57,14 @@ class ConvertDBC{
                 message_info.id = Number(msg_arr[1]); // can_id 
                 message_info.name = msg_arr[2].split(":").join(""); // message_name
                 message_info.dlc = Number(msg_arr[3]); // can_len
-                message_info.signals = []; // signal_list
+                // message_info.signals = []; // signal_list
+
+                this.convertDBC.Messages_List.push(message_info.name); // message_name
+                this.convertDBC.Messages_Info[message_info.name] = {
+                    id : message_info.id,
+                    dlc : message_info.dlc,
+                    signals : []
+                }
             }else{ // signal
                 let sgn_info:any = {};
                 let hidx = info_arr[i].indexOf("SG_ ");
@@ -76,11 +85,25 @@ class ConvertDBC{
                     sgn_info.maximum = Number(mm[1]);
                     // let nis = info_arr[i].substring(info_arr[i].indexOf('"')+1);
                     // sgn_info.units = nis.substring(0,nis.indexOf('"'));
-                    message_info.signals.push(sgn_info);
+                    // message_info.signals.push(sgn_info);
+
+                    this.convertDBC.Messages_Info[message_info.name].signals.push(sgn_info.name);
+                    this.convertDBC.Signals_Info[sgn_info.name] = {
+                        startbit : sgn_info.startbit,
+                        bitlength : sgn_info.bitlength,
+                        endianess : sgn_info.endianess,
+                        sgn_info : sgn_info.signed,
+                        scaling : sgn_info.scaling,
+                        offset : sgn_info.offset,
+                        minimum : sgn_info.minimum,
+                        maximum : sgn_info.maximum,
+                        physics : true,
+                        value : {}
+                    };
                 }
             }
         }
-        this.convertDBC.Message_List.push(message_info);
+        // this.convertDBC.Message_List.push(message_info);
     }
     private findSignal_Head_VAL(data:string){
         while(data.indexOf("\r\nVAL_")>-1){
@@ -127,7 +150,10 @@ class ConvertDBC{
             }else{
                 break;
             }
-            this.convertDBC.Values_List.push(sgn_val);
+            if(sgn_val.name){
+                this.convertDBC.Signals_Info[sgn_val.name].physics = false;
+                this.convertDBC.Signals_Info[sgn_val.name].value = {em_str:sgn_val.em_str,em_num:sgn_val.em_num};
+            }
         }
         return data;
     }
