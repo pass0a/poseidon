@@ -376,33 +376,17 @@ async function group(cmd: any, caseData: any) {
 }
 
 async function dbc(cmd: any, caseData: any) {
-	let dbcCmd:any = await notifyToLinkMgr({type:"toDBC", info:findMessageAndSignal(cmd)});
+	let msg = {
+		name : cmd.module,
+		id : caseInfo.dbcInfo.Messages_Info[cmd.module].id,
+		dlc : caseInfo.dbcInfo.Messages_Info[cmd.module].dlc
+	};
+	let sgn = caseInfo.dbcInfo.Signals_Info[cmd.id];
+	let dbcCmd:any = await notifyToLinkMgr({type:"toDBC", info:{msg:msg,sgn:sgn,val:cmd.val}});
 	await notifyToLinkMgr({type:'toPcan',job:'send',data:dbcCmd});
 	return new Promise((resolve) => {
 		resolve({ret:0});
 	});
-}
-
-function findMessageAndSignal(cmd:any) {
-	let info:any={message:{id:0,name:"",dlc:0},signal:{},value:0,physics:false};
-	for(let i=0;i<caseInfo.dbcInfo.Message_List.length;i++){
-		if(caseInfo.dbcInfo.Message_List[i].name == cmd.module){
-			info.message.id = caseInfo.dbcInfo.Message_List[i].id;
-			info.message.name = caseInfo.dbcInfo.Message_List[i].name;
-			info.message.dlc = caseInfo.dbcInfo.Message_List[i].dlc;
-			for(let j=0;j<caseInfo.dbcInfo.Message_List[i].signals.length;j++){
-				if(caseInfo.dbcInfo.Message_List[i].signals[j].name == cmd.id){
-					info.signal =  caseInfo.dbcInfo.Message_List[i].signals[j];
-					break;
-				}
-			}
-			info.physics = cmd.title!=undefined?false:true;
-			info.value = cmd.val;
-			break;
-		}
-	}
-	console.log(info);
-	return info;
 }
 
 async function saveScreen(screenPath: string) {
