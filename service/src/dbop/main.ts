@@ -22,7 +22,7 @@ let l_pis = new pack.packStream();
 let l_pos = new pack.unpackStream();
 let ints: any;
 let DB_URL = 'mongodb://127.0.0.1/poseidon_data';
-let options = { useNewUrlParser: true, ssl: false };
+let options = { useNewUrlParser: true, ssl: false , useUnifiedTopology: true};
 let db_status : number = 0;
 let db_ct = mongoose.connection;
 let req = {type:"toDB",route:"connect",info:0};
