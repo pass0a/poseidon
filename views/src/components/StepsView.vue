@@ -363,19 +363,28 @@ export default class StepsView extends Vue {
                     this.s_box = item.b_volt;
                 }
                 else{
-                    this.s_module=item.module;
-                    this.s_clid=item.id;
-                    if((item.action=="button"||item.action=="click")&&item.click_type=="1"){
-                        this.s_clicktype=item.click_type;
-                        this.s_clicktime=item.click_time;
-                    }
-                    if(item.action=="click")this.s_skip=item.click_skip?true:false;
                     if(item.action=="dbc"){
-                        if(item.title!=undefined){
-                            this.s_val = item.val;
-                        }else{
-                            this.s_num = item.val;
+                        if(this.$store.state.dbc_info.data.Messages_Info[item.module]!=undefined){
+                            this.s_module=item.module;
+                            this.s_clid=item.id;
+                            if(item.title!=undefined){
+                                this.s_val = item.val;
+                            }else{
+                                this.s_num = item.val;
+                            }
                         }
+                        else {
+                            this.initOp();
+                            this.$notify({title: 'DBC文件已变更,无法修改此步骤!',message: '', type: 'warning',duration:1500});
+                        }
+                    }else{
+                        this.s_module=item.module;
+                        this.s_clid=item.id;
+                        if((item.action=="button"||item.action=="click")&&item.click_type=="1"){
+                            this.s_clicktype=item.click_type;
+                            this.s_clicktime=item.click_time;
+                        }
+                        if(item.action=="click")this.s_skip=item.click_skip?true:false;
                     }
                 }
                 break;

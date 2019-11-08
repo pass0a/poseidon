@@ -376,16 +376,22 @@ async function group(cmd: any, caseData: any) {
 }
 
 async function dbc(cmd: any, caseData: any) {
-	let msg = {
-		name : cmd.module,
-		id : caseInfo.dbcInfo.Messages_Info[cmd.module].id,
-		dlc : caseInfo.dbcInfo.Messages_Info[cmd.module].dlc
-	};
-	let sgn = caseInfo.dbcInfo.Signals_Info[cmd.id];
-	let dbcCmd:any = await notifyToLinkMgr({type:"toDBC", info:{msg:msg,sgn:sgn,val:cmd.val}});
-	await notifyToLinkMgr({type:'toPcan',job:'send',data:dbcCmd});
+	let ret:number;
+	if(caseInfo.dbcInfo.Messages_Info[cmd.module]!=undefined){
+		let msg = {
+			name : cmd.module,
+			id : caseInfo.dbcInfo.Messages_Info[cmd.module].id,
+			dlc : caseInfo.dbcInfo.Messages_Info[cmd.module].dlc
+		};
+		let sgn = caseInfo.dbcInfo.Signals_Info[cmd.id];
+		let dbcCmd:any = await notifyToLinkMgr({type:"toDBC", info:{msg:msg,sgn:sgn,val:cmd.val}});
+		await notifyToLinkMgr({type:'toPcan',job:'send',data:dbcCmd});
+		ret = 0;
+	}else{
+		ret = 1;
+	}
 	return new Promise((resolve) => {
-		resolve({ret:0});
+		resolve({ret:ret});
 	});
 }
 
