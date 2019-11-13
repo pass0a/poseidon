@@ -25,10 +25,7 @@ class DBC{
 		}
 		let start_bit = sgn.startbit,len = sgn.bitlength;
 		let start_idx = 8*Math.floor(start_bit/8) + (7-(start_bit%8));
-		// console.log(Math.floor(start_bit/8));
-		// console.log(start_bit%8);
-		// console.log(start_idx);
-		let akt = sgn.physics?((value-sgn.offset)/sgn.scaling):value;
+		let akt = sgn.physics?((value-sgn.offset)/sgn.factor):value;
 		for(let i=start_idx;i<start_idx+len;i++){
 			jl[i] = (akt >> (start_idx+len-1-i)) & 0x01;
 		}
@@ -47,7 +44,7 @@ class DBC{
 			}
 		}
 		let start_bit = sgn.startbit,len = sgn.bitlength;
-		let akt = sgn.physics?(value-sgn.offset)/sgn.scaling:value;
+		let akt = sgn.physics?(value-sgn.offset)/sgn.factor:value;
 		for(let i=start_bit;i<start_bit+len;i++){
 			jt[i] = (akt >> i-start_bit) & 0x01;
 		}
