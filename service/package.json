@@ -17,27 +17,28 @@
 	"author": "",
 	"license": "ISC",
 	"devDependencies": {
-		"@babel/cli": "^7.5.5",
-		"@babel/core": "^7.5.5",
-		"@babel/plugin-transform-runtime": "^7.5.5",
-		"@babel/preset-env": "^7.5.5",
-		"@types/mongoose": "^5.5.12",
-		"babel-loader": "^8.0.6",
+		"@babel/cli": "^7.7.0",
+		"@babel/core": "^7.7.2",
+		"@babel/plugin-transform-runtime": "^7.6.2",
+		"@babel/preset-env": "^7.7.1",
 		"@passoa/pm": "^1.0.3",
-		"cross-env": "^5.2.0",
+		"@types/mongoose": "^5.5.30",
+		"babel-loader": "^8.0.6",
+		"cross-env": "^5.2.1",
 		"fs-extra": "^8.1.0",
-		"ts-loader": "^6.0.4",
-		"typescript": "^3.5.3",
-		"webpack": "^4.39.1",
-		"webpack-bundle-analyzer": "^3.4.1",
-		"webpack-cli": "^3.3.5"
+		"ts-loader": "^6.2.1",
+		"typescript": "^3.7.2",
+		"webpack": "^4.41.2",
+		"webpack-bundle-analyzer": "^3.6.0",
+		"webpack-cli": "^3.3.10"
 	},
 	"dependencies": {
-		"@babel/runtime": "^7.5.5",
+		"@babel/runtime": "^7.7.2",
+		"@passoa/dbcparser": "^1.0.1",
+		"@passoa/logger": "latest",
 		"@passoa/pack": "^1.0.8",
-		"@passoa/websocket": "^1.0.6",
-		"mongoose": "5.6.9",
 		"@passoa/serialport": "latest",
-		"@passoa/logger": "latest"
+		"@passoa/websocket": "^1.0.6",
+		"mongoose": "5.6.9"
 	}
 }
