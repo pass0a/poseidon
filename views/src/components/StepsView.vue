@@ -111,7 +111,7 @@
         >
           <el-option v-for="val in Values" :key="val.val" :label="val.title" :value="val.val"></el-option>
         </el-select>
-        <div v-if="s_action=='dbc'&&!checkValType()&&s_clid!=''">
+        <span v-if="s_action=='dbc'&&!checkValType()&&s_clid!=''">
           <span>
             <font size="2">{{ showSignalRange() }}</font>
           </span>
@@ -125,32 +125,59 @@
             <el-button type="success" size="small" @click="onSet">设置</el-button>
             <el-button type="info" size="small" @click="initOp">取消</el-button>
           </el-button-group>
-        </div>
-        <div v-else>
+        </span>
+        <span v-else>
           <Checkbox v-model="s_skip" v-show="s_action=='click'">不判断</Checkbox>
+          <el-select
+            placeholder="请选择"
+            filterable
+            size="small"
+            style="width:75px"
+            v-model="s_waittype"
+            v-show="s_action==waitType"
+          >
+            <el-option
+              v-for="(val,index) in wait_type"
+              :label="wait_type[index]"
+              :value="index"
+              :key="index"
+            ></el-option>
+          </el-select>
+          <span v-show="s_action==waitType&&s_waittype">
+            <strong>
+              <font size="2">范围 :</font>
+            </strong>
+          </span>
           <el-input-number
             v-model="s_wait"
             controls-position="right"
             :min="0"
             size="small"
+            style="margin:3px 0px 0px 0px"
             v-show="s_action==waitType||s_action=='slide'"
           ></el-input-number>
-          <el-button-group style="margin:5px 0px 0px 0px">
+          <span v-show="s_action==waitType&&s_waittype">
+            <strong>
+              <font size="2">---</font>
+            </strong>
+            <el-input-number v-model="s_wait_r" controls-position="right" :min="0" size="small"></el-input-number>
+          </span>
+          <el-button-group style="margin:3px 0px 0px 0px">
             <el-button
               type="success"
               size="small"
               @click="onSet"
-              v-show="s_action==waitType||s_module==boxType.freq||s_action=='slide'"
+              v-if="s_action==waitType||s_module==boxType.freq||s_action=='slide'"
             >设置</el-button>
             <el-button
               type="success"
               size="small"
               @click="changeSel(s_action=='dbc'?3:2)"
-              v-show="s_action!=waitType&&s_module!=boxType.freq&&s_action!='slide'"
+              v-if="s_action!=waitType&&s_module!=boxType.freq&&s_action!='slide'"
             >确定</el-button>
             <el-button type="info" size="small" @click="initOp">取消</el-button>
           </el-button-group>
-        </div>
+        </span>
       </div>
       <div v-show="idx!=s_idx||s_op==1||s_op>=3">
         <span>
@@ -306,6 +333,26 @@
         <el-button type="success" size="small" @click="onSet">设置</el-button>
       </div>
       <Checkbox v-model="s_skip" v-show="s_action=='click'">不判断</Checkbox>
+      <el-select
+        placeholder="请选择"
+        filterable
+        size="small"
+        style="width:75px"
+        v-model="s_waittype"
+        v-show="s_action==waitType"
+      >
+        <el-option
+          v-for="(val,index) in wait_type"
+          :label="wait_type[index]"
+          :value="index"
+          :key="index"
+        ></el-option>
+      </el-select>
+      <span v-show="s_action==waitType&&s_waittype">
+        <strong>
+          <font size="2">范围 :</font>
+        </strong>
+      </span>
       <el-input-number
         v-model="s_wait"
         controls-position="right"
@@ -313,6 +360,12 @@
         size="small"
         v-show="s_action==waitType||s_action=='slide'"
       ></el-input-number>
+      <span v-show="s_action==waitType&&s_waittype">
+        <strong>
+          <font size="2">---</font>
+        </strong>
+        <el-input-number v-model="s_wait_r" controls-position="right" :min="0" size="small"></el-input-number>
+      </span>
       <el-button
         type="success"
         size="small"
@@ -324,7 +377,6 @@
 </template>
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
-import { types } from "util";
 @Component
 export default class StepsView extends Vue {
   private Action: any = [];
@@ -332,10 +384,12 @@ export default class StepsView extends Vue {
   private s_module: string = "";
   private s_clicktype: string = "0";
   private s_freqtype: string = "0";
+  private s_waittype: Number = 0;
   private s_clicktime: Number = 1500;
   private s_clid: string = "";
   private s_box: any = 2.529;
   private s_wait: Number = 100;
+  private s_wait_r: Number = 200;
   private s_loop: Number = 2;
   private s_skip: Boolean = false;
   private s_op: Number = 0;
@@ -345,7 +399,7 @@ export default class StepsView extends Vue {
   private boxType: any = { act: "qg_box", freq: "freq" };
   private clickType: any = new Map([["0", "短按"], ["1", "长按"]]);
   private freqtype: any = new Map([["0", "大于"], ["1", "等于"]]);
-  private wait_type: any = new Map([["0", "固定"], ["1", "随机"]]);
+  private wait_type: Array<string> = ["固定", "随机"];
   private op_data: any = {
     type: 0,
     id: ""
@@ -450,6 +504,7 @@ export default class StepsView extends Vue {
         this.s_clicktime = 1500;
         this.s_box = 2.529;
         this.s_skip = false;
+        this.s_waittype = 0;
         if (this.s_action == "slide") this.s_wait = 1000;
         break;
       case 1:
@@ -536,10 +591,23 @@ export default class StepsView extends Vue {
     }
   }
   private onSet() {
-    let obj;
+    let obj: any;
     if (this.s_action == this.waitType) {
-      if (this.s_wait == undefined) this.s_wait = 100;
-      obj = { action: this.s_action, time: this.s_wait };
+      if (this.s_waittype == 0) {
+        if (this.s_wait == undefined) this.s_wait = 100;
+        obj = {
+          action: this.s_action,
+          time: this.s_wait,
+          type: this.s_waittype
+        };
+      } else {
+        obj = {
+          action: this.s_action,
+          time: this.s_wait,
+          time_r: this.s_wait_r,
+          type: this.s_waittype
+        };
+      }
     } else if (this.s_module == this.boxType.freq) {
       if (this.s_box == undefined) this.s_box = 2.529;
       obj = {
@@ -582,10 +650,12 @@ export default class StepsView extends Vue {
     this.s_op = 0;
     this.s_idx = -1;
     this.s_wait = 100;
+    this.s_wait_r = 200;
     this.s_loop = 2;
     this.s_skip = false;
     this.s_val = "";
     this.s_num = 0;
+    this.s_waittype = 0;
   }
   private showStep(it: any) {
     let action = this.getResName(it.action);
@@ -595,7 +665,9 @@ export default class StepsView extends Vue {
     let content: string = "";
     switch (it.action) {
       case "wait":
-        content = it.time + "毫秒";
+        let wait_t = it.type != undefined ? it.type : 0;
+        let time_t = wait_t == 0 ? it.time : it.time + "~" + it.time_r;
+        content = "[" + this.wait_type[wait_t] + "]" + time_t + "<毫秒>";
         break;
       case "qg_box":
         content =
@@ -654,7 +726,10 @@ export default class StepsView extends Vue {
         this.s_idx = idx;
         this.s_action = item.action;
         if (this.s_action == this.waitType) {
+          let t_type = item.type != undefined ? item.type : 0;
+          this.s_waittype = t_type;
           this.s_wait = item.time;
+          if (t_type) this.s_wait_r = item.time_r;
         } else if (item.action == this.boxType.act) {
           this.s_module = item.module;
           this.s_freqtype = item.b_type;

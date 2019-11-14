@@ -77,7 +77,8 @@ export class Com_mgr {
 				case 'da_arm':
 					let skl = info.cmd == 'start_arm_server' ? needReturn : notNeedReturn;
 					sd = da_arm.disposeSendData(info.cmd, info.msg);
-					if (info.msg.others_flag) {
+					let s_t = info.cmd == 'start_arm_server' || info.cmd == 'others';
+					if (info.msg.others_flag && s_t) {
 						if (info.msg.others_cmd.indexOf(';') > -1) {
 							let others_cmd_list = info.msg.others_cmd.split(';');
 							if (info.msg.others_cmd.endsWith(';')) others_cmd_list.pop();
@@ -90,7 +91,7 @@ export class Com_mgr {
 							await this.uartlist[info.name].sendData(others_cmd, notNeedReturn);
 						}
 					}
-					ret = await this.uartlist[info.name].sendData(sd, skl, da_arm, 10000);
+					ret = info.cmd == 'others' ? 0 : await this.uartlist[info.name].sendData(sd, skl, da_arm, 10000);
 					break;
 			}
 		}

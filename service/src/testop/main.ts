@@ -24,6 +24,7 @@ let actionList: any = {
 	wait: wait,
 	click: click,
 	assert_pic: assertPic,
+	click_random: clickRandom,
 	click_poi: clickPoi,
 	slide: slide,
 	operate_tool: operateTool,
@@ -146,7 +147,7 @@ async function disposeStepLoop(idx: any, caseContent: any) {
 			stopflag = true;
 			break;
 		}
-		let act_ret = await actionList[cmdStep.action](cmdStep, caseContent); // 0: 成功 1: 失败 2: 连接错误 3: 组合步骤进行暂停 4: 摄像头异常 5:无图片
+		let act_ret = await actionList[cmdStep.action](cmdStep); // 0: 成功 1: 失败 2: 连接错误 3: 组合步骤进行暂停 4: 摄像头异常 5:无图片
 		if (act_ret.ret == 3) {
 			if (act_ret.data.length) {
 				//
@@ -183,15 +184,26 @@ async function defaultDelay(index: any, caseSteps: any) {
 	});
 }
 
-async function wait(cmd: any, caseData?: any) {
+async function wait(cmd: any) {
 	return new Promise((resolve) => {
+		let time: number = 0;
+		let time_type = cmd.type != undefined ? cmd.type : 0;
+		if (time_type) {
+			if (cmd.time_r == cmd.time) time = cmd.time;
+			else {
+				time = Math.floor(Math.random() * Math.abs(cmd.time_r - cmd.time) + Math.min(cmd.time_r, cmd.time));
+				cmd.time = time;
+			}
+		} else {
+			time = cmd.time;
+		}
 		setTimeout(function() {
 			resolve({ ret: 0 });
-		}, cmd.time);
+		}, time);
 	});
 }
 
-async function click(cmd: any, caseData: any) {
+async function click(cmd: any) {
 	// 0:成功 1:失败 2:超时 5:无图片
 	let result: any, note: any;
 	let info = { screenPath: prjpath + '/tmp/tmp.png', cfg: caseInfo.config };
@@ -231,7 +243,7 @@ async function click(cmd: any, caseData: any) {
 	});
 }
 
-async function assertPic(cmd: any, caseData: any) {
+async function assertPic(cmd: any) {
 	let result: any, note: any;
 	let info = { screenPath: prjpath + '/tmp/tmp.png', cfg: caseInfo.config };
 	let get_screen: any = await notifyToLinkMgr({ type: 'toDevice', job: 'cutScreen', info: info });
@@ -259,7 +271,7 @@ async function assertPic(cmd: any, caseData: any) {
 	});
 }
 
-async function clickPoi(cmd: any, caseData: any) {
+async function clickPoi(cmd: any) {
 	let poi_info: any = await notifyToLinkMgr({
 		type: ToDB,
 		route: 'binding',
@@ -275,7 +287,7 @@ async function clickPoi(cmd: any, caseData: any) {
 	});
 }
 
-async function slide(cmd: any, caseData: any) {
+async function slide(cmd: any) {
 	let slide_info: any = await notifyToLinkMgr({
 		type: ToDB,
 		route: 'binding',
@@ -297,7 +309,7 @@ async function slide(cmd: any, caseData: any) {
 	});
 }
 
-async function button(cmd: any, caseData: any) {
+async function button(cmd: any) {
 	let buttonCmd: any = await notifyToLinkMgr({
 		type: ToDB,
 		route: 'buttons',
@@ -329,14 +341,14 @@ async function button(cmd: any, caseData: any) {
 	});
 }
 
-async function operateTool(cmd: any, caseData: any) {
+async function operateTool(cmd: any) {
 	await notifyToLinkMgr({ type: 'toCom', job: 'sendData', info: { name: 'relay', cmd: cmd } });
 	return new Promise((resolve) => {
 		resolve({ ret: 0 });
 	});
 }
 
-async function assertPto(cmd: any, caseData: any) {
+async function assertPto(cmd: any) {
 	let get_pto: any = await notifyToLinkMgr({ type: 'toWeb', job: 'takePhoto' }); // 1:摄像头打开成功 0:失败
 	let result: any, note: any;
 	if (get_pto) {
@@ -362,7 +374,7 @@ async function assertPto(cmd: any, caseData: any) {
 	});
 }
 
-async function pcan(cmd: any, caseData: any) {
+async function pcan(cmd: any) {
 	let pcanCmd: any = await notifyToLinkMgr({
 		type: ToDB,
 		route: 'pcan',
@@ -383,7 +395,7 @@ async function pcan(cmd: any, caseData: any) {
 	});
 }
 
-async function adbCmd(cmd: any, caseData: any) {
+async function adbCmd(cmd: any) {
 	let adbInfo = await notifyToLinkMgr({
 		type: ToDB,
 		route: 'adb',
@@ -396,7 +408,7 @@ async function adbCmd(cmd: any, caseData: any) {
 	});
 }
 
-async function qgBox(cmd: any, caseData: any) {
+async function qgBox(cmd: any) {
 	if (cmd.b_type == undefined) cmd.b_type = '0';
 	let data: any = await notifyToLinkMgr({
 		type: 'toQgBox',
@@ -415,7 +427,7 @@ async function qgBox(cmd: any, caseData: any) {
 	});
 }
 
-async function group(cmd: any, caseData: any) {
+async function group(cmd: any) {
 	let groupContent: any = await notifyToLinkMgr({
 		type: ToDB,
 		route: 'group',
@@ -434,7 +446,7 @@ async function group(cmd: any, caseData: any) {
 					resolve({ ret: 3, data: groupStepLoopList });
 				});
 			}
-			let act_ret = await actionList[cmdStep.action](cmdStep, caseData);
+			let act_ret = await actionList[cmdStep.action](cmdStep);
 			if (act_ret.ret) {
 				groupStepLoopList.push({
 					g_idx: j,
@@ -456,7 +468,7 @@ async function group(cmd: any, caseData: any) {
 	});
 }
 
-async function dbc(cmd: any, caseData: any) {
+async function dbc(cmd: any) {
 	let ret: number;
 	if (caseInfo.dbcInfo.Messages_Info[cmd.module] != undefined) {
 		let msg = {
@@ -473,6 +485,25 @@ async function dbc(cmd: any, caseData: any) {
 	}
 	return new Promise((resolve) => {
 		resolve({ ret: ret });
+	});
+}
+
+async function clickRandom(cmd: any) {
+	let p_info: any = await notifyToLinkMgr({
+		type: ToDB,
+		route: 'binding',
+		job: 'getDoc',
+		info: { prjname: prjname, id: cmd.id }
+	});
+	let random_w = Math.floor(Math.random() * p_info.w);
+	let random_h = Math.floor(Math.random() * p_info.h);
+	let msg: any = { x: random_w, y: random_h, click_type: '0', cfg: caseInfo.config };
+	let rev: any = await notifyToLinkMgr({ type: 'toDevice', job: 'click', info: msg });
+	cmd.random_w = random_w;
+	cmd.random_h = random_h;
+	let result = rev ? 0 : 2;
+	return new Promise((resolve) => {
+		resolve({ ret: result });
 	});
 }
 

@@ -542,6 +542,9 @@ export default class App extends Vue {
                 else if(data.info.msg.id.indexOf('pcan')>-1&&data.info.msg.data!=undefined){
                     pis.write({type:"toDB",route:"pcan",job:"add",info:data.info});
                 }
+                else if(data.info.msg.id.indexOf('click_random')>-1){
+                    pis.write({type:"toDB",route:"binding",job:"add",info:data.info});
+                }
                 break;
             case "remove_id":
                 pis.write({type:"toDB",route:"res",job:"list",info:{prjname:this.$store.state.project_info.current_prj}});
