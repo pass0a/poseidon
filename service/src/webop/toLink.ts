@@ -6,9 +6,9 @@ export class ToLink {
 	private pis = new pack.packStream();
 	private pos = new pack.unpackStream();
 	private inst: any;
-	private proCall:any;
+	private proCall: any;
 	private ser: any;
-	private c_flag:boolean = false;
+	private c_flag: boolean = false;
 	constructor() {
 		this.pis.on('data', (data: any) => {
 			this.inst.write(data);
@@ -23,7 +23,7 @@ export class ToLink {
 			this.closeOnEvent();
 			this.inst = net.connect(6000, '127.0.0.1', () => {
 				console.info('Web_server_connect!');
-				this.proCall=resolve;
+				this.proCall = resolve;
 			});
 			this.inst.on('data', (data: any) => {
 				this.pos.write(data);
@@ -32,9 +32,9 @@ export class ToLink {
 				console.info('close Web_server_connect!');
 			});
 			this.inst.on('error', () => {
-				if(this.c_flag){
+				if (this.c_flag) {
 					this.c_flag = false;
-					if(this.ser.inst)this.ser.send({type:'toSer',job:"linkStatus",info:2});
+					if (this.ser.inst) this.ser.send({ type: 'toSer', job: 'linkStatus', info: 2 });
 				}
 				console.error('Web_server_connect error!');
 				resolve(false);
@@ -44,24 +44,25 @@ export class ToLink {
 	send(obj: any): void {
 		this.pis.write(obj);
 	}
-	private closeOnEvent(){
-		if(this.inst){
+	private closeOnEvent() {
+		if (this.inst) {
 			this.inst.removeAllListeners('data');
 			this.inst.removeAllListeners('close');
 			this.inst.removeAllListeners('error');
 		}
 	}
 	private handle(data: any) {
-		switch(data.type){
-			case "init":
-				this.send({type:"info",class:"web",name:"web"});
+		switch (data.type) {
+			case 'init':
+				this.send({ type: 'info', class: 'web', name: 'web' });
 				break;
-			case "auth":
+			case 'auth':
 				this.c_flag = true;
-				this.proCall(data.state=="ok");
+				this.proCall(data.state == 'ok');
 				break;
 			default:
-				if(this.ser.inst)this.ser.send(data);
+				console.log(data, this.ser.inst);
+				if (this.ser.inst) this.ser.send(data);
 				break;
 		}
 	}

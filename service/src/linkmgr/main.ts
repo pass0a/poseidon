@@ -1,45 +1,63 @@
-import * as net from "net";
-import * as pack from "@passoa/pack";
-import { Test_mgr } from "./mgr_test";
-import { Web_mgr } from "./mgr_web";
-import { Device_mgr } from "./mgr_device";
-import { Com_mgr } from "./mgr_com";
-import { DB_mgr } from "./mgr_db";
+import { Socket, createServer } from 'net';
+import { unpackStream, packStream } from '@passoa/pack';
+import { Test_mgr } from './mgr_test';
+import { Web_mgr } from './mgr_web';
+import { Device_mgr } from './mgr_device';
+import { Com_mgr } from './mgr_com';
+import { DB_mgr } from './mgr_db';
+interface MsgHead {
+	[header: string]: any;
+}
+class Link {
+	private pos = new unpackStream();
+	private pis = new packStream();
+	private c: any;
+	private mgr: Linkmgr;
+	constructor(c: Socket, mgr: Linkmgr) {
+		this.mgr = mgr;
+		this.c = c;
+		this.pos.once('data', (obj: MsgHead) => {
+			mgr.handleCmd(obj, this);
+		});
 
+		c.pipe(this.pos);
+		this.pis.pipe(c);
+		this.pis.write({ type: 'init' });
+	}
+	onData(cb: (obj: any) => void) {
+		return this.pos.on('data', cb);
+	}
+	write(obj: any) {
+		return this.pis.write(obj);
+	}
+	end(obj?: any) {
+		return this.pis.end(obj);
+	}
+	closeOnEnd(a: string, b: string) {
+		this.c.on('close', () => {
+			this.mgr.closeLink(a, b);
+		});
+	}
+}
 class Linkmgr {
-	private lk:any = [];
-	private app = net.createServer((c:any) =>{
-		console.log("CONNECT---->");
-		let pos:any = new pack.unpackStream();
-		let pis:any = new pack.packStream();
-		pos.on('data', (data:any) => {
-			this.handleCmd(data,pis,pos,c);
-		});
-		pis.on('data', (data:any) => {
-			console.log(data);
-			c.write(data);
-		});
-		c.on('data', (data:any) => {
-			console.log(data);
-			pos.write(data);
-		});
-		pis.write({ type: 'init' });
-		// console.log(pis);
+	private lk: any = [];
+	private app = createServer((c: any) => {
+		console.log('CONNECT---->');
+		new Link(c, this);
 	});
-
-	handleCmd(obj:any,pis:any,pos:any,c:any){
-		console.info(obj);
-		if(obj.type != 'info') {
-			pis.write({ type: 'auth', state: 'fail', msg: 'it is not info cmd!!!' });
-			c.end();
-		}else{
-			if(!this.lk[obj.class])this.lk[obj.class] = [];
-			if(this.lk[obj.class][obj.name]){
-				pis.write({ type: 'auth', state: 'fail', msg: 'your name is already login!!!' });
-				c.end();
-			}else{
-				let link_obj:any;
-				switch(obj.class){
+	handleCmd(obj: MsgHead, link: Link) {
+		console.info(obj, link);
+		if (obj.type != 'info') {
+			link.write({ type: 'auth', state: 'fail', msg: 'it is not info cmd!!!' });
+			link.end();
+		} else {
+			if (!this.lk[obj.class]) this.lk[obj.class] = [];
+			if (this.lk[obj.class][obj.name]) {
+				link.write({ type: 'auth', state: 'fail', msg: 'your name is already login!!!' });
+				link.end();
+			} else {
+				let link_obj: any;
+				switch (obj.class) {
 					case 'test':
 						link_obj = new Test_mgr();
 						break;
@@ -56,38 +74,29 @@ class Linkmgr {
 						link_obj = new DB_mgr();
 						break;
 					default:
-						pis.write({ type: 'auth', state: 'fail', msg: 'Unknow object!!!' });
+						link.write({ type: 'auth', state: 'fail', msg: 'Unknow object!!!' });
 						return;
 				}
 				this.lk[obj.class][obj.name] = link_obj;
-				this.closeOnData(pis,pos,c);
-				this.lk[obj.class][obj.name].create(c, obj, this);
+				this.lk[obj.class][obj.name].create(link, obj, this);
+				link.closeOnEnd(obj.class, obj.name);
 				console.info('[link create]' + obj.class + '-' + obj.name + ':' + 'success!!!');
 			}
 		}
 	}
-
-	closeOnData(pis:any,pos:any,c:any){
-		pos.removeAllListeners('data');
-		pis.removeAllListeners('data');
-		c.removeAllListeners('data');
-	}
-
-	getLink(){
+	getLink() {
 		if (this.lk[arguments[0]]) {
 			return this.lk[arguments[0]][arguments[1]];
 		}
 		return undefined;
 	}
 
-	closeLink(link_class:string,link_name:string){
+	closeLink(link_class: string, link_name: string) {
 		this.lk[link_class][link_name] = null;
 	}
 
-	start(){
+	start() {
 		this.app.listen(6000);
 	}
 }
 new Linkmgr().start();
-
-
