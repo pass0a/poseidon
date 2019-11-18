@@ -1,4 +1,3 @@
-import * as pack from '@passoa/pack';
 import * as childprs from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -22,11 +21,7 @@ export class Web_mgr {
 				this.startJS(obj, jsPath_c);
 				break;
 			case 'stopTest':
-<<<<<<< HEAD
-				let test_link = this.link.getLink('test', 'test');
-=======
 				let test_link = this.mgr.getLink('test', 'test');
->>>>>>> 6f0d274832f6884d1055f2b32bb8d05d7de0c87c
 				if (test_link) test_link.stopTest();
 				break;
 			case 'replayTest':
@@ -34,11 +29,7 @@ export class Web_mgr {
 				this.startJS(obj, jsPath_r);
 				break;
 			case 'syncRemote':
-<<<<<<< HEAD
-				let device_link = this.link.getLink('device', 'device');
-=======
 				let device_link = this.mgr.getLink('device', 'device');
->>>>>>> 6f0d274832f6884d1055f2b32bb8d05d7de0c87c
 				if (device_link) device_link.handleWebJob(obj);
 				break;
 			case 'saveCutImage':
@@ -101,17 +92,10 @@ export class Web_mgr {
 					obj.info.info.h
 				);
 				obj.info = img_ret ? false : true;
-<<<<<<< HEAD
-				this.pis.write(obj);
-				break;
-			case 'testPhoto':
-				let to_test = this.link.getLink('test', 'test');
-=======
 				this.link.write(obj);
 				break;
 			case 'testPhoto':
 				let to_test = this.mgr.getLink('test', 'test');
->>>>>>> 6f0d274832f6884d1055f2b32bb8d05d7de0c87c
 				if (to_test) to_test.disposedCompleted('toWeb', obj.info);
 				break;
 			case 'reTakeImg':
@@ -121,20 +105,12 @@ export class Web_mgr {
 				if (img_info.action == 'assert_pto' && binding_info.content.type == 0) {
 					this.Cvip.imageSave(img_info.screen, img_info.image, 16);
 					obj.info = true;
-<<<<<<< HEAD
-					this.pis.write(obj);
-=======
 					this.link.write(obj);
->>>>>>> 6f0d274832f6884d1055f2b32bb8d05d7de0c87c
 				} else {
 					let ctn = img_info.action == 'assert_pto' ? binding_info.content.info : binding_info.content;
 					let img_ret = this.Cvip.imageCut(img_info.screen, img_info.image, 16, ctn.x1, ctn.y1, ctn.w, ctn.h);
 					obj.info = img_ret ? false : true;
-<<<<<<< HEAD
-					this.pis.write(obj);
-=======
 					this.link.write(obj);
->>>>>>> 6f0d274832f6884d1055f2b32bb8d05d7de0c87c
 				}
 				break;
 			default:
@@ -150,12 +126,8 @@ export class Web_mgr {
 					case 0:
 						break;
 					case 1:
-<<<<<<< HEAD
-						this.pis.write({ type: 'toSer', job: 'pushLog', info: data.data.toString() });
-=======
 						data.data[data.data.length - 1] = 0x20;
 						this.link.write({ type: 'toSer', job: 'pushLog', info: data.data.toString() });
->>>>>>> 6f0d274832f6884d1055f2b32bb8d05d7de0c87c
 						break;
 					case 2:
 						if (timer) {

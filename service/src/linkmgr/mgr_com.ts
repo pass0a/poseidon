@@ -1,4 +1,3 @@
-import * as pack from '@passoa/pack';
 import * as fs from 'fs';
 import { Uart } from './res/uart/com';
 import { logger } from '@passoa/logger';
