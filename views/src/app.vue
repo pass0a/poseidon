@@ -431,12 +431,20 @@ export default class App extends Vue {
                 this.$store.state.editcase_info.refresh_data = true;
                 this.$store.state.editcase_info.module_total = data.info.count;
                 if(data.info.count>0){
+                    let skip:Number;
+                    if(this.$store.state.editcase_info.current_page!=0&&this.$store.state.editcase_info.current_page <= Math.ceil(data.info.count/this.$store.state.editcase_info.limit)){
+                        skip = this.$store.state.editcase_info.limit*(this.$store.state.editcase_info.current_page-1);
+                    }else{
+                        this.$store.state.editcase_info.current_page = 0;
+                        skip = 0;
+                    }
                     let l_req = {
                         type : "toDB",
                         route : "cases",
                         job : "list",
-                        info : {prjname:this.$store.state.project_info.current_prj,module:data.info.module,skip:0,limit:this.$store.state.editcase_info.limit}
+                        info : {prjname:this.$store.state.project_info.current_prj,module:data.info.module,skip:skip,limit:this.$store.state.editcase_info.limit}
                     }
+                    console.log(l_req);
                     this.$store.state.app_info.pis.write(l_req);
                 }else{
                     this.$store.state.editcase_info.refresh_data = false;

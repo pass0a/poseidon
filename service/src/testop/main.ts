@@ -115,7 +115,13 @@ async function runSteps(caseContent: any) {
 	let caseLoopList: any = [];
 	saveOneInMode = false; // 每条用例的循环模式只保留首次失败的图片
 	for (let i = 0; i < caseContent.case_mode; i++) {
-		await notifyToLinkMgr({ type: ToLink, mode: 5, info: caseContent.case_id, count: i + 1 }); // 用例开始执行通知
+		await notifyToLinkMgr({
+			type: ToLink,
+			mode: 5,
+			info: caseContent.case_id,
+			count: i + 1,
+			module: caseContent.case_module
+		}); // 用例开始执行通知
 		for (let j = 0; j < caseContent.case_steps.length; j++) {
 			let step_result: any = await disposeStepLoop(j, caseContent);
 			if (step_result.data.length) {
@@ -252,8 +258,10 @@ async function assertPic(cmd: any) {
 		if (!match_ret.ret) result = 5;
 		else {
 			let match_num = Math.floor(match_ret.obj.val * 10000) / 100;
-			if (match_ret.obj.valid || match_num >= caseInfo.config.test_info.match) result = 0;
-			else {
+			let assert_type = cmd.type != undefined ? cmd.type : 0;
+			if (match_ret.obj.valid || match_num >= caseInfo.config.test_info.match) result = assert_type ? 1 : 0;
+			else result = assert_type ? 0 : 1;
+			if (result) {
 				if (!saveOneInMode || !caseInfo.config.test_info.error_exit) {
 					saveOneInMode = true;
 					note = { image: '', screen: '', match: '' };
@@ -262,7 +270,6 @@ async function assertPic(cmd: any) {
 					note.match = match_num;
 					await saveScreen(note.screen);
 				}
-				result = 1;
 			}
 		}
 	} else result = 2;
@@ -356,7 +363,10 @@ async function assertPto(cmd: any) {
 		if (!match_ret.ret) result = 5;
 		else {
 			let match_num = Math.floor(match_ret.obj.val * 10000) / 100;
-			if (!match_ret.obj.valid && match_num <= caseInfo.config.test_info.match) {
+			let assert_type = cmd.type != undefined ? cmd.type : 0;
+			if (match_ret.obj.valid || match_num >= caseInfo.config.test_info.match) result = assert_type ? 1 : 0;
+			else result = assert_type ? 0 : 1;
+			if (result) {
 				if (!saveOneInMode || !caseInfo.config.test_info.error_exit) {
 					saveOneInMode = true;
 					note = { image: '', screen: '', match: '' };
@@ -365,8 +375,7 @@ async function assertPto(cmd: any) {
 					note.match = match_num;
 					await saveScreen(note.screen);
 				}
-				result = 1;
-			} else result = 0;
+			}
 		}
 	} else result = 4;
 	return new Promise((resolve) => {

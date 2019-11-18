@@ -42,6 +42,16 @@
           placeholder="请选择"
           filterable
           size="small"
+          style="width:75px"
+          v-model="s_asserttype"
+          v-show="s_action.indexOf('assert')>-1"
+        >
+          <el-option v-for="(val,index) in assert_type" :label="val" :value="index" :key="index"></el-option>
+        </el-select>
+        <el-select
+          placeholder="请选择"
+          filterable
+          size="small"
           style="width:140px"
           v-model="s_module"
           v-show="s_action!=waitType"
@@ -250,6 +260,16 @@
         placeholder="请选择"
         filterable
         size="small"
+        style="width:75px"
+        v-model="s_asserttype"
+        v-show="s_action.indexOf('assert')>-1"
+      >
+        <el-option v-for="(val,index) in assert_type" :label="val" :value="index" :key="index"></el-option>
+      </el-select>
+      <el-select
+        placeholder="请选择"
+        filterable
+        size="small"
         style="width:140px"
         v-model="s_module"
         v-show="s_action!=waitType"
@@ -392,6 +412,7 @@ export default class StepsView extends Vue {
   private s_wait_r: Number = 200;
   private s_loop: Number = 2;
   private s_skip: Boolean = false;
+  private s_asserttype: Number = 0;
   private s_op: Number = 0;
   private s_idx: any = -1;
   private steplist: any = [];
@@ -400,6 +421,7 @@ export default class StepsView extends Vue {
   private clickType: any = new Map([["0", "短按"], ["1", "长按"]]);
   private freqtype: any = new Map([["0", "大于"], ["1", "等于"]]);
   private wait_type: Array<string> = ["固定", "随机"];
+  private assert_type: Array<string> = ["是", "不是"];
   private op_data: any = {
     type: 0,
     id: ""
@@ -505,6 +527,7 @@ export default class StepsView extends Vue {
         this.s_box = 2.529;
         this.s_skip = false;
         this.s_waittype = 0;
+        this.s_asserttype = 0;
         if (this.s_action == "slide") this.s_wait = 1000;
         break;
       case 1:
@@ -559,6 +582,8 @@ export default class StepsView extends Vue {
                 }
               }
             }
+          } else if (this.s_action.indexOf("assert") > -1) {
+            obj.type = this.s_asserttype;
           }
           if (this.s_op == 0) this.steplist.push(obj);
           else if (this.s_op == 2) this.steplist[this.s_idx] = obj;
@@ -656,6 +681,7 @@ export default class StepsView extends Vue {
     this.s_val = "";
     this.s_num = 0;
     this.s_waittype = 0;
+    this.s_asserttype = 0;
   }
   private showStep(it: any) {
     let action = this.getResName(it.action);
@@ -697,6 +723,10 @@ export default class StepsView extends Vue {
       default:
         content =
           " [" + this.getResName(it.module) + "] " + this.getResName(it.id);
+        if (it.action.indexOf("assert") > -1) {
+          let a_t = it.type != undefined ? it.type : 0;
+          content = this.assert_type[a_t] + content;
+        }
         break;
     }
     if (it.loop != undefined) content += "<循环 " + it.loop + " 次>";
@@ -765,6 +795,8 @@ export default class StepsView extends Vue {
             ) {
               this.s_clicktype = item.click_type;
               this.s_clicktime = item.click_time;
+            } else if (item.action.indexOf("assert") > -1) {
+              this.s_asserttype = item.type != undefined ? item.type : 0;
             }
             if (item.action == "click")
               this.s_skip = item.click_skip ? true : false;

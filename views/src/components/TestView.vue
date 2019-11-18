@@ -131,6 +131,7 @@ export default class TestView extends Vue {
   private screen_status: any = false;
   private freqtype: any = new Map([["0", "大于"], ["1", "等于"]]);
   private wait_type: Array<string> = ["固定", "随机"];
+  private assert_type: Array<string> = ["是", "不是"];
   get getStopFlag() {
     this.btnMode = this.$store.state.test_info.stopflag ? 4 : 0;
     return;
@@ -253,6 +254,9 @@ export default class TestView extends Vue {
         break;
       case 5:
         if (this.btnMode == 3) break;
+        if (this.$store.state.test_info.first_module == "") {
+          this.$store.state.test_info.first_module = this.testInfo.module;
+        }
         this.updateLogCmd(
           1,
           "用例ID : " +
@@ -308,6 +312,7 @@ export default class TestView extends Vue {
             uid: this.$store.state.login_info._id
           }
         };
+        this.$store.state.test_info.first_module = "";
         this.$store.state.app_info.pis.write(req);
       } else {
         this.$notify({
@@ -389,6 +394,10 @@ export default class TestView extends Vue {
         break;
       default:
         content = " [" + reslist[step.module] + "] " + reslist[step.id];
+        if (step.action.indexOf("assert") > -1) {
+          let a_t = step.type != undefined ? step.type : 0;
+          content = this.assert_type[a_t] + content;
+        }
         break;
     }
     let step_log =
