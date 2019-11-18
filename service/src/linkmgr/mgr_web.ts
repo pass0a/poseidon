@@ -6,19 +6,10 @@ import ADB from './res/adb/adb';
 import { logger } from '@passoa/logger';
 
 export class Web_mgr {
-	private pos: any = new pack.unpackStream();
-	private pis: any = new pack.packStream();
-	private intc: any;
+	private mgr: any;
 	private link: any;
 	private Cvip: any;
-	constructor() {
-		this.pis.on('data', (data: any) => {
-			this.intc.write(data);
-		});
-		this.pos.on('data', (data: any) => {
-			this.handleCmd(data);
-		});
-	}
+	constructor() {}
 
 	private async handleCmd(obj: any) {
 		switch (obj.job) {
@@ -31,7 +22,11 @@ export class Web_mgr {
 				this.startJS(obj, jsPath_c);
 				break;
 			case 'stopTest':
+<<<<<<< HEAD
 				let test_link = this.link.getLink('test', 'test');
+=======
+				let test_link = this.mgr.getLink('test', 'test');
+>>>>>>> 6f0d274832f6884d1055f2b32bb8d05d7de0c87c
 				if (test_link) test_link.stopTest();
 				break;
 			case 'replayTest':
@@ -39,7 +34,11 @@ export class Web_mgr {
 				this.startJS(obj, jsPath_r);
 				break;
 			case 'syncRemote':
+<<<<<<< HEAD
 				let device_link = this.link.getLink('device', 'device');
+=======
+				let device_link = this.mgr.getLink('device', 'device');
+>>>>>>> 6f0d274832f6884d1055f2b32bb8d05d7de0c87c
 				if (device_link) device_link.handleWebJob(obj);
 				break;
 			case 'saveCutImage':
@@ -60,7 +59,7 @@ export class Web_mgr {
 					icon_info.info.w,
 					icon_info.info.h
 				);
-				this.pis.write({ type: obj.type, job: obj.job, ret: ret });
+				this.link.write({ type: obj.type, job: obj.job, ret: ret });
 				break;
 			case 'pushPassoa':
 				if (obj.info.type == 'adb') {
@@ -83,7 +82,7 @@ export class Web_mgr {
 						ADB.endADB();
 						obj.info = ret_shell.ret && ret_chmod.ret;
 					}
-					this.pis.write(obj);
+					this.link.write(obj);
 				}
 				break;
 			case 'savePhoto':
@@ -102,10 +101,17 @@ export class Web_mgr {
 					obj.info.info.h
 				);
 				obj.info = img_ret ? false : true;
+<<<<<<< HEAD
 				this.pis.write(obj);
 				break;
 			case 'testPhoto':
 				let to_test = this.link.getLink('test', 'test');
+=======
+				this.link.write(obj);
+				break;
+			case 'testPhoto':
+				let to_test = this.mgr.getLink('test', 'test');
+>>>>>>> 6f0d274832f6884d1055f2b32bb8d05d7de0c87c
 				if (to_test) to_test.disposedCompleted('toWeb', obj.info);
 				break;
 			case 'reTakeImg':
@@ -115,12 +121,20 @@ export class Web_mgr {
 				if (img_info.action == 'assert_pto' && binding_info.content.type == 0) {
 					this.Cvip.imageSave(img_info.screen, img_info.image, 16);
 					obj.info = true;
+<<<<<<< HEAD
 					this.pis.write(obj);
+=======
+					this.link.write(obj);
+>>>>>>> 6f0d274832f6884d1055f2b32bb8d05d7de0c87c
 				} else {
 					let ctn = img_info.action == 'assert_pto' ? binding_info.content.info : binding_info.content;
 					let img_ret = this.Cvip.imageCut(img_info.screen, img_info.image, 16, ctn.x1, ctn.y1, ctn.w, ctn.h);
 					obj.info = img_ret ? false : true;
+<<<<<<< HEAD
 					this.pis.write(obj);
+=======
+					this.link.write(obj);
+>>>>>>> 6f0d274832f6884d1055f2b32bb8d05d7de0c87c
 				}
 				break;
 			default:
@@ -136,7 +150,12 @@ export class Web_mgr {
 					case 0:
 						break;
 					case 1:
+<<<<<<< HEAD
 						this.pis.write({ type: 'toSer', job: 'pushLog', info: data.data.toString() });
+=======
+						data.data[data.data.length - 1] = 0x20;
+						this.link.write({ type: 'toSer', job: 'pushLog', info: data.data.toString() });
+>>>>>>> 6f0d274832f6884d1055f2b32bb8d05d7de0c87c
 						break;
 					case 2:
 						if (timer) {
@@ -155,17 +174,11 @@ export class Web_mgr {
 		});
 	}
 
-	create(c: any, obj: any, link: any) {
-		this.intc = c;
+	create(link: any, obj: any, mgr: any) {
 		this.link = link;
-		this.intc.on('data', (data: any) => {
-			this.pos.write(data);
-		});
-		this.intc.on('close', () => {
-			console.info('[link close]' + obj.class + '-' + obj.name + ':' + 'exit!!!');
-			this.link.closeLink(obj.class, obj.name);
-		});
-		this.pis.write({ type: 'auth', state: 'ok' });
+		this.mgr = mgr;
+		this.link.onData(this.handleCmd.bind(this));
+		this.link.write({ type: 'auth', state: 'ok' });
 	}
 
 	startJS(obj: any, jsPath: any) {
@@ -197,6 +210,6 @@ export class Web_mgr {
 	}
 
 	sendToWebServer(data: any) {
-		this.pis.write(data);
+		this.link.write(data);
 	}
 }

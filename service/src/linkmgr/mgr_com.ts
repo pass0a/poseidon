@@ -6,17 +6,10 @@ import relay from './res/parse/relay';
 import da_arm from './res/parse/da_arm';
 
 export class Com_mgr {
-	private pos: any = new pack.unpackStream();
-	private pis: any = new pack.packStream();
-	private intc: any;
+	private mgr: any;
 	private link: any;
 	private uartlist: any = [];
-	constructor() {
-		this.pis.on('data', (data: any) => {
-			this.intc.write(data);
-		});
-		this.pos.on('data', (data: any) => {});
-	}
+	constructor() {}
 
 	async handleCmd(obj: any) {
 		let result: any;
@@ -158,16 +151,10 @@ export class Com_mgr {
 		});
 	}
 
-	create(c: any, obj: any, link: any) {
-		this.intc = c;
+	create(link: any, obj: any, mgr: any) {
 		this.link = link;
-		this.intc.on('data', (data: any) => {
-			this.pos.write(data);
-		});
-		this.intc.on('close', () => {
-			console.info('[link close]' + obj.class + '-' + obj.name + ':' + 'exit!!!');
-			this.link.closeLink(obj.class, obj.name);
-		});
-		this.pis.write({ type: 'auth', state: 'ok' });
+		this.mgr = mgr;
+		this.link.onData(this.handleCmd.bind(this));
+		this.link.write({ type: 'auth', state: 'ok' });
 	}
 }
