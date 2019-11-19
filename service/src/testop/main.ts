@@ -166,7 +166,10 @@ async function disposeStepLoop(idx: any, caseContent: any) {
 			stepLoopList.push({ step_loop_idx: i, step_loop_ret: act_ret.ret, step_loop_info: act_ret.data });
 			if (!caseInfo.config.test_info.error_exit) break;
 		} else {
-			await defaultDelay(idx, caseContent.case_steps);
+			if (cmdStep.action == 'group' && act_ret.g_wait) {
+			} else {
+				await defaultDelay(idx, caseContent.case_steps);
+			}
 		}
 	}
 	return new Promise((resolve) => {
@@ -444,7 +447,8 @@ async function group(cmd: any) {
 		info: { prjname: prjname, id: cmd.id }
 	});
 	let groupStepLoopList: any = [],
-		result: any;
+		result: any,
+		g_wait: boolean = false;
 	for (let j = 0; j < groupContent.length; j++) {
 		// 0: 成功 1: 失败 2: 连接错误 3: 组合步骤进行暂停 4: 摄像头异常 5:无图片
 		let cmdStep = groupContent[j];
@@ -463,6 +467,7 @@ async function group(cmd: any) {
 					g_step_loop_ret: act_ret.ret,
 					g_step_loop_info: act_ret.data
 				});
+				if (!caseInfo.config.test_info.error_exit) break;
 			} else {
 				await defaultDelay(j, groupContent);
 			}
@@ -470,10 +475,15 @@ async function group(cmd: any) {
 		if (groupStepLoopList.length) {
 			result = 1;
 			break;
-		} else result = 0;
+		} else {
+			result = 0;
+			if (groupContent.pop().action == 'wait') {
+				g_wait = true;
+			}
+		}
 	}
 	return new Promise((resolve) => {
-		resolve({ ret: result, data: groupStepLoopList });
+		resolve({ ret: result, data: groupStepLoopList, g_wait: g_wait });
 	});
 }
 

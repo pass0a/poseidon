@@ -17,6 +17,7 @@ class Link {
 		this.mgr = mgr;
 		this.c = c;
 		this.pos.once('data', (obj: MsgHead) => {
+			console.log('1111111');
 			mgr.handleCmd(obj, this);
 		});
 
@@ -46,7 +47,7 @@ class Linkmgr {
 		new Link(c, this);
 	});
 	handleCmd(obj: MsgHead, link: Link) {
-		console.info(obj, link);
+		// onsole.info(obj, link);
 		if (obj.type != 'info') {
 			link.write({ type: 'auth', state: 'fail', msg: 'it is not info cmd!!!' });
 			link.end();
