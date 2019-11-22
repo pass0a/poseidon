@@ -238,10 +238,10 @@ export default class TestView extends Vue {
       case 2:
         this.processNum =
           Math.floor(
-            (this.testInfo.info.current / this.testInfo.info.total) * 10000
+            (this.testInfo.info.current_time / this.testInfo.info.time) * 10000
           ) / 100;
         this.statusTitle.t_progress =
-          this.testInfo.info.current + " / " + this.testInfo.info.total;
+          this.testInfo.info.current_case + " / " + this.testInfo.info.total;
         break;
       case 3:
         this.btnMode = 6;
@@ -262,7 +262,9 @@ export default class TestView extends Vue {
           "用例ID : " +
             this.testInfo.info +
             " - - - >>> 开始执行 <<< - - - 当前用例执行次数 : " +
-            this.testInfo.count
+            this.testInfo.count +
+            "/" +
+            this.testInfo.total
         );
         break;
       case 6:
@@ -364,7 +366,7 @@ export default class TestView extends Vue {
     switch (step.action) {
       case "wait":
         let wait_t = step.type != undefined ? step.type : 0;
-        content = "[" + this.wait_type[wait_t] + "]" + step.time + "毫秒";
+        content = "[" + this.wait_type[wait_t] + "]" + step.wait + "毫秒";
         break;
       case "qg_box":
         content =
@@ -408,6 +410,8 @@ export default class TestView extends Vue {
       (ret == 0 ? "成功" : "失败") +
       " [当前步骤执行次数 : " +
       data.count +
+      "/" +
+      data.total +
       "]";
     this.updateLogCmd(1, step_log);
   }

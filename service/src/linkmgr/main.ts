@@ -14,13 +14,19 @@ class Link {
 	private c: any;
 	private mgr: Linkmgr;
 	constructor(c: Socket, mgr: Linkmgr) {
+		// c.write('test');
+		// this.pis.pipe(this.pos);
+		// this.pis.write('hhhh');
+		// this.pos.on('data', (data) => {
+		// 	console.log(data);
+		// });
+		// this.pos = new unpackStream();
+		// this.pis = new packStream();
 		this.mgr = mgr;
 		this.c = c;
 		this.pos.once('data', (obj: MsgHead) => {
-			console.log('1111111');
 			mgr.handleCmd(obj, this);
 		});
-
 		c.pipe(this.pos);
 		this.pis.pipe(c);
 		this.pis.write({ type: 'init' });
@@ -47,7 +53,7 @@ class Linkmgr {
 		new Link(c, this);
 	});
 	handleCmd(obj: MsgHead, link: Link) {
-		// onsole.info(obj, link);
+		console.info(obj, link);
 		if (obj.type != 'info') {
 			link.write({ type: 'auth', state: 'fail', msg: 'it is not info cmd!!!' });
 			link.end();

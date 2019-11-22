@@ -1,5 +1,6 @@
 import * as pack from '@passoa/pack';
 import * as Cvip from '@passoa/cvip';
+import * as childprs from 'child_process';
 import * as net from 'net';
 import * as path from 'path';
 import * as util from 'util';
@@ -17,7 +18,7 @@ let current_type: string = '',
 	pcan_isExist = false,
 	dbc_isExist = false;
 let caseInfo: any = { start_idx: 0, img_idx: 0, com_len: 2 };
-let progress_info = { current: 0, total: 0 };
+let progress_info = { current_time: 0, total: 0, time: 0, current_case: 0 };
 let log_info: any = { id: '', status: false, filename: '' };
 let saveOneInMode: boolean = false;
 let actionList: any = {
@@ -74,8 +75,8 @@ async function runTest() {
 			stopflag = true;
 			break; // 暂停退出
 		}
-		progress_info.current = i + 1;
-		await notifyToLinkMgr({ type: ToLink, mode: 2, info: progress_info }); // 进度更新通知
+		progress_info.current_case++;
+		await notifyToLinkMgr({ type: ToLink, mode: 2, info: progress_info });
 	}
 	outputFile(stopflag);
 	let results = await notifyToLinkMgr({
@@ -120,7 +121,8 @@ async function runSteps(caseContent: any) {
 			mode: 5,
 			info: caseContent.case_id,
 			count: i + 1,
-			module: caseContent.case_module
+			module: caseContent.case_module,
+			total: caseContent.case_mode
 		}); // 用例开始执行通知
 		for (let j = 0; j < caseContent.case_steps.length; j++) {
 			let step_result: any = await disposeStepLoop(j, caseContent);
@@ -134,6 +136,8 @@ async function runSteps(caseContent: any) {
 			}
 		}
 		if (stopflag) break;
+		progress_info.current_time++;
+		await notifyToLinkMgr({ type: ToLink, mode: 2, info: progress_info }); // 进度更新通知
 		await recordResultToDB(caseLoopList, caseContent, start_time, i);
 		if (caseLoopList.length > 0 && !caseInfo.config.test_info.error_exit) break;
 	}
@@ -161,9 +165,14 @@ async function disposeStepLoop(idx: any, caseContent: any) {
 			stopflag = true;
 			break;
 		}
-		await notifyToLinkMgr({ type: ToLink, mode: 4, info: { step: cmdStep, ret: act_ret.ret, count: i + 1 } }); // 测试步骤执行结果通知
+		await notifyToLinkMgr({
+			type: ToLink,
+			mode: 4,
+			info: { step: cmdStep, ret: act_ret.ret, count: i + 1, total: stepLoop }
+		}); // 测试步骤执行结果通知
 		if (act_ret.ret) {
 			stepLoopList.push({ step_loop_idx: i, step_loop_ret: act_ret.ret, step_loop_info: act_ret.data });
+			if (!caseInfo.config.test_info.error_music) startMusic();
 			if (!caseInfo.config.test_info.error_exit) break;
 		} else {
 			if (cmdStep.action == 'group' && act_ret.g_wait) {
@@ -201,11 +210,11 @@ async function wait(cmd: any) {
 			if (cmd.time_r == cmd.time) time = cmd.time;
 			else {
 				time = Math.floor(Math.random() * Math.abs(cmd.time_r - cmd.time) + Math.min(cmd.time_r, cmd.time));
-				cmd.time = time;
 			}
 		} else {
 			time = cmd.time;
 		}
+		cmd.wait = time;
 		setTimeout(function() {
 			resolve({ ret: 0 });
 		}, time);
@@ -564,6 +573,7 @@ async function readyForTest() {
 		LogOpen(uartsSet); // Log
 		for (let i = caseInfo.start_idx; i < progress_info.total; i++) {
 			let data = caseInfo.caselist[i];
+			progress_info.time += data.case_mode;
 			let case_run_time = 0;
 			for (let j = 0; j < data.case_steps.length; j++) {
 				if (uartsSet.size != caseInfo.com_len) await checkNeedCom(data.case_steps[j], uartsSet);
@@ -706,7 +716,7 @@ function readConfig() {
 	let path = os.homedir() + '/data_store/config.json';
 	caseInfo.config = JSON.parse(new util.TextDecoder().decode(fs.readFileSync(path)));
 	if (caseInfo.config.test_info == undefined)
-		caseInfo.config.test_info = { error_exit: 0, error_music: 1, match: 90 };
+		caseInfo.config.test_info = { error_exit: 0, error_music: 1, match: 90, music_path: '' };
 	if (caseInfo.config.pcan_info == undefined)
 		caseInfo.config.pcan = { baudrate: 'baud_100k', hardware_type: 'ISA_82C200', io_port: '0100', interrupt: '3' };
 }
@@ -737,6 +747,15 @@ function notifyToLinkMgr(info: any) {
 		// 通知界面无需等待返回 0: 初始化失败 1:初始化成功 2:用例开始测试 3: 测试完成 4: 步骤执行结果 5: 步骤开始执行 6: 暂停测试
 		if (current_type == ToLink) backCall(1);
 	});
+}
+
+function startMusic() {
+	let music_path = caseInfo.config.test_info.music_path;
+	if (music_path && fs.existsSync(music_path)) {
+		childprs.execSync('"' + music_path + '" ', {
+			windowsHide: true
+		});
+	}
 }
 
 async function endTest() {
@@ -776,6 +795,7 @@ async function createdLink() {
 			c.write(data);
 		});
 		c.on('data', (data: any) => {
+			console.log(data);
 			pos.write(data);
 		});
 		c.on('close', () => {

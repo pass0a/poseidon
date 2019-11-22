@@ -13,7 +13,7 @@
       <el-tab-pane v-for="it in actionList" :name="it" :key="it" :label="getResName(it)"></el-tab-pane>
       <el-button-group
         style="margin:0px 0px 10px 0px;"
-        v-show="actionName.length>1&&actionName!='button'&&actionName!='dbc'"
+        v-show="actionName.length>1&&actionName!='button'&&actionName!='dbc'&&actionName!='operate_tool'"
       >
         <el-button
           plain
@@ -102,6 +102,7 @@
                 class="button"
                 style="background-color:#F56C6C"
                 @click="deleteID(0,scope.row.id)"
+                v-show="actionName!='operate_tool'"
               >删除</button>
             </template>
           </el-table-column>
@@ -357,7 +358,8 @@ export default class StepsMgrView extends Vue {
     "group",
     "adb_cmd",
     "pcan",
-    "dbc"
+    "dbc",
+    "operate_tool"
   ];
   private actionName: any = this.actionList[0];
   private moduleName: any = "";
@@ -489,7 +491,8 @@ export default class StepsMgrView extends Vue {
   private showEditIcon(id: any) {
     return id.indexOf("button") > -1 ||
       id.indexOf("click_random") > -1 ||
-      id.indexOf("dbc") > -1
+      id.indexOf("dbc") > -1 ||
+      id.indexOf("operate_tool") > -1
       ? false
       : true;
   }
