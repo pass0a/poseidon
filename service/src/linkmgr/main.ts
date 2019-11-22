@@ -14,12 +14,19 @@ class Link {
 	private c: any;
 	private mgr: Linkmgr;
 	constructor(c: Socket, mgr: Linkmgr) {
+		// c.write('test');
+		// this.pis.pipe(this.pos);
+		// this.pis.write('hhhh');
+		// this.pos.on('data', (data) => {
+		// 	console.log(data);
+		// });
+		// this.pos = new unpackStream();
+		// this.pis = new packStream();
 		this.mgr = mgr;
 		this.c = c;
 		this.pos.once('data', (obj: MsgHead) => {
 			mgr.handleCmd(obj, this);
 		});
-
 		c.pipe(this.pos);
 		this.pis.pipe(c);
 		this.pis.write({ type: 'init' });

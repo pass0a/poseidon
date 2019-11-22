@@ -1,5 +1,6 @@
 import * as pack from '@passoa/pack';
 import * as Cvip from '@passoa/cvip';
+import * as childprs from 'child_process';
 import * as net from 'net';
 import * as path from 'path';
 import * as util from 'util';
@@ -17,13 +18,14 @@ let current_type: string = '',
 	pcan_isExist = false,
 	dbc_isExist = false;
 let caseInfo: any = { start_idx: 0, img_idx: 0, com_len: 2 };
-let progress_info = { current: 0, total: 0 };
+let progress_info = { current_time: 0, total: 0, time: 0, current_case: 0 };
 let log_info: any = { id: '', status: false, filename: '' };
 let saveOneInMode: boolean = false;
 let actionList: any = {
 	wait: wait,
 	click: click,
 	assert_pic: assertPic,
+	click_random: clickRandom,
 	click_poi: clickPoi,
 	slide: slide,
 	operate_tool: operateTool,
@@ -73,8 +75,8 @@ async function runTest() {
 			stopflag = true;
 			break; // 暂停退出
 		}
-		progress_info.current = i + 1;
-		await notifyToLinkMgr({ type: ToLink, mode: 2, info: progress_info }); // 进度更新通知
+		progress_info.current_case++;
+		await notifyToLinkMgr({ type: ToLink, mode: 2, info: progress_info });
 	}
 	outputFile(stopflag);
 	let results = await notifyToLinkMgr({
@@ -114,7 +116,14 @@ async function runSteps(caseContent: any) {
 	let caseLoopList: any = [];
 	saveOneInMode = false; // 每条用例的循环模式只保留首次失败的图片
 	for (let i = 0; i < caseContent.case_mode; i++) {
-		await notifyToLinkMgr({ type: ToLink, mode: 5, info: caseContent.case_id, count: i + 1 }); // 用例开始执行通知
+		await notifyToLinkMgr({
+			type: ToLink,
+			mode: 5,
+			info: caseContent.case_id,
+			count: i + 1,
+			module: caseContent.case_module,
+			total: caseContent.case_mode
+		}); // 用例开始执行通知
 		for (let j = 0; j < caseContent.case_steps.length; j++) {
 			let step_result: any = await disposeStepLoop(j, caseContent);
 			if (step_result.data.length) {
@@ -127,6 +136,8 @@ async function runSteps(caseContent: any) {
 			}
 		}
 		if (stopflag) break;
+		progress_info.current_time++;
+		await notifyToLinkMgr({ type: ToLink, mode: 2, info: progress_info }); // 进度更新通知
 		await recordResultToDB(caseLoopList, caseContent, start_time, i);
 		if (caseLoopList.length > 0 && !caseInfo.config.test_info.error_exit) break;
 	}
@@ -146,7 +157,7 @@ async function disposeStepLoop(idx: any, caseContent: any) {
 			stopflag = true;
 			break;
 		}
-		let act_ret = await actionList[cmdStep.action](cmdStep, caseContent); // 0: 成功 1: 失败 2: 连接错误 3: 组合步骤进行暂停 4: 摄像头异常 5:无图片
+		let act_ret = await actionList[cmdStep.action](cmdStep); // 0: 成功 1: 失败 2: 连接错误 3: 组合步骤进行暂停 4: 摄像头异常 5:无图片
 		if (act_ret.ret == 3) {
 			if (act_ret.data.length) {
 				//
@@ -154,12 +165,20 @@ async function disposeStepLoop(idx: any, caseContent: any) {
 			stopflag = true;
 			break;
 		}
-		await notifyToLinkMgr({ type: ToLink, mode: 4, info: { step: cmdStep, ret: act_ret.ret, count: i + 1 } }); // 测试步骤执行结果通知
+		await notifyToLinkMgr({
+			type: ToLink,
+			mode: 4,
+			info: { step: cmdStep, ret: act_ret.ret, count: i + 1, total: stepLoop }
+		}); // 测试步骤执行结果通知
 		if (act_ret.ret) {
 			stepLoopList.push({ step_loop_idx: i, step_loop_ret: act_ret.ret, step_loop_info: act_ret.data });
+			if (!caseInfo.config.test_info.error_music) startMusic();
 			if (!caseInfo.config.test_info.error_exit) break;
 		} else {
-			await defaultDelay(idx, caseContent.case_steps);
+			if (cmdStep.action == 'group' && act_ret.g_wait) {
+			} else {
+				await defaultDelay(idx, caseContent.case_steps);
+			}
 		}
 	}
 	return new Promise((resolve) => {
@@ -183,15 +202,26 @@ async function defaultDelay(index: any, caseSteps: any) {
 	});
 }
 
-async function wait(cmd: any, caseData?: any) {
+async function wait(cmd: any) {
 	return new Promise((resolve) => {
+		let time: number = 0;
+		let time_type = cmd.type != undefined ? cmd.type : 0;
+		if (time_type) {
+			if (cmd.time_r == cmd.time) time = cmd.time;
+			else {
+				time = Math.floor(Math.random() * Math.abs(cmd.time_r - cmd.time) + Math.min(cmd.time_r, cmd.time));
+			}
+		} else {
+			time = cmd.time;
+		}
+		cmd.wait = time;
 		setTimeout(function() {
 			resolve({ ret: 0 });
-		}, cmd.time);
+		}, time);
 	});
 }
 
-async function click(cmd: any, caseData: any) {
+async function click(cmd: any) {
 	// 0:成功 1:失败 2:超时 5:无图片
 	let result: any, note: any;
 	let info = { screenPath: prjpath + '/tmp/tmp.png', cfg: caseInfo.config };
@@ -231,7 +261,7 @@ async function click(cmd: any, caseData: any) {
 	});
 }
 
-async function assertPic(cmd: any, caseData: any) {
+async function assertPic(cmd: any) {
 	let result: any, note: any;
 	let info = { screenPath: prjpath + '/tmp/tmp.png', cfg: caseInfo.config };
 	let get_screen: any = await notifyToLinkMgr({ type: 'toDevice', job: 'cutScreen', info: info });
@@ -240,8 +270,10 @@ async function assertPic(cmd: any, caseData: any) {
 		if (!match_ret.ret) result = 5;
 		else {
 			let match_num = Math.floor(match_ret.obj.val * 10000) / 100;
-			if (match_ret.obj.valid || match_num >= caseInfo.config.test_info.match) result = 0;
-			else {
+			let assert_type = cmd.type != undefined ? cmd.type : 0;
+			if (match_ret.obj.valid || match_num >= caseInfo.config.test_info.match) result = assert_type ? 1 : 0;
+			else result = assert_type ? 0 : 1;
+			if (result) {
 				if (!saveOneInMode || !caseInfo.config.test_info.error_exit) {
 					saveOneInMode = true;
 					note = { image: '', screen: '', match: '' };
@@ -250,7 +282,6 @@ async function assertPic(cmd: any, caseData: any) {
 					note.match = match_num;
 					await saveScreen(note.screen);
 				}
-				result = 1;
 			}
 		}
 	} else result = 2;
@@ -259,7 +290,7 @@ async function assertPic(cmd: any, caseData: any) {
 	});
 }
 
-async function clickPoi(cmd: any, caseData: any) {
+async function clickPoi(cmd: any) {
 	let poi_info: any = await notifyToLinkMgr({
 		type: ToDB,
 		route: 'binding',
@@ -275,7 +306,7 @@ async function clickPoi(cmd: any, caseData: any) {
 	});
 }
 
-async function slide(cmd: any, caseData: any) {
+async function slide(cmd: any) {
 	let slide_info: any = await notifyToLinkMgr({
 		type: ToDB,
 		route: 'binding',
@@ -297,7 +328,7 @@ async function slide(cmd: any, caseData: any) {
 	});
 }
 
-async function button(cmd: any, caseData: any) {
+async function button(cmd: any) {
 	let buttonCmd: any = await notifyToLinkMgr({
 		type: ToDB,
 		route: 'buttons',
@@ -329,14 +360,14 @@ async function button(cmd: any, caseData: any) {
 	});
 }
 
-async function operateTool(cmd: any, caseData: any) {
+async function operateTool(cmd: any) {
 	await notifyToLinkMgr({ type: 'toCom', job: 'sendData', info: { name: 'relay', cmd: cmd } });
 	return new Promise((resolve) => {
 		resolve({ ret: 0 });
 	});
 }
 
-async function assertPto(cmd: any, caseData: any) {
+async function assertPto(cmd: any) {
 	let get_pto: any = await notifyToLinkMgr({ type: 'toWeb', job: 'takePhoto' }); // 1:摄像头打开成功 0:失败
 	let result: any, note: any;
 	if (get_pto) {
@@ -344,7 +375,10 @@ async function assertPto(cmd: any, caseData: any) {
 		if (!match_ret.ret) result = 5;
 		else {
 			let match_num = Math.floor(match_ret.obj.val * 10000) / 100;
-			if (!match_ret.obj.valid && match_num <= caseInfo.config.test_info.match) {
+			let assert_type = cmd.type != undefined ? cmd.type : 0;
+			if (match_ret.obj.valid || match_num >= caseInfo.config.test_info.match) result = assert_type ? 1 : 0;
+			else result = assert_type ? 0 : 1;
+			if (result) {
 				if (!saveOneInMode || !caseInfo.config.test_info.error_exit) {
 					saveOneInMode = true;
 					note = { image: '', screen: '', match: '' };
@@ -353,8 +387,7 @@ async function assertPto(cmd: any, caseData: any) {
 					note.match = match_num;
 					await saveScreen(note.screen);
 				}
-				result = 1;
-			} else result = 0;
+			}
 		}
 	} else result = 4;
 	return new Promise((resolve) => {
@@ -362,7 +395,7 @@ async function assertPto(cmd: any, caseData: any) {
 	});
 }
 
-async function pcan(cmd: any, caseData: any) {
+async function pcan(cmd: any) {
 	let pcanCmd: any = await notifyToLinkMgr({
 		type: ToDB,
 		route: 'pcan',
@@ -383,7 +416,7 @@ async function pcan(cmd: any, caseData: any) {
 	});
 }
 
-async function adbCmd(cmd: any, caseData: any) {
+async function adbCmd(cmd: any) {
 	let adbInfo = await notifyToLinkMgr({
 		type: ToDB,
 		route: 'adb',
@@ -396,7 +429,7 @@ async function adbCmd(cmd: any, caseData: any) {
 	});
 }
 
-async function qgBox(cmd: any, caseData: any) {
+async function qgBox(cmd: any) {
 	if (cmd.b_type == undefined) cmd.b_type = '0';
 	let data: any = await notifyToLinkMgr({
 		type: 'toQgBox',
@@ -415,7 +448,7 @@ async function qgBox(cmd: any, caseData: any) {
 	});
 }
 
-async function group(cmd: any, caseData: any) {
+async function group(cmd: any) {
 	let groupContent: any = await notifyToLinkMgr({
 		type: ToDB,
 		route: 'group',
@@ -423,7 +456,8 @@ async function group(cmd: any, caseData: any) {
 		info: { prjname: prjname, id: cmd.id }
 	});
 	let groupStepLoopList: any = [],
-		result: any;
+		result: any,
+		g_wait: boolean = false;
 	for (let j = 0; j < groupContent.length; j++) {
 		// 0: 成功 1: 失败 2: 连接错误 3: 组合步骤进行暂停 4: 摄像头异常 5:无图片
 		let cmdStep = groupContent[j];
@@ -434,7 +468,7 @@ async function group(cmd: any, caseData: any) {
 					resolve({ ret: 3, data: groupStepLoopList });
 				});
 			}
-			let act_ret = await actionList[cmdStep.action](cmdStep, caseData);
+			let act_ret = await actionList[cmdStep.action](cmdStep);
 			if (act_ret.ret) {
 				groupStepLoopList.push({
 					g_idx: j,
@@ -442,6 +476,7 @@ async function group(cmd: any, caseData: any) {
 					g_step_loop_ret: act_ret.ret,
 					g_step_loop_info: act_ret.data
 				});
+				if (!caseInfo.config.test_info.error_exit) break;
 			} else {
 				await defaultDelay(j, groupContent);
 			}
@@ -449,14 +484,19 @@ async function group(cmd: any, caseData: any) {
 		if (groupStepLoopList.length) {
 			result = 1;
 			break;
-		} else result = 0;
+		} else {
+			result = 0;
+			if (groupContent.pop().action == 'wait') {
+				g_wait = true;
+			}
+		}
 	}
 	return new Promise((resolve) => {
-		resolve({ ret: result, data: groupStepLoopList });
+		resolve({ ret: result, data: groupStepLoopList, g_wait: g_wait });
 	});
 }
 
-async function dbc(cmd: any, caseData: any) {
+async function dbc(cmd: any) {
 	let ret: number;
 	if (caseInfo.dbcInfo.Messages_Info[cmd.module] != undefined) {
 		let msg = {
@@ -473,6 +513,25 @@ async function dbc(cmd: any, caseData: any) {
 	}
 	return new Promise((resolve) => {
 		resolve({ ret: ret });
+	});
+}
+
+async function clickRandom(cmd: any) {
+	let p_info: any = await notifyToLinkMgr({
+		type: ToDB,
+		route: 'binding',
+		job: 'getDoc',
+		info: { prjname: prjname, id: cmd.id }
+	});
+	let random_w = Math.floor(Math.random() * p_info.w);
+	let random_h = Math.floor(Math.random() * p_info.h);
+	let msg: any = { x: random_w, y: random_h, click_type: '0', cfg: caseInfo.config };
+	let rev: any = await notifyToLinkMgr({ type: 'toDevice', job: 'click', info: msg });
+	cmd.random_w = random_w;
+	cmd.random_h = random_h;
+	let result = rev ? 0 : 2;
+	return new Promise((resolve) => {
+		resolve({ ret: result });
 	});
 }
 
@@ -514,6 +573,7 @@ async function readyForTest() {
 		LogOpen(uartsSet); // Log
 		for (let i = caseInfo.start_idx; i < progress_info.total; i++) {
 			let data = caseInfo.caselist[i];
+			progress_info.time += data.case_mode;
 			let case_run_time = 0;
 			for (let j = 0; j < data.case_steps.length; j++) {
 				if (uartsSet.size != caseInfo.com_len) await checkNeedCom(data.case_steps[j], uartsSet);
@@ -656,7 +716,7 @@ function readConfig() {
 	let path = os.homedir() + '/data_store/config.json';
 	caseInfo.config = JSON.parse(new util.TextDecoder().decode(fs.readFileSync(path)));
 	if (caseInfo.config.test_info == undefined)
-		caseInfo.config.test_info = { error_exit: 0, error_music: 1, match: 90 };
+		caseInfo.config.test_info = { error_exit: 0, error_music: 1, match: 90, music_path: '' };
 	if (caseInfo.config.pcan_info == undefined)
 		caseInfo.config.pcan = { baudrate: 'baud_100k', hardware_type: 'ISA_82C200', io_port: '0100', interrupt: '3' };
 }
@@ -687,6 +747,15 @@ function notifyToLinkMgr(info: any) {
 		// 通知界面无需等待返回 0: 初始化失败 1:初始化成功 2:用例开始测试 3: 测试完成 4: 步骤执行结果 5: 步骤开始执行 6: 暂停测试
 		if (current_type == ToLink) backCall(1);
 	});
+}
+
+function startMusic() {
+	let music_path = caseInfo.config.test_info.music_path;
+	if (music_path && fs.existsSync(music_path)) {
+		childprs.execSync('"' + music_path + '" ', {
+			windowsHide: true
+		});
+	}
 }
 
 async function endTest() {
@@ -726,6 +795,7 @@ async function createdLink() {
 			c.write(data);
 		});
 		c.on('data', (data: any) => {
+			console.log(data);
 			pos.write(data);
 		});
 		c.on('close', () => {

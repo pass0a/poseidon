@@ -1,5 +1,3 @@
-import * as pack from '@passoa/pack';
-
 export class DB_mgr {
 	private intc: any;
 	private mgr: any;

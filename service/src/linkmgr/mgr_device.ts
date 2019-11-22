@@ -1,4 +1,3 @@
-import * as pack from '@passoa/pack';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as util from 'util';

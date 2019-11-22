@@ -61,7 +61,6 @@ export class ToLink {
 				this.proCall(data.state == 'ok');
 				break;
 			default:
-				console.log(data, this.ser.inst);
 				if (this.ser.inst) this.ser.send(data);
 				break;
 		}

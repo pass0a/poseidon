@@ -1,4 +1,3 @@
-import * as pack from '@passoa/pack';
 import QGBox from './res/qgbox/index';
 import Pcan from './res/pcan/index';
 import DBC from '../candbc/index';
