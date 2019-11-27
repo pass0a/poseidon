@@ -121,18 +121,18 @@ steps:
     addChangeLog: false
   condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
 
-- task: CopyFilesOverSSH@0
+- task: cURLUploader@2
+  displayName: 'Upload cURL'
   inputs:
-    sshEndpoint: 'ssh'
-    sourceFolder: '$(Build.ArtifactStagingDirectory)'
-    contents: 'Poseidon*'
-    targetFolder: '/root/public/poseidon'
-  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
+    files: '$(Build.ArtifactStagingDirectory)/Poseidon-$(Build.SourceBranchName)-$(Build.BuildId).7z'
+    serviceEndpoint: 'csding.net'
+    remotePath: 'repertory/cxb/Poseidon.7z?version=$(Build.SourceBranchName)-windows-x86'
+  condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
 
-- task: CopyFilesOverSSH@0
+- task: cURLUploader@2
+  displayName: 'Upload cURL'
   inputs:
-    sshEndpoint: 'ssh'
-    sourceFolder: '$(Build.ArtifactStagingDirectory)'
-    contents: 'Reveal*'
-    targetFolder: '/root/public/reveal'
-  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
+    files: '$(Build.ArtifactStagingDirectory)/Reveal-$(Build.SourceBranchName)-$(Build.BuildId).7z'
+    serviceEndpoint: 'csding.net'
+    remotePath: 'repertory/cxb/Reveal.7z?version=$(Build.SourceBranchName)-windows-x86'
+  condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
