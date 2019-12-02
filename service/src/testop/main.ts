@@ -16,7 +16,8 @@ let current_type: string = '',
 	stepsWaitTime = 1500,
 	adb_cmd_isExist = false,
 	pcan_isExist = false,
-	dbc_isExist = false;
+	dbc_isExist = false,
+	bt_isExist = false;
 let caseInfo: any = { start_idx: 0, img_idx: 0, com_len: 2 };
 let progress_info = { current_time: 0, total: 0, time: 0, current_case: 0 };
 let log_info: any = { id: '', status: false, filename: '' };
@@ -35,7 +36,8 @@ let actionList: any = {
 	adb_cmd: adbCmd,
 	assert_pto: assertPto,
 	pcan: pcan,
-	dbc: dbc
+	dbc: dbc,
+	bt_op: operateBT
 };
 
 startTest();
@@ -58,7 +60,7 @@ async function startTest() {
 			await startLog();
 			await runTest();
 		} else {
-			await notifyToLinkMgr({ type: ToLink, mode: 0, error_code: ret.error_code }); // error 0:串口异常 1:无测试用例 2:ADB异常 3:Pcan异常 4:DBC不存在
+			await notifyToLinkMgr({ type: ToLink, mode: 0, error_code: ret.error_code }); // error 0:串口异常 1:无测试用例 2:ADB异常 3:Pcan异常 4:DBC不存在 5:BT配置为空
 			await endTest();
 		}
 	}
@@ -486,10 +488,10 @@ async function group(cmd: any) {
 			break;
 		} else {
 			result = 0;
-			if (groupContent.pop().action == 'wait') {
-				g_wait = true;
-			}
 		}
+	}
+	if (groupContent.pop().action == 'wait') {
+		g_wait = true;
 	}
 	return new Promise((resolve) => {
 		resolve({ ret: result, data: groupStepLoopList, g_wait: g_wait });
@@ -532,6 +534,15 @@ async function clickRandom(cmd: any) {
 	let result = rev ? 0 : 2;
 	return new Promise((resolve) => {
 		resolve({ ret: result });
+	});
+}
+
+async function operateBT(cmd: any) {
+	let ret: any;
+	let cfg = caseInfo.config.da_server;
+	ret = await notifyToLinkMgr({ type: 'toBT', job: cmd.id, info: cfg });
+	return new Promise((resolve) => {
+		resolve({ ret: ret });
 	});
 }
 
@@ -582,6 +593,8 @@ async function readyForTest() {
 				else if (data.case_steps[j].action == 'dbc' && !dbc_isExist) {
 					pcan_isExist = true;
 					dbc_isExist = true;
+				} else if (data.case_steps[j].action == 'bt_op' && !bt_isExist) {
+					bt_isExist = true;
 				}
 				if (data.case_steps[j].action == 'wait') case_run_time += data.case_steps[j].time;
 				else {
@@ -625,6 +638,19 @@ async function readyForTest() {
 					ready_info.error_code = 4;
 				} else {
 					caseInfo.dbcInfo = JSON.parse(new util.TextDecoder().decode(fs.readFileSync(dbc_path)));
+				}
+			}
+			if (bt_isExist) {
+				let cfg = caseInfo.config.da_server;
+				if (cfg.ping == undefined || cfg.ping == '' || cfg.mac == undefined || cfg.mac == '') {
+					ready_info.ret = 0;
+					ready_info.error_code = 5;
+				} else {
+					let ret: any = await notifyToLinkMgr({ type: 'toBT', job: 'bt_init', info: cfg });
+					if (ret.ret) {
+						ready_info.ret = 0;
+						ready_info.error_code = 5;
+					}
 				}
 			}
 		}
@@ -762,6 +788,7 @@ async function endTest() {
 	await notifyToLinkMgr({ type: 'toCom', job: 'closeCom' });
 	await notifyToLinkMgr({ type: 'toPcan', job: 'close' });
 	await notifyToLinkMgr({ type: 'toDevice', job: 'closeADB' });
+	await notifyToLinkMgr({ type: 'toBT', job: 'bt_disconnect' });
 	c.end();
 	return new Promise((resolve) => {
 		resolve(1);

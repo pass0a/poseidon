@@ -75,7 +75,7 @@
           <el-table-column prop="id" label="ID"></el-table-column>
           <el-table-column
             prop="id"
-            label="是否绑定图片(点击可查看)"
+            label="是否绑定图片"
             v-if="actionName=='click'||actionName=='assert_pic'||actionName=='assert_pto'"
           >
             <template slot-scope="scope">
@@ -95,9 +95,15 @@
               </span>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="150">
+          <el-table-column label="操作" width="210">
             <template slot-scope="scope">
               <button class="button" @click="editID(1,scope.row.id)">修改</button>
+              <button
+                class="button"
+                style="background-color:#67C23A"
+                @click="editID(2,scope.row.id)"
+                v-show="actionName=='group'"
+              >复制</button>
               <button
                 class="button"
                 style="background-color:#F56C6C"
@@ -254,6 +260,16 @@
         <el-form-item label="名称 :" prop="name">
           <el-input style="width:180px" placeholder="请输入" v-model="edit_info.name"></el-input>
         </el-form-item>
+        <el-form-item label="所属二级选项 :" prop="module" v-if="edit_info.type==2">
+          <el-select style="width:180px" v-model="edit_info.module">
+            <el-option
+              v-for="val in rulelist['group']"
+              :label="getResName(val)"
+              :value="val"
+              :key="val"
+            ></el-option>
+          </el-select>
+        </el-form-item>
         <div v-if="actionName=='button'">
           <el-form-item label="Event :" prop="event">
             <el-input style="width:180px" placeholder="请输入" v-model="edit_info.event"></el-input>
@@ -395,6 +411,7 @@ export default class StepsMgrView extends Vue {
   };
   private edit_info: any = {
     id: "",
+    module: "",
     name: "",
     event: "",
     event_down_1: "",
@@ -419,6 +436,7 @@ export default class StepsMgrView extends Vue {
   };
   private editVal: any = {
     name: [{ required: true, message: "名称不能为空", trigger: "blur" }],
+    module: [{ required: true, message: "不能为空", trigger: "blur" }],
     event: [{ required: true, message: "Event不能为空", trigger: "blur" }],
     sd: [{ required: true, message: "不能为空", trigger: "blur" }],
     rd: [{ required: true, message: "不能为空", trigger: "blur" }]
@@ -461,6 +479,9 @@ export default class StepsMgrView extends Vue {
     return this.rulelist[this.add_info.action] != undefined
       ? this.rulelist[this.add_info.action]
       : [];
+  }
+  get groupModuleList() {
+    return this.rulelist["group"] != undefined ? this.rulelist["group"] : [];
   }
   get TableData() {
     if (this.moduleName.length > 1) {
@@ -511,9 +532,9 @@ export default class StepsMgrView extends Vue {
     this.add_info.module = "";
   }
   private editID(type: number, id: any) {
-    this.edit_info.id = id;
-    this.edit_info.name = this.getResName(id);
     this.edit_info.type = type;
+    this.edit_info.id = type == 2 ? "" : id;
+    this.edit_info.name = type == 2 ? "" : this.getResName(id);
     if (type) {
       if (id.indexOf("button") > -1) {
         let btn = this.buttonlist[id];
@@ -641,49 +662,59 @@ export default class StepsMgrView extends Vue {
     (this as any).$refs.editform.validate((valid: any) => {
       if (valid) {
         this.loading = true;
-        this.sendReq("res", "modify", {
-          id: this.edit_info.id,
-          name: this.edit_info.name
-        });
-        if (this.edit_info.id.indexOf("button") > -1) {
-          let msg = {
-            id: this.edit_info.id,
-            event: this.edit_info.event,
-            content: [
-              [this.edit_info.event_down_1, this.edit_info.event_down_2],
-              [this.edit_info.event_up_1, this.edit_info.event_up_2]
-            ]
+        if (this.edit_info.type == 2) {
+          let req: any = {
+            name: this.edit_info.name,
+            id: this.edit_info.module,
+            pid: this.edit_info.module,
+            grouplist: JSON.stringify(this.$store.state.steps_info.steplist)
           };
-          this.sendReq("buttons", "modify", msg);
-        } else if (this.edit_info.id.indexOf("group") > -1) {
-          let m_cont = JSON.stringify(this.$store.state.steps_info.steplist);
-          this.sendReq("group", "modify", {
+          this.sendReq("rule", "add", req);
+        } else {
+          this.sendReq("res", "modify", {
             id: this.edit_info.id,
-            grouplist: m_cont
+            name: this.edit_info.name
           });
-        } else if (this.edit_info.id.indexOf("adb_cmd") > -1) {
-          let msg = {
-            id: this.edit_info.id,
-            sd: this.edit_info.sd,
-            tp: this.edit_info.tp,
-            tt: this.edit_info.tp ? this.edit_info.tt : 0,
-            rd: this.edit_info.tp ? this.edit_info.rd : ""
-          };
-          this.sendReq("adb", "modify", msg);
-        } else if (this.edit_info.id.indexOf("pcan") > -1) {
-          let m_cont = this.$store.state.pcan_info.data;
-          this.sendReq("pcan", "modify", {
-            id: this.edit_info.id,
-            data: m_cont
-          });
-        } else if (this.edit_info.id.indexOf("click_random") > -1) {
-          this.sendReq("binding", "add", {
-            id: this.edit_info.id,
-            content: {
-              w: this.edit_info.w,
-              h: this.edit_info.h
-            }
-          });
+          if (this.edit_info.id.indexOf("button") > -1) {
+            let msg = {
+              id: this.edit_info.id,
+              event: this.edit_info.event,
+              content: [
+                [this.edit_info.event_down_1, this.edit_info.event_down_2],
+                [this.edit_info.event_up_1, this.edit_info.event_up_2]
+              ]
+            };
+            this.sendReq("buttons", "modify", msg);
+          } else if (this.edit_info.id.indexOf("group") > -1) {
+            let m_cont = JSON.stringify(this.$store.state.steps_info.steplist);
+            this.sendReq("group", "modify", {
+              id: this.edit_info.id,
+              grouplist: m_cont
+            });
+          } else if (this.edit_info.id.indexOf("adb_cmd") > -1) {
+            let msg = {
+              id: this.edit_info.id,
+              sd: this.edit_info.sd,
+              tp: this.edit_info.tp,
+              tt: this.edit_info.tp ? this.edit_info.tt : 0,
+              rd: this.edit_info.tp ? this.edit_info.rd : ""
+            };
+            this.sendReq("adb", "modify", msg);
+          } else if (this.edit_info.id.indexOf("pcan") > -1) {
+            let m_cont = this.$store.state.pcan_info.data;
+            this.sendReq("pcan", "modify", {
+              id: this.edit_info.id,
+              data: m_cont
+            });
+          } else if (this.edit_info.id.indexOf("click_random") > -1) {
+            this.sendReq("binding", "add", {
+              id: this.edit_info.id,
+              content: {
+                w: this.edit_info.w,
+                h: this.edit_info.h
+              }
+            });
+          }
         }
         this.editflag = false;
       }

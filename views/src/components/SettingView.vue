@@ -137,19 +137,37 @@
                 v-show="da_server_info.others_flag"
               ></el-input>
             </el-form-item>
-            <div v-show="da_server_info.type<2">
-              <el-divider content-position="left">Wi-Fi配置</el-divider>
-              <el-form-item label="设备IP地址:">
-                <el-input size="small" style="width:235px" v-model="da_server_info.ip"></el-input>
-              </el-form-item>
-              <el-form-item label="连接端口号:">
-                <el-input size="small" style="width:235px" v-model="da_server_info.port"></el-input>
-              </el-form-item>
-              <div v-show="da_server_info.type==0">
-                <el-divider content-position="left">COM配置</el-divider>
+            <el-collapse v-model="activeName" accordion v-show="da_server_info.type<2">
+              <el-collapse-item title="Wi-Fi配置" name="1">
+                <el-form-item label="设备IP地址:">
+                  <el-input size="small" style="width:235px" v-model="da_server_info.ip"></el-input>
+                </el-form-item>
+                <el-form-item label="连接端口号:">
+                  <el-input size="small" style="width:235px" v-model="da_server_info.port"></el-input>
+                </el-form-item>
+              </el-collapse-item>
+              <el-collapse-item title="COM配置" name="2" v-show="da_server_info.type==0">
                 <SetPort style="margin:0px 0px 0px 80px;" />
-              </div>
-            </div>
+              </el-collapse-item>
+              <el-collapse-item title="蓝牙配置" name="3">
+                <el-form-item label="设备MAC地址:">
+                  <el-input
+                    size="small"
+                    style="width:235px"
+                    v-model="set_bt.mac"
+                    @change="changeBtMac"
+                  ></el-input>
+                </el-form-item>
+                <el-form-item label="设备PING码:">
+                  <el-input
+                    size="small"
+                    style="width:235px"
+                    v-model="set_bt.ping"
+                    @change="changeBtPing"
+                  ></el-input>
+                </el-form-item>
+              </el-collapse-item>
+            </el-collapse>
           </el-form>
         </el-tab-pane>
         <el-tab-pane label="日志功能配置" name="4">
@@ -254,6 +272,10 @@ export default class SettingView extends Vue {
   private test_status: any = false;
   private uarts: any = ["relay", "da_arm", "log"];
   private activeName: any = "1";
+  private set_bt: any = {
+    mac: "D4:4D:A4:5C:AA:2A",
+    ping: "1234"
+  };
   private pcan_option = {
     baudrate: [
       "baud_1m",
@@ -317,8 +339,13 @@ export default class SettingView extends Vue {
     return this.db_server_info;
   }
   get daserverInfo() {
-    if (this.$store.state.setting_info.info.da_server != undefined)
+    if (this.$store.state.setting_info.info.da_server != undefined) {
       this.da_server_info = this.$store.state.setting_info.info.da_server;
+      if (this.da_server_info.mac != undefined) {
+        this.set_bt.mac = this.da_server_info.mac;
+        this.set_bt.ping = this.da_server_info.ping;
+      }
+    }
     return this.da_server_info;
   }
   get testInfo() {
@@ -363,6 +390,12 @@ export default class SettingView extends Vue {
         interrupt: "3"
       };
     return this.pcan_info;
+  }
+  private changeBtMac() {
+    this.da_server_info.mac = this.set_bt.mac;
+  }
+  private changeBtPing() {
+    this.da_server_info.ping = this.set_bt.ping;
   }
   private selectStartMd(name: any) {
     if (name == 0) this.$store.state.setting_info.select_serial = this.uarts[1];
