@@ -36,11 +36,10 @@ steps:
    7z x pcan-basic.zip -r -o./ -y
   displayName: 'install pcanbase'
 
-- task: Npm@1
-  displayName: 'npm install'
-  inputs:
-    workingDir: service
-    verbose: false
+- powershell: |
+    npm install cross-env -g
+    npm run cxb
+  displayName: 'install windows_x86 plugin'
 
 - task: Npm@1
   displayName: 'npm install'
