@@ -35,9 +35,9 @@
 	},
 	"dependencies": {
 		"@babel/runtime": "^7.7.4",
-		"@passoa/cxb": "^1.0.8",
-		"@passoa/dbcparser": "^1.0.4",
-		"@passoa/libbt": "^1.0.3",
+		"@passoa/cxb": "latest",
+		"@passoa/dbcparser": "latest",
+		"@passoa/libbt": "latest",
 		"@passoa/logger": "latest",
 		"@passoa/pack": "latest",
 		"@passoa/serialport": "latest",
