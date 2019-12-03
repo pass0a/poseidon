@@ -183,6 +183,7 @@ export default class TestView extends Vue {
           this.showErrorLog();
           break;
         case 6:
+          this.processNum = 100;
           this.$store.state.test_info.testing = false;
           this.$store.state.test_info.stopStatus = false;
           this.statusTitle.t_status = "测试完成";
@@ -431,6 +432,9 @@ export default class TestView extends Vue {
         break;
       case 4:
         this.updateLogCmd(1, "DBC文件不存在!!!");
+        break;
+      case 5:
+        this.updateLogCmd(1, "请检查蓝牙配置!!!");
         break;
     }
   }

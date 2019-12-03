@@ -151,13 +151,18 @@ export default class CaseResultView extends Vue {
           j++
         ) {
           let info = this.caseData[0].fail_info[i].case_loop_ret[j];
-          if (
-            info.step_loop_ret == 1 &&
-            info.step_loop_info &&
-            info.step_loop_info.image
-          ) {
-            this.info = info.step_loop_info;
-            return true;
+          if (info.step_loop_ret == 1 && info.step_loop_info) {
+            if (info.step_loop_info.image) {
+              this.info = info.step_loop_info;
+              return true;
+            } else if (
+              info.step_loop_info.length > 0 &&
+              info.step_loop_info[0].g_step_loop_ret == 1 &&
+              info.step_loop_info[0].g_step_loop_info.image
+            ) {
+              this.info = info.step_loop_info[0].g_step_loop_info;
+              return true;
+            }
           }
         }
       }
@@ -309,6 +314,38 @@ export default class CaseResultView extends Vue {
           " (时间 " +
           ts +
           " ms)";
+        break;
+      case "group":
+        let data = this.caseData[0];
+        let g_content = "";
+        if (data.fail_info.length) {
+          let g_idx =
+            data.fail_info[0].case_loop_ret[0].step_loop_info[0].g_idx;
+          let g_ret =
+            data.fail_info[0].case_loop_ret[0].step_loop_info[0]
+              .g_step_loop_ret == 2
+              ? "超时"
+              : "失败";
+          let groupList = this.$store.state.steps_info.grouplist;
+          let g_info = groupList[it.id][g_idx];
+          if (g_info != undefined) {
+            g_content =
+              " ( 组合中第" +
+              (g_idx + 1) +
+              "步骤  : " +
+              this.showStep(g_info) +
+              " " +
+              g_ret +
+              " )";
+          }
+        }
+
+        content =
+          " [" +
+          this.getResName(it.module) +
+          "] " +
+          this.getResName(it.id) +
+          g_content;
         break;
       default:
         content =

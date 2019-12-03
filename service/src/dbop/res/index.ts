@@ -8,14 +8,22 @@ let latestVersion: any = {
 	click_random: '随机点击',
 	slide: '轨迹划动',
 	wait: '等待',
-	operate_tool: '控制工具板',
+	operate_tool: '操作工具板',
 	button: '硬按键',
 	qg_box: 'QG BOX',
 	group: '组合步骤',
 	adb_cmd: 'ADB指令',
 	pcan: 'PCAN',
 	dbc: 'DBC',
+	bt_op: '操作蓝牙',
+	bt_module: '蓝牙模块',
 	freq: 'FREQ',
+	bt_connect: '连接蓝牙',
+	bt_incomingCall_1: '来电1',
+	bt_incomingCall_2: '来电2',
+	bt_answerCall: '接听电话',
+	bt_terminateCall: '挂断电话',
+	bt_disconnect: '断开蓝牙',
 	'click_random-1': '屏幕尺寸',
 	'operate_tool-1': '打开',
 	'operate_tool-2': '关闭',
@@ -23,8 +31,7 @@ let latestVersion: any = {
 	'button-2': '方控按键',
 	'button-1-1': 'HOME',
 	'module-1': 'System',
-	'module-2': 'Radio',
-	'module-3': 'USB'
+	'module-2': 'Radio'
 };
 
 function getList(data: any, pis: any, ResModel: any) {
@@ -157,6 +164,15 @@ function updateVersion(data: any, pis: any, ResModel: any) {
 		up_data.push({ id: act, name: latestVersion[act] });
 		if (act == 'qg_box') up_data.push({ id: 'freq', name: 'FREQ' });
 		else if (act == 'click_random') up_data.push({ id: 'click_random-1', name: '屏幕尺寸' });
+		else if (act == 'bt_op') {
+			up_data.push({ id: 'bt_module', name: '蓝牙模块' });
+			up_data.push({ id: 'bt_connect', name: '连接蓝牙' });
+			up_data.push({ id: 'bt_disconnect', name: '断开蓝牙' });
+			up_data.push({ id: 'bt_incomingCall_1', name: '来电1' });
+			up_data.push({ id: 'bt_incomingCall_2', name: '来电2' });
+			up_data.push({ id: 'bt_answerCall', name: '接听电话' });
+			up_data.push({ id: 'bt_terminateCall', name: '挂断电话' });
+		}
 	}
 	ResModel.insertMany(up_data, function(err: any, msg: any) {
 		if (!err) {

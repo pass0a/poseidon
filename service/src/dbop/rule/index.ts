@@ -14,7 +14,8 @@ let latestVersion = [
 	'group',
 	'adb_cmd',
 	'pcan',
-	'dbc'
+	'dbc',
+	'bt_op'
 ];
 
 function getList(data: any, pis: any, RuleModel: any) {
@@ -101,6 +102,21 @@ function newPrj(data: any, pis: any, RuleModel: any) {
 		{
 			id: 'qg_box',
 			content: [ 'freq' ]
+		},
+		{
+			id: 'bt_op',
+			content: [ 'bt_module' ]
+		},
+		{
+			id: 'bt_module',
+			content: [
+				'bt_connect',
+				'bt_disconnect',
+				'bt_incomingCall_1',
+				'bt_incomingCall_2',
+				'bt_answerCall',
+				'bt_terminateCall'
+			]
 		}
 	];
 	// 工具板
@@ -157,6 +173,20 @@ function checkVersion(data: any, pis: any, RuleModel: any) {
 						if (u_data.indexOf('qg_box') > -1) up_arr.push({ id: 'qg_box', content: [ 'freq' ] });
 						if (u_data.indexOf('click_random') > -1)
 							up_arr.push({ id: 'click_random', content: [ 'click_random-1' ] });
+						if (u_data.indexOf('bt_op') > -1) {
+							up_arr.push({ id: 'bt_op', content: [ 'bt_module' ] });
+							up_arr.push({
+								id: 'bt_module',
+								content: [
+									'bt_connect',
+									'bt_disconnect',
+									'bt_incomingCall_1',
+									'bt_incomingCall_2',
+									'bt_answerCall',
+									'bt_terminateCall'
+								]
+							});
+						}
 						if (up_arr.length) {
 							RuleModel.insertMany(up_arr, (error: any) => {
 								if (!error) {

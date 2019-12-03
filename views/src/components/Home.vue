@@ -301,6 +301,12 @@ export default class Home extends Vue {
         case "5":
           let p_pname = this.$store.state.project_info.current_prj;
           let p_module = this.$store.state.steps_info.rulelist.module;
+          this.$store.state.app_info.pis.write({
+            type: "toDB",
+            route: "group",
+            job: "list",
+            info: { prjname: this.$store.state.project_info.current_prj }
+          });
           if (p_module.length) {
             this.$store.state.app_info.pis.write({
               type: "toDB",

@@ -1,6 +1,6 @@
 import * as Pcan from '@passoa/pcan';
 import dbc from '@passoa/dbcparser';
-import ConvertDBC from '../candbc/convert';
+import ConvertDBC from './convert';
 import * as util from 'util';
 import * as fs from 'fs';
 

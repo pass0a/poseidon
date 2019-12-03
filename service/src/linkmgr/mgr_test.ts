@@ -1,12 +1,12 @@
 import QGBox from './res/qgbox/index';
 import Pcan from './res/pcan/index';
-import DBC from '../candbc/index';
+import DBC from './res/candbc/index';
+import BT from './res/bt/index';
 
 export class Test_mgr {
 	private currentStatus: boolean = true;
 	private mgr: any;
 	private link: any;
-	constructor() {}
 	private async handleCmd(obj: any) {
 		switch (obj.type) {
 			case 'tolink':
@@ -47,8 +47,11 @@ export class Test_mgr {
 				break;
 			case 'toDBC':
 				let dbc_data = DBC.getDBC_sendData(obj.info.msg, obj.info.sgn, obj.info.val);
-				console.log(dbc_data);
+				// console.log(dbc_data);
 				this.disposedCompleted(obj.type, dbc_data);
+				break;
+			case 'toBT':
+				this.disposedBTCmd(obj);
 				break;
 			default:
 				break;
@@ -72,6 +75,33 @@ export class Test_mgr {
 				break;
 		}
 		this.disposedCompleted(obj.type, { ret: ret });
+	}
+	private async disposedBTCmd(obj: any) {
+		let ret: any = 0;
+		switch (obj.job) {
+			case 'bt_init':
+				ret = await BT.init(obj.info.ping);
+				break;
+			case 'bt_connect':
+				ret = await BT.connect(obj.info.mac);
+				break;
+			case 'bt_disconnect':
+				BT.disconnect();
+				break;
+			case 'bt_incomingCall_1':
+				BT.incomingCall('134001002003');
+				break;
+			case 'bt_incomingCall_2':
+				BT.incomingCall('135221222223');
+				break;
+			case 'bt_answerCall':
+				BT.answerCall();
+				break;
+			case 'bt_terminateCall':
+				BT.terminateCall();
+				break;
+		}
+		this.disposedCompleted(obj.type, ret);
 	}
 	private disposedCompleted(type: any, data: any) {
 		this.link.write({ type: type, data: data });
