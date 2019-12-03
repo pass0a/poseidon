@@ -38,6 +38,7 @@ steps:
 
 - powershell: |
     npm install cross-env -g
+    cd service
     npm run cxb
   displayName: 'install windows_x86 plugin'
 
