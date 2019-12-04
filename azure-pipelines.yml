@@ -131,7 +131,6 @@ steps:
     files: '$(Build.ArtifactStagingDirectory)/Poseidon-$(Build.SourceBranchName)-$(Build.BuildId).7z'
     serviceEndpoint: 'csding.net'
     remotePath: 'repertory/cxb/Poseidon.7z?version=dev-windows-x86'
-  condition: and(succeeded(), ne(startsWith(variables['Build.SourceBranch'], 'refs/tags/v')))
 
 - task: cURLUploader@2
   displayName: 'Upload cURL for Reveal'
