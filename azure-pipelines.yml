@@ -115,6 +115,7 @@ steps:
     tagSource: 'auto'
     releaseNotesFile: 'ChangeLog'
     addChangeLog: false
+  enabled: false
   condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
 
 - task: cURLUploader@2
