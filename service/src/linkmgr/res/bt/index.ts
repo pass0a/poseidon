@@ -1,17 +1,17 @@
-import bt from '@passoa/libbt';
-
 class BT {
 	private init_status: boolean = false;
 	private conncet_status: boolean = false;
+	private bt: any;
 	init(ping: string) {
+		if (!this.bt) this.bt = require('@passoa/libbt');
 		return new Promise((resolve) => {
 			if (!this.init_status) {
 				this.init_status = true;
-				bt.setPin(ping);
-				bt.on('init', () => {
+				this.bt.setPin(ping);
+				this.bt.on('init', () => {
 					resolve(0);
 				});
-				bt.run();
+				this.bt.run();
 			} else resolve(0);
 		});
 	}
@@ -21,7 +21,7 @@ class BT {
 				console.log('into connect !!!!');
 				console.log(this.conncet_status);
 				let timeout: any;
-				bt.once('connected', (code: any) => {
+				this.bt.once('connected', (code: any) => {
 					console.log('connect !!!!!!');
 					this.conncet_status = true;
 					console.info(code);
@@ -31,7 +31,7 @@ class BT {
 					}
 					resolve(0);
 				});
-				bt.hfpConnect(mac);
+				this.bt.hfpConnect(mac);
 				timeout = setTimeout(() => {
 					resolve(1);
 				}, 30000);
@@ -39,18 +39,18 @@ class BT {
 		});
 	}
 	incomingCall(num: string) {
-		bt.incomingCall(num);
+		this.bt.incomingCall(num);
 	}
 	answerCall() {
-		bt.answerCall();
+		this.bt.answerCall();
 	}
 	terminateCall() {
-		bt.terminateCall();
+		this.bt.terminateCall();
 	}
 	disconnect() {
 		if (this.conncet_status) {
 			this.conncet_status = false;
-			bt.disconnect();
+			this.bt.disconnect();
 		}
 	}
 }
