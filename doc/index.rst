@@ -10,6 +10,7 @@ Posedion项目文档说明
    :maxdepth: 2
    :caption: Contents:
 
+   changelog
    history
 
 索引与搜索
