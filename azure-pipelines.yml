@@ -27,7 +27,7 @@ steps:
    cd depends
    curl -L -o vcredist_x86.exe https://download.microsoft.com/download/9/3/F/93FCF1E7-E6A4-478B-96E7-D4B285925B00/vc_redist.x86.exe
    curl -L -o latest_usb_driver_windows.zip https://dl-ssl.google.com/android/repository/latest_usb_driver_windows.zip?hl=zh-CN
-   
+   curl -L -o zadig.exe https://github.com/pbatard/libwdi/releases/download/b721/zadig-2.4.exe
    ls
   displayName: 'install all depends'
 

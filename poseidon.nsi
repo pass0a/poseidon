@@ -62,6 +62,7 @@ Section "Ö÷Ìå³ÌÐò" SEC01
   SetOverwrite ifnewer
   File ".\License.txt"
   File ".\depends\vcredist_x86.exe"
+  File ".\depends\zadig.exe"
   File /r "service\dist\"
   File /r "views\dist\view"
   File /r ".\depends\browser"
@@ -86,7 +87,7 @@ Section -AdditionalIcons
 SectionEnd
 
 Section -Post
-  call InstallVC
+  ;;call InstallVC
   WriteUninstaller "$INSTDIR\uninst.exe"
   WriteRegStr HKLM "${PRODUCT_DIR_REGKEY}" "" "$INSTDIR\passoa.exe"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayName" "$(^Name)"
