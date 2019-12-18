@@ -45,7 +45,7 @@
           v-for="(it,idx) in caseData[0].case_steps"
           :key="idx"
           :title="getStepTitle(idx,caseData[0].case_mode)"
-          :content="showStep(it)"
+          :content="showStep(it,idx)"
           :status="getStepStatus(idx,caseData[0].case_mode)"
         ></Step>
       </Steps>
@@ -278,7 +278,7 @@ export default class CaseResultView extends Vue {
       }
     }
   }
-  private showStep(it: any) {
+  private showStep(it: any, idx?: number) {
     let action = this.getResName(it.action);
     if (it.action == "click" && it.click_skip) action += " (不判断) ";
     if ((it.action == "button" || it.action == "click") && it.click_type == "1")
@@ -318,7 +318,7 @@ export default class CaseResultView extends Vue {
       case "group":
         let data = this.caseData[0];
         let g_content = "";
-        if (data.fail_info.length) {
+        if (data.fail_info.length && idx == data.fail_info[0].case_idx) {
           let g_idx =
             data.fail_info[0].case_loop_ret[0].step_loop_info[0].g_idx;
           let g_ret =
