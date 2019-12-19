@@ -35,16 +35,16 @@ class BT {
 		});
 	}
 	incomingCall(num: string) {
-		this.bt.incomingCall(num);
+		if (this.bt) this.bt.incomingCall(num);
 	}
 	answerCall() {
-		this.bt.answerCall();
+		if (this.bt) this.bt.answerCall();
 	}
 	terminateCall() {
-		this.bt.terminateCall();
+		if (this.bt) this.bt.terminateCall();
 	}
 	disconnect() {
-		this.bt.disconnect();
+		if (this.bt) this.bt.disconnect();
 	}
 }
 export default new BT();

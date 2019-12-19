@@ -53,7 +53,6 @@ class Linkmgr {
 		new Link(c, this);
 	});
 	handleCmd(obj: MsgHead, link: Link) {
-		console.info(obj, link);
 		if (obj.type != 'info') {
 			link.write({ type: 'auth', state: 'fail', msg: 'it is not info cmd!!!' });
 			link.end();

@@ -1,18 +1,22 @@
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const path = require('path');
 const fs = require('fs-extra');
+let opt_watch = false;
 const distfolder = 'dist'; //'../output/node_modules';
+if (process.env.opt == 'dev') {
+	opt_watch = true;
+}
 fs
 	.copy('node_modules/mongodb/package.json', path.resolve(__dirname, distfolder + '/package.json'))
 	.then(() => {
-		fs
-			.copy('src/run.js', path.resolve(__dirname, `${distfolder}/run.js`))
-			.then(() => {
-				console.log('copy run.js success!');
-			})
-			.catch((err) => {
-				console.error(err);
-			});
+		// fs
+		// 	.copy('src/run.js', path.resolve(__dirname, `${distfolder}/run.js`))
+		// 	.then(() => {
+		// 		console.log('copy run.js success!');
+		// 	})
+		// 	.catch((err) => {
+		// 		console.error(err);
+		// 	});
 		console.log('copy builtin success!');
 	})
 	.catch((err) => {
@@ -20,8 +24,10 @@ fs
 	}); // 调试
 const nodeConfig = {
 	// Change to your "entry-point".
+	watch: opt_watch,
 	entry: {
 		app: './src/main.ts',
+		run: './src/run.js',
 		test: './src/testop/main.ts'
 		// link: './src/linkmgr/main.ts',
 		// server : './src/server/main.ts',
@@ -78,13 +84,17 @@ const nodeConfig = {
 		__dirname: false,
 		__filename: false
 	},
-	externals: {
-		'@passoa/img': '@passoa/img',
-		'@passoa/cvip': '@passoa/cvip',
-		'@passoa/dbcc': '@passoa/dbcc',
-		'@passoa/pcan': '@passoa/pcan',
-		'@passoa/libbt': '@passoa/libbt'
-	},
+	externals: [
+		'@passoa/img',
+		'@passoa/cvip',
+		'@passoa/dbcc',
+		'@passoa/pcan',
+		'@passoa/libbt',
+		'./adb/index.js',
+		'./app.js',
+		'./db/index.js'
+	],
+
 	devtool: 'source-map',
 	target: 'node',
 	mode: 'development' //'production'

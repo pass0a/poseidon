@@ -12,7 +12,7 @@
 		"dop": "passoa dist/db.js",
 		"dlp": "passoa dist/link.js",
 		"dhp": "passoa dist/http.js",
-		"dev": "passoa dist/bttest.js",
+		"dev": "cross-env opt=dev webpack",
 		"cxb": "cross-env platform=windows arch=x86 npm install"
 	},
 	"author": "",

@@ -7,6 +7,7 @@ import * as util from 'util';
 import * as fs from 'fs';
 import * as os from 'os';
 
+console.log('test!!!!!!!!!!!!!!!!!!!!!!!!!');
 let prjname: string = process.argv[2];
 let prjpath: string = path.dirname(path.dirname(process.execPath)) + '/data_store/projects/' + prjname;
 let pis: any, pos: any, c: any, backCall: any;
