@@ -158,15 +158,18 @@ export class Web_mgr {
 		let passoaPath = process.execPath;
 		let prjpath = obj.info.prjname;
 		let execpath = '"' + passoaPath + '" ' + jsPath + ' "' + prjpath + '"';
-		console.log(execpath);
+		console.log('begin test:', execpath);
 
 		let logDirPath = path.dirname(path.dirname(passoaPath)) + '/data_store/projects/' + prjpath + '/log';
 		if (!fs.existsSync(logDirPath)) fs.mkdirSync(logDirPath);
-		let loger = new logger();
-		let test_log = fs.createWriteStream(logDirPath + '/testlog.txt');
+		// let loger = new logger();
+		// let test_log = fs.createWriteStream(logDirPath + '/testlog.txt');
 
-		let cmd: any = childprs.exec(execpath, { windowsHide: testcfg.windowsHide });
-		cmd.stdout.pipe(loger).pipe(test_log);
+		let cmd: any = childprs.exec(execpath, { windowsHide: testcfg.windowsHide }, (err, stdout, stderr) => {
+			console.log('test has end!!!');
+		});
+		// console.log(logDirPath);
+		// cmd.stdout.pipe(loger).pipe(test_log);
 		// cmd.stdout.removeAllListeners("data");
 		// cmd.stderr.removeAllListeners("data");
 		// cmd.removeAllListeners("close");

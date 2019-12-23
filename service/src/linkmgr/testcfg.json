@@ -1,4 +1,4 @@
 {
-    "windowsHide" : false,
-    "detached" : true
+	"windowsHide": true,
+	"detached": true
 }

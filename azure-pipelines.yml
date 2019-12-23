@@ -27,7 +27,7 @@ steps:
    cd depends
    curl -L -o vcredist_x86.exe https://download.microsoft.com/download/9/3/F/93FCF1E7-E6A4-478B-96E7-D4B285925B00/vc_redist.x86.exe
    curl -L -o latest_usb_driver_windows.zip https://dl-ssl.google.com/android/repository/latest_usb_driver_windows.zip?hl=zh-CN
-   
+   curl -L -o zadig.exe https://github.com/pbatard/libwdi/releases/download/b721/zadig-2.4.exe
    ls
   displayName: 'install all depends'
 
@@ -36,11 +36,11 @@ steps:
    7z x pcan-basic.zip -r -o./ -y
   displayName: 'install pcanbase'
 
-- task: Npm@1
-  displayName: 'npm install'
-  inputs:
-    workingDir: service
-    verbose: false
+- powershell: |
+    npm install cross-env -g
+    cd service
+    npm run cxb
+  displayName: 'install windows_x86 plugin'
 
 - task: Npm@1
   displayName: 'npm install'
@@ -75,8 +75,6 @@ steps:
 - script: |
    cp service/node_modules/@passoa/ depends/passoa/msvc/node_modules/@passoa/ -rf
   displayName: 'install node_mudules/@passoa'
-  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
-
 
 - task: nsis@1
   inputs:
@@ -90,7 +88,6 @@ steps:
     scriptFile: 'poseidon.nsi'
     justInclude: 'no'
     includeMorePlugins: 'no'
-  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
 
 - task: ArchiveFiles@2
   inputs:
@@ -108,7 +105,6 @@ steps:
     archiveType: '7z'
     archiveFile: '$(Build.ArtifactStagingDirectory)/Poseidon-$(Build.SourceBranchName)-$(Build.BuildId).7z'
     replaceExistingArchive: true
-  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
 
 - task: GitHubRelease@0
   inputs:
@@ -119,20 +115,28 @@ steps:
     tagSource: 'auto'
     releaseNotesFile: 'ChangeLog'
     addChangeLog: false
+  enabled: false
   condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
 
 - task: cURLUploader@2
-  displayName: 'Upload cURL'
+  displayName: 'Upload cURL by tag'
   inputs:
     files: '$(Build.ArtifactStagingDirectory)/Poseidon-$(Build.SourceBranchName)-$(Build.BuildId).7z'
     serviceEndpoint: 'csding.net'
     remotePath: 'repertory/cxb/Poseidon.7z?version=$(Build.SourceBranchName)-windows-x86'
-  condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
+  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
 
 - task: cURLUploader@2
-  displayName: 'Upload cURL'
+  displayName: 'Upload cURL by other'
+  inputs:
+    files: '$(Build.ArtifactStagingDirectory)/Poseidon-$(Build.SourceBranchName)-$(Build.BuildId).7z'
+    serviceEndpoint: 'csding.net'
+    remotePath: 'repertory/cxb/Poseidon.7z?version=dev-windows-x86'
+
+- task: cURLUploader@2
+  displayName: 'Upload cURL for Reveal'
   inputs:
     files: '$(Build.ArtifactStagingDirectory)/Reveal-$(Build.SourceBranchName)-$(Build.BuildId).7z'
     serviceEndpoint: 'csding.net'
     remotePath: 'repertory/cxb/Reveal.7z?version=$(Build.SourceBranchName)-windows-x86'
-  condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
+  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
