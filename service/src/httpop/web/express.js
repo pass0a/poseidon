@@ -10,31 +10,6 @@ var fs = require('fs');
 			// console.log(req.url, req.method, req.protocol);
 			req.on('data', function(buf) {
 				list.push(new Buffer(buf));
-				// switch(buf.constructor.name){
-				// case "Uint8Array":
-				// if(body==undefined){
-				// body=buf;
-				// }else{
-				// if(body.constructor.name=="Uint8Array"){
-				// var len=body.length;
-				// var tmp=body;
-				// body=new Uint8Array(body.length+buf.length);
-				// body.set(tmp,0);
-				// body.set(buf,len);
-				// }
-				// }
-				// break;
-				// case "String":
-				// if(body==undefined){
-				// body=buf;
-				// }else{
-				// body+=buf;
-				// }
-				// break;
-				// default:
-
-				// break;
-				// }
 			});
 			req.on('end', function() {
 				try {
@@ -92,6 +67,9 @@ var fs = require('fs');
 		};
 		this.listen = function(port) {
 			http.listen(port);
+		};
+		this.close = function() {
+			http.close();
 		};
 	}
 	function createServer() {

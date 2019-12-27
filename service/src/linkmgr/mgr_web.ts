@@ -1,4 +1,4 @@
-import * as childprs from 'child_process';
+import * as cp from '../exec';
 import * as path from 'path';
 import * as fs from 'fs';
 import ADB from './res/adb/adb';
@@ -154,7 +154,6 @@ export class Web_mgr {
 	}
 
 	startJS(obj: any, jsPath: any) {
-		let testcfg: any = require('./testcfg.json');
 		let passoaPath = process.execPath;
 		let prjpath = obj.info.prjname;
 		let execpath = '"' + passoaPath + '" ' + jsPath + ' "' + prjpath + '"';
@@ -165,7 +164,7 @@ export class Web_mgr {
 		// let loger = new logger();
 		// let test_log = fs.createWriteStream(logDirPath + '/testlog.txt');
 
-		let cmd: any = childprs.exec(execpath, { windowsHide: testcfg.windowsHide }, (err, stdout, stderr) => {
+		let cmd: any = cp.exec(execpath, cp.defaultExeOpt(), (err, stdout, stderr) => {
 			console.log('test has end!!!');
 		});
 		// console.log(logDirPath);

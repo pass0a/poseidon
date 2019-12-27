@@ -38,10 +38,11 @@
 		"@passoa/cxb": "latest",
 		"@passoa/dbcparser": "latest",
 		"@passoa/libbt": "latest",
-		"@passoa/logger": "latest",
+		"@passoa/logger": "1.0.1",
 		"@passoa/pack": "latest",
 		"@passoa/serialport": "latest",
 		"@passoa/websocket": "latest",
+		"benchmark": "^2.1.4",
 		"mongoose": "5.6.9"
 	}
 }

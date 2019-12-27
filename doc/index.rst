@@ -12,6 +12,7 @@ Posedion项目文档说明
 
    changelog
    history
+   faq
 
 索引与搜索
 ==================

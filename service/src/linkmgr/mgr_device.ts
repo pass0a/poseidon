@@ -81,10 +81,9 @@ export class Device_mgr {
 	}
 	private openLogByADB(info: any) {
 		return new Promise((resolve) => {
-			let loger = new logger();
-			let file = fs.createWriteStream(info.filename);
+			let loger = new logger(info.filename);
 			let timer: any;
-			ADB.openADBLog(info.adb_cmd, loger, file, (data: any) => {
+			ADB.openADBLog(info.adb_cmd, loger, (data: any) => {
 				if (!data.ret) {
 					if (timer) {
 						clearTimeout(timer);

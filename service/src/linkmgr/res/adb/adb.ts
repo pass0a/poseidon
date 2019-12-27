@@ -1,5 +1,6 @@
-import * as childprs from 'child_process';
+import * as cp from 'child_process';
 import * as path from 'path';
+import { logger } from '@passoa/logger';
 
 class ADB {
 	private adb_cmd: any;
@@ -9,7 +10,7 @@ class ADB {
 			this.addOnEvent(callback);
 			this.adb_cmd.stdin.write(cmd + ' \r\n');
 		} else {
-			this.adb_cmd = childprs.spawn('"' + path.dirname(process.execPath) + '/adb/adb" ', [ cmd ], {
+			this.adb_cmd = cp.spawn('"' + path.dirname(process.execPath) + '/adb/adb" ', [ cmd ], {
 				windowsHide: true,
 				detached: true
 			});
@@ -35,12 +36,12 @@ class ADB {
 			callback({ ret: 2, data: code });
 		});
 	}
-	openADBLog(cmd: any, loger: any, file: any, callback: any) {
-		this.log_cmd = childprs.spawn('"' + path.dirname(process.execPath) + '/adb/adb" ', [ cmd ], {
+	openADBLog(cmd: any, loger: any, callback: any) {
+		this.log_cmd = cp.spawn('"' + path.dirname(process.execPath) + '/adb/adb" ', [ cmd ], {
 			windowsHide: true,
 			detached: true
 		});
-		this.log_cmd.stdout.pipe(loger).pipe(file);
+		this.log_cmd.stdout.pipe(loger);
 		// this.log_cmd.stdout.removeAllListeners("data");
 		// this.log_cmd.stderr.removeAllListeners("data");
 		// this.log_cmd.removeAllListeners("close");
@@ -50,13 +51,12 @@ class ADB {
 		});
 		this.log_cmd.stderr.on('data', (err: any) => {
 			console.error('ADB-ERROR', err);
-			file.end();
+			loger.end();
 			this.log_cmd = null;
 			callback({ ret: 0 });
 		});
 		this.log_cmd.on('close', (code: any) => {
 			console.error('ADB-close', code);
-			file.end();
 			this.log_cmd = null;
 			callback({ ret: 2, data: code });
 		});

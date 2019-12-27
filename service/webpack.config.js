@@ -2,9 +2,10 @@ const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPl
 const path = require('path');
 const fs = require('fs-extra');
 let opt_watch = false;
-const distfolder = 'dist'; //'../output/node_modules';
+let distfolder = 'dist'; //'../output/node_modules';
 if (process.env.opt == 'dev') {
 	opt_watch = true;
+	distfolder = 'C:/Program Files (x86)/Poseidon';
 }
 fs
 	.copy('node_modules/mongodb/package.json', path.resolve(__dirname, distfolder + '/package.json'))
@@ -27,8 +28,9 @@ const nodeConfig = {
 	watch: opt_watch,
 	entry: {
 		app: './src/main.ts',
-		run: './src/run.js',
-		test: './src/testop/main.ts'
+		run: './src/boot/run.ts',
+		test: './src/testop/main.ts',
+		browser: './test/test.ts'
 		// link: './src/linkmgr/main.ts',
 		// server : './src/server/main.ts',
 		// db:'./src/dbop/main.ts',

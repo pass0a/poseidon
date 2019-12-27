@@ -15,267 +15,301 @@ import results from './results/index';
 import pcan from './pcan/index';
 import dbc from './dbc/index';
 
-let pis = new pack.packStream();
-let pos = new pack.unpackStream();
-let sv: any;
-let l_pis = new pack.packStream();
-let l_pos = new pack.unpackStream();
-let ints: any;
-let DB_URL = 'mongodb://127.0.0.1/poseidon_data';
-let options = { useNewUrlParser: true, ssl: false, useUnifiedTopology: true };
-let db_status: number = 0;
-let db_ct = mongoose.connection;
-let req = { type: 'toDB', route: 'connect', info: 0 };
-mongoose.set('useFindAndModify', false); // cases中的findOneAndUpdate
-
-createServer();
-
-function createServer() {
-	pis.on('data', (data: any) => {
-		sv.write(data);
-	});
-	pos.on('data', (data: any) => {
-		switch (data.type) {
-			case 'toDB':
-				handle(data);
-				break;
-			case 'toSer':
-				buttons.disposeData(data, pis);
-				status.disposeData(data, pis);
-				group.disposeData(data, pis);
-				binding.disposeData(data, pis);
-				adb.disposeData(data, pis);
-				break;
-		}
-	});
-	db_ct.on('connected', () => {
-		console.info('db connected');
-	});
-	db_ct.on('disconnected', () => {
-		if (sv && db_status == 1) {
-			db_status = 2;
-			req.info = db_status;
-			pis.write(req);
-		}
-		console.error('db disconnected');
-	});
-	net
-		.createServer(function(c) {
-			sv = c;
-			sv.on('data', function(data: any) {
-				pos.write(data);
+class dbop {
+	closing = false;
+	srv: net.Server;
+	pis = new pack.packStream();
+	pos = new pack.unpackStream();
+	sv: any;
+	l_pis = new pack.packStream();
+	l_pos = new pack.unpackStream();
+	ints: any;
+	DB_URL = 'mongodb://127.0.0.1/poseidon_data';
+	options = { useNewUrlParser: true, ssl: false, useUnifiedTopology: true };
+	db_status: number = 0;
+	db_ct = mongoose.connection;
+	req = { type: 'toDB', route: 'connect', info: 0 };
+	constructor() {
+		mongoose.set('useFindAndModify', false); // cases中的findOneAndUpdate
+	}
+	stop() {
+		// this.closing = true;
+		// if (this.srv) this.srv.close();
+		// if (this.ints) this.ints.end();
+		// mongoose.disconnect((error?: any) => {
+		// 	console.log('!!!!', error);
+		// });
+	}
+	start() {
+		if (this.srv) return;
+		this.pis.on('data', (data: any) => {
+			this.sv.write(data);
+		});
+		this.pos.on('data', (data: any) => {
+			switch (data.type) {
+				case 'toDB':
+					this.handle(data);
+					break;
+				case 'toSer':
+					buttons.disposeData(data, this.pis);
+					status.disposeData(data, this.pis);
+					group.disposeData(data, this.pis);
+					binding.disposeData(data, this.pis);
+					adb.disposeData(data, this.pis);
+					break;
+			}
+		});
+		this.db_ct.on('end', () => {
+			console.log('db end!!!!!!!!!!!');
+		});
+		this.db_ct.on('error', () => {
+			console.log('db error!!!!!!!!!!!');
+		});
+		this.db_ct.on('connected', () => {
+			console.info('db connected!!!!');
+		});
+		this.db_ct.on('disconnected', () => {
+			if (this.sv && this.db_status == 1) {
+				this.db_status = 2;
+				this.req.info = this.db_status;
+				this.pis.write(this.req);
+			}
+			console.error('db disconnected!!!');
+		});
+		this.srv = net.createServer((c) => {
+			this.sv = c;
+			this.sv.on('data', (data: any) => {
+				this.pos.write(data);
 			});
-			sv.on('end', function(data: any) {
+			this.sv.on('close', (data: any) => {
 				console.info('db_server end');
 			});
-			sv.on('error', function(data: any) {
+			this.sv.on('error', (data: any) => {
 				console.error('db_server error');
 			});
-		})
-		.listen(6002);
-	if (db_status != 1) connectDB();
-	connectLink();
-}
-
-async function connectDB() {
-	let num = 10;
-	while (num) {
-		if (await mongooseConnect()) {
-			db_status = 1;
-			break;
-		}
-		num--;
-		if (num == 0) {
-			db_status = 2;
-			break;
-		}
-		await wait(2000);
+		});
+		this.srv.listen(6002);
+		if (this.db_status != 1) this.connectDB();
+		this.connectLink();
 	}
-	req.info = db_status;
-	if (sv) pis.write(req);
-}
 
-async function connectLink() {
-	l_pis.on('data', (data: any) => {
-		ints.write(data);
-	});
-	l_pos.on('data', (data: any) => {
-		switch (data.type) {
-			case 'init':
-				l_pis.write({ type: 'info', class: 'db', name: 'db' });
+	async connectDB() {
+		let num = 10;
+		while (num && !this.closing) {
+			if (await this.mongooseConnect()) {
+				this.db_status = 1;
 				break;
-			case 'auth':
-				console.log('db_auth success!!!');
+			}
+			num--;
+			if (num == 0) {
+				this.db_status = 2;
 				break;
-			case 'toDB':
-				handleLink(data);
+			}
+			await this.wait(2000);
+		}
+		this.req.info = this.db_status;
+		if (this.sv) this.pis.write(this.req);
+	}
+
+	async connectLink() {
+		this.l_pis.on('data', (data: any) => {
+			this.ints.write(data);
+		});
+		this.l_pos.on('data', (data: any) => {
+			switch (data.type) {
+				case 'init':
+					this.l_pis.write({ type: 'info', class: 'db', name: 'db' });
+					break;
+				case 'auth':
+					console.log('db_auth success!!!');
+					break;
+				case 'toDB':
+					this.handleLink(data);
+					break;
+				default:
+					break;
+			}
+		});
+		let num = 10;
+		while (num) {
+			if (await this.toLink()) break;
+			num--;
+			if (num == 0) break;
+			await this.wait(100);
+		}
+	}
+
+	async handleLink(data: any) {
+		switch (data.route) {
+			case 'results':
+				results.disposeData(data, this.l_pis);
+				break;
+			case 'status':
+				status.disposeData(data, this.l_pis);
+				break;
+			case 'binding':
+				binding.disposeData(data, this.l_pis);
+				break;
+			case 'buttons':
+				buttons.disposeData(data, this.l_pis);
+				break;
+			case 'adb':
+				adb.disposeData(data, this.l_pis);
+				break;
+			case 'group':
+				group.disposeData(data, this.l_pis);
+				break;
+			case 'pcan':
+				pcan.disposeData(data, this.l_pis);
+				break;
+		}
+	}
+
+	async toLink() {
+		return new Promise((resolve) => {
+			this.closeOnEvent();
+			this.ints = net.connect(6000, '127.0.0.1', () => {
+				console.info('db-link connect!!!');
+				resolve(1);
+			});
+			this.ints.on('data', (data: any) => {
+				this.l_pos.write(data);
+			});
+			this.ints.on('close', () => {
+				console.info('close db-link socket!!!');
+			});
+			this.ints.on('error', () => {
+				console.error('db-link error!!!');
+				resolve(0);
+			});
+		});
+	}
+
+	closeOnEvent() {
+		if (this.ints) {
+			this.ints.removeAllListeners('data');
+			this.ints.removeAllListeners('close');
+			this.ints.removeAllListeners('error');
+		}
+	}
+
+	async wait(time: any) {
+		return new Promise((resolve) => {
+			setTimeout(function() {
+				resolve(0);
+			}, time);
+		});
+	}
+
+	async mongooseConnect() {
+		return new Promise((resolve) => {
+			mongoose.connect(this.DB_URL, this.options, (error: any) => {
+				if (error) {
+					console.error(error);
+					resolve(false);
+				} else resolve(true);
+			});
+		});
+	}
+
+	handle(data: any) {
+		// console.log(data.route);
+		switch (data.route) {
+			case 'connect':
+				data.info = this.db_status;
+				this.pis.write(data);
+				break;
+			case 'reconnect':
+				this.connectDB();
+				break;
+			case 'projects':
+				projects.disposeData(data, this.pis);
+				break;
+			case 'users':
+				users.disposeData(data, this.pis);
+				break;
+			case 'cases':
+				cases.disposeData(data, this.pis);
+				break;
+			case 'res':
+				res.disposeData(data, this.pis);
+				break;
+			case 'rule':
+				rule.disposeData(data, this.pis);
+				break;
+			case 'buttons':
+				buttons.disposeData(data, this.pis);
+				break;
+			case 'status':
+				status.disposeData(data, this.pis);
+				break;
+			case 'group':
+				group.disposeData(data, this.pis);
+				break;
+			case 'binding':
+				binding.disposeData(data, this.pis);
+				break;
+			case 'adb':
+				adb.disposeData(data, this.pis);
+				break;
+			case 'newPrj':
+				res.disposeData(data, this.pis);
+				rule.disposeData(data, this.pis);
+				buttons.disposeData(data, this.pis);
+				break;
+			case 'removeAll':
+				projects.disposeData(data, this.pis);
+				let delete_collection_list = [
+					'cases',
+					'rule',
+					'res',
+					'btn',
+					'group',
+					'binding',
+					'status',
+					'adb',
+					'dbc'
+				];
+				for (let i = 0; i < delete_collection_list.length; i++) {
+					delete_collection_list[i] = data.info.prjname + '_' + delete_collection_list[i];
+				}
+				mongoose.connection.db.listCollections().toArray(function(err, names) {
+					if (!err) {
+						names.forEach(function(e, i, a) {
+							if (delete_collection_list.indexOf(e.name) > -1) {
+								mongoose.connection.db.dropCollection(e.name);
+							}
+						});
+					}
+				});
+				this.pis.write(data);
+				break;
+			case 'copyPrj':
+				rule.disposeData(data, this.pis);
+				res.disposeData(data, this.pis);
+				buttons.disposeData(data, this.pis);
+				group.disposeData(data, this.pis);
+				binding.disposeData(data, this.pis);
+				if (!data.info.msg.content) cases.disposeData(data, this.pis);
+				break;
+			case 'results':
+				results.disposeData(data, this.pis);
+				break;
+			case 'pcan':
+				pcan.disposeData(data, this.pis);
+				break;
+			case 'dbc':
+				dbc.disposeData(data, this.pis);
 				break;
 			default:
 				break;
 		}
-	});
-	let num = 10;
-	while (num) {
-		if (await toLink()) break;
-		num--;
-		if (num == 0) break;
-		await wait(100);
 	}
 }
-
-async function handleLink(data: any) {
-	switch (data.route) {
-		case 'results':
-			results.disposeData(data, l_pis);
-			break;
-		case 'status':
-			status.disposeData(data, l_pis);
-			break;
-		case 'binding':
-			binding.disposeData(data, l_pis);
-			break;
-		case 'buttons':
-			buttons.disposeData(data, l_pis);
-			break;
-		case 'adb':
-			adb.disposeData(data, l_pis);
-			break;
-		case 'group':
-			group.disposeData(data, l_pis);
-			break;
-		case 'pcan':
-			pcan.disposeData(data, l_pis);
-			break;
-	}
+let dbsrv = new dbop();
+export function start() {
+	return dbsrv.start();
 }
-
-async function toLink() {
-	return new Promise((resolve) => {
-		closeOnEvent();
-		ints = net.connect(6000, '127.0.0.1', () => {
-			console.info('db-link connect!!!');
-			resolve(1);
-		});
-		ints.on('data', (data: any) => {
-			l_pos.write(data);
-		});
-		ints.on('close', () => {
-			console.info('close db-link socket!!!');
-		});
-		ints.on('error', () => {
-			console.error('db-link error!!!');
-			resolve(0);
-		});
-	});
-}
-
-function closeOnEvent() {
-	if (ints) {
-		ints.removeAllListeners('data');
-		ints.removeAllListeners('close');
-		ints.removeAllListeners('error');
-	}
-}
-
-async function wait(time: any) {
-	return new Promise((resolve) => {
-		setTimeout(function() {
-			resolve(0);
-		}, time);
-	});
-}
-
-async function mongooseConnect() {
-	return new Promise((resolve) => {
-		mongoose.connect(DB_URL, options, (error: any) => {
-			if (error) {
-				console.error(error);
-				resolve(false);
-			} else resolve(true);
-		});
-	});
-}
-
-function handle(data: any) {
-	// console.log(data.route);
-	switch (data.route) {
-		case 'connect':
-			data.info = db_status;
-			pis.write(data);
-			break;
-		case 'reconnect':
-			connectDB();
-			break;
-		case 'projects':
-			projects.disposeData(data, pis);
-			break;
-		case 'users':
-			users.disposeData(data, pis);
-			break;
-		case 'cases':
-			cases.disposeData(data, pis);
-			break;
-		case 'res':
-			res.disposeData(data, pis);
-			break;
-		case 'rule':
-			rule.disposeData(data, pis);
-			break;
-		case 'buttons':
-			buttons.disposeData(data, pis);
-			break;
-		case 'status':
-			status.disposeData(data, pis);
-			break;
-		case 'group':
-			group.disposeData(data, pis);
-			break;
-		case 'binding':
-			binding.disposeData(data, pis);
-			break;
-		case 'adb':
-			adb.disposeData(data, pis);
-			break;
-		case 'newPrj':
-			res.disposeData(data, pis);
-			rule.disposeData(data, pis);
-			buttons.disposeData(data, pis);
-			break;
-		case 'removeAll':
-			projects.disposeData(data, pis);
-			let delete_collection_list = [ 'cases', 'rule', 'res', 'btn', 'group', 'binding', 'status', 'adb', 'dbc' ];
-			for (let i = 0; i < delete_collection_list.length; i++) {
-				delete_collection_list[i] = data.info.prjname + '_' + delete_collection_list[i];
-			}
-			mongoose.connection.db.listCollections().toArray(function(err, names) {
-				if (!err) {
-					names.forEach(function(e, i, a) {
-						if (delete_collection_list.indexOf(e.name) > -1) {
-							mongoose.connection.db.dropCollection(e.name);
-						}
-					});
-				}
-			});
-			pis.write(data);
-			break;
-		case 'copyPrj':
-			rule.disposeData(data, pis);
-			res.disposeData(data, pis);
-			buttons.disposeData(data, pis);
-			group.disposeData(data, pis);
-			binding.disposeData(data, pis);
-			if (!data.info.msg.content) cases.disposeData(data, pis);
-			break;
-		case 'results':
-			results.disposeData(data, pis);
-			break;
-		case 'pcan':
-			pcan.disposeData(data, pis);
-			break;
-		case 'dbc':
-			dbc.disposeData(data, pis);
-			break;
-		default:
-			break;
-	}
+export function stop() {
+	return dbsrv.stop();
 }
