@@ -16,7 +16,6 @@ import pcan from './pcan/index';
 import dbc from './dbc/index';
 
 class dbop {
-	closing = false;
 	srv: net.Server;
 	pis = new pack.packStream();
 	pos = new pack.unpackStream();
@@ -41,6 +40,7 @@ class dbop {
 		// });
 	}
 	start() {
+		console.log('dbop:', this.srv);
 		if (this.srv) return;
 		this.pis.on('data', (data: any) => {
 			this.sv.write(data);
@@ -95,7 +95,7 @@ class dbop {
 
 	async connectDB() {
 		let num = 10;
-		while (num && !this.closing) {
+		while (num) {
 			if (await this.mongooseConnect()) {
 				this.db_status = 1;
 				break;
@@ -309,7 +309,4 @@ class dbop {
 let dbsrv = new dbop();
 export function start() {
 	return dbsrv.start();
-}
-export function stop() {
-	return dbsrv.stop();
 }

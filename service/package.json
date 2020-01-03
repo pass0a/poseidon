@@ -22,7 +22,6 @@
 		"@babel/core": "^7.7.4",
 		"@babel/plugin-transform-runtime": "^7.7.4",
 		"@babel/preset-env": "^7.7.4",
-		"@passoa/pm": "^1.0.3",
 		"@types/mongoose": "^5.5.32",
 		"babel-loader": "^8.0.6",
 		"cross-env": "^5.2.1",
@@ -30,18 +29,20 @@
 		"ts-loader": "^6.2.1",
 		"typescript": "^3.7.2",
 		"webpack": "^4.41.2",
+		"@passoa/cxb": "latest",
 		"webpack-bundle-analyzer": "^3.6.0",
 		"webpack-cli": "^3.3.10"
 	},
 	"dependencies": {
 		"@babel/runtime": "^7.7.4",
-		"@passoa/cxb": "latest",
 		"@passoa/dbcparser": "latest",
 		"@passoa/libbt": "latest",
 		"@passoa/logger": "1.0.1",
 		"@passoa/pack": "latest",
 		"@passoa/serialport": "latest",
 		"@passoa/websocket": "latest",
+		"@passoa/pcan": "latest",
+		"@passoa/cvip": "latest",
 		"benchmark": "^2.1.4",
 		"mongoose": "5.6.9"
 	}

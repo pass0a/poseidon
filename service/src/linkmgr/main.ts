@@ -105,4 +105,7 @@ class Linkmgr {
 		this.app.listen(6000);
 	}
 }
-new Linkmgr().start();
+let inst = new Linkmgr();
+export function start() {
+	inst.start();
+}

@@ -13,7 +13,3 @@ export function start() {
 	app.use(res);
 	app.listen(6003);
 }
-
-export function stop() {
-	app.close();
-}

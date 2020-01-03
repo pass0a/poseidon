@@ -21,4 +21,6 @@ export class App {
 		new App().start();
 	}
 }
-App.create();
+export function start() {
+	App.create();
+}

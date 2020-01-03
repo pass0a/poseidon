@@ -21,17 +21,16 @@ let DB_URL = 'mongodb://127.0.0.1/poseidon_data';
 let options = {
 	useNewUrlParser: true,
 	ssl: false,
-	useUnifiedTopology: true,
-	server: {
-		auto_reconnect: true,
-		reconnectTries: Number.MAX_VALUE,
-		reconnectInterval: 1000,
-		socketOptions: { keepAlive: 1, connectTimeoutMS: 30000 }
-	}
+	useUnifiedTopology: true
 };
 mongoose.set('useFindAndModify', false);
-mongoose.connect(DB_URL, options);
+mongoose.connect('mongodb://127.0.0.1/test', options);
 
-setTimeout(() => {
-	mongoose.disconnect();
-}, 5000);
+let propSchema = new mongoose.Schema({
+	name: String
+});
+
+const Cat = mongoose.model('Cat', propSchema);
+
+const kitty = new Cat({ name: 'Zildjian' });
+kitty.save().then(() => console.log('meow'));

@@ -20,9 +20,9 @@ export function start() {
 			console.log('err', data);
 		});
 	output.on('exit', function(err) {
-		console.log('exit', err);
+		console.log('adb exit', err);
 	});
 	output.on('close', function(err) {
-		console.log('close', err);
+		console.log('adb close', err);
 	});
 }

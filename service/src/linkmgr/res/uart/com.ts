@@ -15,6 +15,7 @@ export class Uart {
 			this.id = data.id;
 			this.name = data.port;
 			this.backCall = resolve;
+			console.log('serialport:', data);
 			this.uart = new serialport(data.port, data.info);
 			this.uart.on('data', (data: any) => {
 				// console.info(new util.TextDecoder().decode(data));
