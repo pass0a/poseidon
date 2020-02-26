@@ -47,8 +47,8 @@ export class Com_mgr {
 		let ret: any = { ret: 0 };
 		if (this.uartlist[info.id]) {
 			let file = fs.createWriteStream(info.filename);
-			let loger = new logger();
-			ret = await this.uartlist[info.id].openLog(loger, file);
+			// let loger = new logger();
+			// ret = await this.uartlist[info.id].openLog(loger, file);
 		}
 		return new Promise((resolve) => {
 			resolve(ret);

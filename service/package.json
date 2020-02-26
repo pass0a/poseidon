@@ -10,8 +10,8 @@
 		"btest": "webpack",
 		"test": "passoa dist/app.js",
 		"dop": "passoa dist/db.js",
-		"dlp": "passoa dist/link.js",
-		"dhp": "passoa dist/http.js",
+		"dlp": "passoa dist/sql.js",
+		"dhp": "passoa dist/sqltest.js",
 		"dev": "cross-env opt=dev webpack",
 		"cxb": "cross-env platform=windows arch=x86 npm install"
 	},

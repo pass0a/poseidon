@@ -81,21 +81,22 @@ export class Device_mgr {
 	}
 	private openLogByADB(info: any) {
 		return new Promise((resolve) => {
-			let loger = new logger();
-			let file = fs.createWriteStream(info.filename);
-			let timer: any;
-			ADB.openADBLog(info.adb_cmd, loger, file, (data: any) => {
-				if (!data.ret) {
-					if (timer) {
-						clearTimeout(timer);
-						timer = null;
-					}
-					resolve({ ret: 1 });
-				}
-			});
-			timer = setTimeout(() => {
-				resolve({ ret: 0 });
-			}, 1000);
+			// let loger = new logger();
+			// let file = fs.createWriteStream(info.filename);
+			// let timer: any;
+			// ADB.openADBLog(info.adb_cmd, loger, file, (data: any) => {
+			// 	if (!data.ret) {
+			// 		if (timer) {
+			// 			clearTimeout(timer);
+			// 			timer = null;
+			// 		}
+			// 		resolve({ ret: 1 });
+			// 	}
+			// });
+			// timer = setTimeout(() => {
+			// 	resolve({ ret: 0 });
+			// }, 1000);
+			resolve({ ret: 1 });
 		});
 	}
 	private sendADB(adbInfo: any) {

@@ -26,9 +26,11 @@ const nodeConfig = {
 	// Change to your "entry-point".
 	watch: opt_watch,
 	entry: {
-		app: './src/main.ts',
-		run: './src/run.js',
-		test: './src/testop/main.ts'
+		// app: './src/main.ts',
+		// run: './src/run.js',
+		// test: './src/testop/main.ts'
+		sql: './src/sqlop/server/main.ts',
+		sqltest : './src/sqlop/client/main.ts'
 		// link: './src/linkmgr/main.ts',
 		// server : './src/server/main.ts',
 		// db:'./src/dbop/main.ts',
@@ -90,6 +92,7 @@ const nodeConfig = {
 		'@passoa/dbcc',
 		'@passoa/pcan',
 		'@passoa/libbt',
+		'@passoa/sqlite',
 		'./adb/index.js',
 		'./app.js',
 		'./db/index.js'
