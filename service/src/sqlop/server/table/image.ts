@@ -39,17 +39,18 @@ function disposeData(data: any, pis: any, db:any) {
 			pis.write(data);
 			break;
 		case "add":
-			let add_order = "INSERT INTO IMAGE(ID,IMG_ID,PID,VID,UID,DATE) VALUES (NULL,?,?,1,1,datetime('now','localtime'));";
-			db.exec(add_order,info.imgId,info.pid);
-			downloadImage(info);
-			data.info = true;
-			pis.write(data);
-			break;
-		case "update":
-			let update_order = "update image set vid=vid+1,uid="+data.info.uid+",date=datetime('now','localtime') where pid="+ data.info.pid + " and id=" + data.info.id;
-			db.exec(update_order);
-			let find_order = "SELECT * FROM IMAGE WHERE PID = " + data.info.pid + " AND ID = " + data.info.id;
+			let find_order = "SELECT * FROM IMAGE WHERE PID = " + data.info.pid + " AND IMG_ID = " + data.info.imgId;
 			db.exec(find_order);
+			if(db.value(0)==null){
+				let add_order = "INSERT INTO IMAGE(ID,IMG_ID,PID,VID,UID,DATE) VALUES (NULL,?,?,1,1,datetime('now','localtime'));";
+				db.exec(add_order,info.imgId,info.pid);
+			}else{
+				let update_order = "update image set vid=vid+1,uid=1,date=datetime('now','localtime') where pid="+ data.info.pid + " and img_id=" + data.info.imgId;
+				db.exec(update_order);
+			}
+			downloadImage(info);
+			let findvid_order = "SELECT * FROM IMAGE WHERE PID = " + data.info.pid + " AND IMG_ID = " + data.info.imgId;
+			db.exec(findvid_order);
 			data.info = db.value(3);
 			pis.write(data);
 			break;

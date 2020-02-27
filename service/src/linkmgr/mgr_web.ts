@@ -1,6 +1,8 @@
 import * as childprs from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as net from "net";
+import * as pack from "@passoa/pack";
 import ADB from './res/adb/adb';
 import { logger } from '@passoa/logger';
 
@@ -8,7 +10,19 @@ export class Web_mgr {
 	private mgr: any;
 	private link: any;
 	private Cvip: any;
-	constructor() {}
+
+	private pos:any = new pack.unpackStream();
+	private pis:any = new pack.packStream();
+	private ints:any;
+	constructor() {
+		this.pis.on('data', (data: any) => {
+			this.ints.write(data);
+		});
+		this.pos.on('data', (data: any) => {
+			switch(data.type){
+            }
+		});
+	}
 
 	private async handleCmd(obj: any) {
 		switch (obj.job) {
@@ -50,6 +64,8 @@ export class Web_mgr {
 					icon_info.info.w,
 					icon_info.info.h
 				);
+    			let buf = fs.readFileSync(iconPath);
+				this.pis.write({route:'image',job:'add',info:{imgId:icon_info.id,pid:1,buffer:buf}});
 				this.link.write({ type: obj.type, job: obj.job, ret: ret });
 				break;
 			case 'pushPassoa':
@@ -151,6 +167,22 @@ export class Web_mgr {
 		this.mgr = mgr;
 		this.link.onData(this.handleCmd.bind(this));
 		this.link.write({ type: 'auth', state: 'ok' });
+		this.connectToSQL();
+	}
+
+	connectToSQL(){
+		this.ints = net.connect(6004,"127.0.0.1",() => {
+			console.info("sql-link connect!!!");
+		});
+		this.ints.on("data",(data:any) => {
+			this.pos.write(data);
+		});
+		this.ints.on("close",() => {
+			console.info("close sql-link socket!!!");
+		});
+		this.ints.on("error",() => {
+			console.error("error");
+		});
 	}
 
 	startJS(obj: any, jsPath: any) {

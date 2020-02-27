@@ -39,7 +39,7 @@ sv = net.connect(6004,"127.0.0.1",() => {
     console.info("sqlserver connect!!!");
     // let file_path = 'C:/Users/Administrator/Desktop/screen.png';
     // let bytefile = fs.readFileSync(file_path);
-    // pis.write({route:'image',job:'add',info:{imgId:'1',pid:1,path:'C:/Users/Administrator/Desktop/image/',buffer:bytefile}});
+    pis.write({route:'image',job:'add',info:{imgId:'1',pid:1}});
     // let imgObj = {
     //     'click_1': 1
     // };
@@ -59,13 +59,13 @@ sv = net.connect(6004,"127.0.0.1",() => {
     // pis.write({route:'image',job:'update',info:{pid:1,id:1,uid:1}});
 
     //-- imgCfg
-    if(fs.existsSync(imgCfg)){
-        let imgCfgData = JSON.parse(new util.TextDecoder().decode((fs.readFileSync(imgCfg))));
-        pis.write({route:'image',job:'list',info:{pid:1,imgCfg:imgCfgData}});
-    }else{
-        pis.write({route:'image',job:'list',info:{pid:1}});
-        console.log(234);
-    }
+    // if(fs.existsSync(imgCfg)){
+    //     let imgCfgData = JSON.parse(new util.TextDecoder().decode((fs.readFileSync(imgCfg))));
+    //     pis.write({route:'image',job:'list',info:{pid:1,imgCfg:imgCfgData}});
+    // }else{
+    //     pis.write({route:'image',job:'list',info:{pid:1}});
+    //     console.log(234);
+    // }
 });
 sv.on("data",(data:any) => {
     pos.write(data);

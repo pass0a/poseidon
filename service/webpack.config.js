@@ -26,9 +26,9 @@ const nodeConfig = {
 	// Change to your "entry-point".
 	watch: opt_watch,
 	entry: {
-		// app: './src/main.ts',
-		// run: './src/run.js',
-		// test: './src/testop/main.ts'
+		app: './src/main.ts',
+		run: './src/run.js',
+		test: './src/testop/main.ts',
 		sql: './src/sqlop/server/main.ts',
 		sqltest : './src/sqlop/client/main.ts'
 		// link: './src/linkmgr/main.ts',
