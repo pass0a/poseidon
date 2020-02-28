@@ -7,7 +7,6 @@ import * as util from 'util';
 import * as fs from 'fs';
 import * as os from 'os';
 
-console.log('test!!!!!!!!!!!!!!!!!!!!!!!!!');
 let prjname: string = process.argv[2];
 let prjpath: string = path.dirname(path.dirname(process.execPath)) + '/data_store/projects/' + prjname;
 let pis: any, pos: any, c: any, backCall: any;
@@ -45,6 +44,7 @@ startTest();
 
 async function startTest() {
 	if (await createdLink()) {
+		await updateImageFromSql();
 		readConfig();
 		let list: any = await notifyToLinkMgr({
 			type: ToDB,
@@ -91,6 +91,17 @@ async function runTest() {
 	}); // 获取测试数据
 	await notifyToLinkMgr({ type: ToLink, mode: stopflag ? 6 : 3, info: results }); // 测试完成通知
 	await endTest();
+}
+
+async function updateImageFromSql(){
+	await notifyToLinkMgr({ type: ToLink, mode: 7}); // 图片更新下载
+	let imgCfg = prjpath + '/imgCfg.json';
+	if(fs.existsSync(imgCfg)){
+        let imgCfgData = JSON.parse(new util.TextDecoder().decode((fs.readFileSync(imgCfg))));
+		await notifyToLinkMgr({ type: 'toSQL', route: 'image', job: 'list',info:{pid:1,imgCfg:imgCfgData,prjpath:prjpath}});
+    }else{
+        await notifyToLinkMgr({ type: 'toSQL', route: 'image', job: 'list',info:{pid:1,prjpath:prjpath}});
+    }
 }
 
 async function recordResultToDB(data: any, case_info: any, start_time: Date, mode_idx: number) {
@@ -771,7 +782,7 @@ function notifyToLinkMgr(info: any) {
 			resolve(val);
 		};
 		pis.write(info);
-		// 通知界面无需等待返回 0: 初始化失败 1:初始化成功 2:用例开始测试 3: 测试完成 4: 步骤执行结果 5: 步骤开始执行 6: 暂停测试
+		// 通知界面无需等待返回 0: 初始化失败 1:初始化成功 2:用例开始测试 3: 测试完成 4: 步骤执行结果 5: 步骤开始执行 6: 暂停测试 7:图片下载
 		if (current_type == ToLink) backCall(1);
 	});
 }

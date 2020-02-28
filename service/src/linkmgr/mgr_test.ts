@@ -53,6 +53,10 @@ export class Test_mgr {
 			case 'toBT':
 				this.disposedBTCmd(obj);
 				break;
+			case 'toSQL':
+				let websql_mgr = this.mgr.getLink('web', 'web');
+				if (websql_mgr) websql_mgr.disposedSQL(obj);
+				break;
 			default:
 				break;
 		}

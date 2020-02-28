@@ -198,6 +198,9 @@ export default class TestView extends Vue {
             duration: 1500
           });
           break;
+        case 7:
+          this.updateLogCmd(1, "图片更新下载中...");
+          break;
       }
     } else {
       //Progress

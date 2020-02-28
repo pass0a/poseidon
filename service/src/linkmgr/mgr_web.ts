@@ -10,6 +10,8 @@ export class Web_mgr {
 	private mgr: any;
 	private link: any;
 	private Cvip: any;
+	private prjpath:string = "";
+	private imgCount = 0;
 
 	private pos:any = new pack.unpackStream();
 	private pis:any = new pack.packStream();
@@ -19,7 +21,26 @@ export class Web_mgr {
 			this.ints.write(data);
 		});
 		this.pos.on('data', (data: any) => {
-			switch(data.type){
+			switch(data.route){
+				case "image":
+					if(data.job=='list'){
+						fs.writeFileSync(this.prjpath+"/imgCfg.json",JSON.stringify(data.info.imgCfg));
+						if(data.info.downList.length){
+							if(!fs.existsSync(this.prjpath+"/img")){
+								fs.mkdirSync(this.prjpath+"/img");
+							}
+							this.imgCount = data.info.downList.length;
+							this.pis.write({route:'image',job:'downImg',info:data.info.downList});
+						}
+					}
+					else if(data.job=='downImg'){
+						fs.writeFileSync(this.prjpath+"/img/"+data.info.imgId+'.png',data.info.buffer);
+						this.imgCount--;
+						if(this.imgCount==0){
+							let test_link = this.mgr.getLink('test', 'test');
+							if (test_link) test_link.sendCmd({ type: 'toSQL', route: 'image', job: 'list'});
+						}
+					}
             }
 		});
 	}
@@ -107,6 +128,8 @@ export class Web_mgr {
 					obj.info.info.w,
 					obj.info.info.h
 				);
+				let ptobuf = fs.readFileSync(img_path);
+				this.pis.write({route:'image',job:'add',info:{imgId:obj.info.id,pid:1,buffer:ptobuf}});
 				obj.info = img_ret ? false : true;
 				this.link.write(obj);
 				break;
@@ -128,6 +151,8 @@ export class Web_mgr {
 					obj.info = img_ret ? false : true;
 					this.link.write(obj);
 				}
+				let rebuf = fs.readFileSync(img_info.image);
+				this.pis.write({route:'image',job:'add',info:{imgId:img_info.id,pid:1,buffer:rebuf}});
 				break;
 			default:
 				break;
@@ -183,6 +208,13 @@ export class Web_mgr {
 		this.ints.on("error",() => {
 			console.error("error");
 		});
+	}
+
+	disposedSQL(obj: any){
+		if(obj.route=="image"&&obj.job=="list"){
+			this.prjpath = obj.prjpath;
+		}
+		this.pis.write(obj);
 	}
 
 	startJS(obj: any, jsPath: any) {
