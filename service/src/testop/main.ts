@@ -17,7 +17,8 @@ let current_type: string = '',
 	adb_cmd_isExist = false,
 	pcan_isExist = false,
 	dbc_isExist = false,
-	bt_isExist = false;
+	bt_isExist = false,
+	need_down_img = false;
 let caseInfo: any = { start_idx: 0, img_idx: 0, com_len: 2 };
 let progress_info = { current_time: 0, total: 0, time: 0, current_case: 0 };
 let log_info: any = { id: '', status: false, filename: '' };
@@ -44,7 +45,6 @@ startTest();
 
 async function startTest() {
 	if (await createdLink()) {
-		await updateImageFromSql();
 		readConfig();
 		let list: any = await notifyToLinkMgr({
 			type: ToDB,
@@ -93,15 +93,20 @@ async function runTest() {
 	await endTest();
 }
 
-async function updateImageFromSql(){
-	await notifyToLinkMgr({ type: ToLink, mode: 7}); // 图片更新下载
+async function updateImageFromSql() {
+	await notifyToLinkMgr({ type: ToLink, mode: 7 }); // 图片更新下载
 	let imgCfg = prjpath + '/imgCfg.json';
-	if(fs.existsSync(imgCfg)){
-        let imgCfgData = JSON.parse(new util.TextDecoder().decode((fs.readFileSync(imgCfg))));
-		await notifyToLinkMgr({ type: 'toSQL', route: 'image', job: 'list',info:{pid:1,imgCfg:imgCfgData,prjpath:prjpath}});
-    }else{
-        await notifyToLinkMgr({ type: 'toSQL', route: 'image', job: 'list',info:{pid:1,prjpath:prjpath}});
-    }
+	if (fs.existsSync(imgCfg)) {
+		let imgCfgData = JSON.parse(new util.TextDecoder().decode(fs.readFileSync(imgCfg)));
+		await notifyToLinkMgr({
+			type: 'toSQL',
+			route: 'image',
+			job: 'list',
+			info: { pid: 1, imgCfg: imgCfgData, prjpath: prjpath }
+		});
+	} else {
+		await notifyToLinkMgr({ type: 'toSQL', route: 'image', job: 'list', info: { pid: 1, prjpath: prjpath } });
+	}
 }
 
 async function recordResultToDB(data: any, case_info: any, start_time: Date, mode_idx: number) {
@@ -607,6 +612,13 @@ async function readyForTest() {
 					dbc_isExist = true;
 				} else if (data.case_steps[j].action == 'bt_op' && !bt_isExist) {
 					bt_isExist = true;
+				} else if (
+					(data.case_steps[j].action == 'click' ||
+						data.case_steps[j].action == 'assert_pic' ||
+						data.case_steps[j].action == 'assert_pto') &&
+					!need_down_img
+				) {
+					need_down_img = true;
 				}
 				if (data.case_steps[j].action == 'wait') case_run_time += data.case_steps[j].time;
 				else {
@@ -664,6 +676,9 @@ async function readyForTest() {
 						ready_info.error_code = 5;
 					}
 				}
+			}
+			if (need_down_img) {
+				await updateImageFromSql();
 			}
 		}
 	} else {
@@ -815,7 +830,7 @@ async function createdLink() {
 			console.info('test_client connect!!!');
 		});
 		pos.on('data', (data: any) => {
-			// console.log(data);
+			console.log(data);
 			switch (data.type) {
 				case 'init':
 					pis.write({ type: 'info', class: 'test', name: 'test' });

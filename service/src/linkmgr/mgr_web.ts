@@ -1,8 +1,8 @@
 import * as childprs from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
-import * as net from "net";
-import * as pack from "@passoa/pack";
+import * as net from 'net';
+import * as pack from '@passoa/pack';
 import ADB from './res/adb/adb';
 import { logger } from '@passoa/logger';
 
@@ -10,38 +10,40 @@ export class Web_mgr {
 	private mgr: any;
 	private link: any;
 	private Cvip: any;
-	private prjpath:string = "";
+	private prjPath: string = '';
 	private imgCount = 0;
 
-	private pos:any = new pack.unpackStream();
-	private pis:any = new pack.packStream();
-	private ints:any;
+	private pos: any = new pack.unpackStream();
+	private pis: any = new pack.packStream();
+	private ints: any;
 	constructor() {
 		this.pis.on('data', (data: any) => {
 			this.ints.write(data);
 		});
 		this.pos.on('data', (data: any) => {
-			switch(data.route){
-				case "image":
-					if(data.job=='list'){
-						fs.writeFileSync(this.prjpath+"/imgCfg.json",JSON.stringify(data.info.imgCfg));
-						if(data.info.downList.length){
-							if(!fs.existsSync(this.prjpath+"/img")){
-								fs.mkdirSync(this.prjpath+"/img");
+			switch (data.route) {
+				case 'image':
+					if (data.job == 'list') {
+						fs.writeFileSync(this.prjPath + '/imgCfg.json', JSON.stringify(data.info.imgCfg));
+						if (data.info.downList.length) {
+							if (!fs.existsSync(this.prjPath + '/img')) {
+								fs.mkdirSync(this.prjPath + '/img');
 							}
 							this.imgCount = data.info.downList.length;
-							this.pis.write({route:'image',job:'downImg',info:data.info.downList});
-						}
-					}
-					else if(data.job=='downImg'){
-						fs.writeFileSync(this.prjpath+"/img/"+data.info.imgId+'.png',data.info.buffer);
-						this.imgCount--;
-						if(this.imgCount==0){
+							this.pis.write({ route: 'image', job: 'downImg', info: data.info.downList });
+						} else {
 							let test_link = this.mgr.getLink('test', 'test');
-							if (test_link) test_link.sendCmd({ type: 'toSQL', route: 'image', job: 'list'});
+							if (test_link) test_link.sendCmd({ type: 'toSQL', route: 'image', job: 'list' });
+						}
+					} else if (data.job == 'downImg') {
+						fs.writeFileSync(this.prjPath + '/img/' + data.info.imgId + '.png', data.info.buffer);
+						this.imgCount--;
+						if (this.imgCount == 0) {
+							let test_link = this.mgr.getLink('test', 'test');
+							if (test_link) test_link.sendCmd({ type: 'toSQL', route: 'image', job: 'list' });
 						}
 					}
-            }
+			}
 		});
 	}
 
@@ -85,8 +87,8 @@ export class Web_mgr {
 					icon_info.info.w,
 					icon_info.info.h
 				);
-    			let buf = fs.readFileSync(iconPath);
-				this.pis.write({route:'image',job:'add',info:{imgId:icon_info.id,pid:1,buffer:buf}});
+				let buf = fs.readFileSync(iconPath);
+				this.pis.write({ route: 'image', job: 'add', info: { imgId: icon_info.id, pid: 1, buffer: buf } });
 				this.link.write({ type: obj.type, job: obj.job, ret: ret });
 				break;
 			case 'pushPassoa':
@@ -129,7 +131,7 @@ export class Web_mgr {
 					obj.info.info.h
 				);
 				let ptobuf = fs.readFileSync(img_path);
-				this.pis.write({route:'image',job:'add',info:{imgId:obj.info.id,pid:1,buffer:ptobuf}});
+				this.pis.write({ route: 'image', job: 'add', info: { imgId: obj.info.id, pid: 1, buffer: ptobuf } });
 				obj.info = img_ret ? false : true;
 				this.link.write(obj);
 				break;
@@ -152,7 +154,7 @@ export class Web_mgr {
 					this.link.write(obj);
 				}
 				let rebuf = fs.readFileSync(img_info.image);
-				this.pis.write({route:'image',job:'add',info:{imgId:img_info.id,pid:1,buffer:rebuf}});
+				this.pis.write({ route: 'image', job: 'add', info: { imgId: img_info.id, pid: 1, buffer: rebuf } });
 				break;
 			default:
 				break;
@@ -195,24 +197,24 @@ export class Web_mgr {
 		this.connectToSQL();
 	}
 
-	connectToSQL(){
-		this.ints = net.connect(6004,"127.0.0.1",() => {
-			console.info("sql-link connect!!!");
+	connectToSQL() {
+		this.ints = net.connect(6004, '127.0.0.1', () => {
+			console.info('sql-link connect!!!');
 		});
-		this.ints.on("data",(data:any) => {
+		this.ints.on('data', (data: any) => {
 			this.pos.write(data);
 		});
-		this.ints.on("close",() => {
-			console.info("close sql-link socket!!!");
+		this.ints.on('close', () => {
+			console.info('close sql-link socket!!!');
 		});
-		this.ints.on("error",() => {
-			console.error("error");
+		this.ints.on('error', () => {
+			console.error('error');
 		});
 	}
 
-	disposedSQL(obj: any){
-		if(obj.route=="image"&&obj.job=="list"){
-			this.prjpath = obj.prjpath;
+	disposedSQL(obj: any) {
+		if (obj.route == 'image' && obj.job == 'list') {
+			this.prjPath = obj.info.prjpath;
 		}
 		this.pis.write(obj);
 	}

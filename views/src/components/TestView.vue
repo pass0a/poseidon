@@ -129,7 +129,10 @@ export default class TestView extends Vue {
   private logCmd: any = "";
   private processNum: any = 0;
   private screen_status: any = false;
-  private freqtype: any = new Map([["0", "大于"], ["1", "等于"]]);
+  private freqtype: any = new Map([
+    ["0", "大于"],
+    ["1", "等于"]
+  ]);
   private wait_type: Array<string> = ["固定", "随机"];
   private assert_type: Array<string> = ["是", "不是"];
   get getStopFlag() {
@@ -199,6 +202,17 @@ export default class TestView extends Vue {
           });
           break;
         case 7:
+          this.$store.state.test_info.testing = true;
+          this.statusTitle.t_status = "准备中";
+          this.statusTitle.t_time = "计算中";
+          this.statusTitle.t_result_ok = "- - -";
+          this.statusTitle.t_result_ng = "- - -";
+          this.statusTitle.t_progress = "- - -";
+          this.statusColor.c_status = "#606266";
+          this.statusColor.c_time = "#606266";
+          this.statusColor.c_result_ok = "#C0C4CC";
+          this.statusColor.c_result_ng = "#C0C4CC";
+          this.statusColor.c_progress = "#C0C4CC";
           this.updateLogCmd(1, "图片更新下载中...");
           break;
       }
@@ -275,6 +289,9 @@ export default class TestView extends Vue {
         this.btnMode = 4;
         this.statusTitle.t_result_ok = this.testInfo.info.ok;
         this.statusTitle.t_result_ng = this.testInfo.info.ng;
+        break;
+      case 7:
+        this.btnMode = 7;
         break;
     }
     return;
