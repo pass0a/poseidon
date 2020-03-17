@@ -1,14 +1,13 @@
 import { getModel } from './model';
 import * as mongodb from 'mongodb';
 import { getCaseModel } from '../cases/model';
-import { getMrModel } from '../mrecods/model';
 
 function getList(data: any, pis: any, DBModel: any) {
 	DBModel.aggregate(
 		[
 			{
 				$match: {
-					module: data.info.module
+					pid: createObjectID(data.info.pid)
 				}
 			},
 			{
@@ -18,11 +17,9 @@ function getList(data: any, pis: any, DBModel: any) {
 			},
 			{
 				$sort: {
-					'case_info.case_id': 1
+					date: 1
 				}
-			},
-			{ $skip: data.info.skip },
-			{ $limit: data.info.limit }
+			}
 		],
 		function(err: any, docs: any) {
 			if (!err) {
@@ -167,111 +164,12 @@ function modify(data: any, pis: any, DBModel: any) {
 	);
 }
 
-function changeRet(data: any, pis: any, DBModel: any) {
-	let info: any = data.info;
-	DBModel.updateOne(
-		{ _id: createObjectID(info.id) },
-		{
-			$set: {
-				result: info.ret
-			}
-		},
-		function(err: any, doc: any) {
-			if (!err) {
-				pis.write(data);
-			}
-		}
-	);
-}
-
-function uploadResult(data: any, pis: any, DBModel: any) {
-	let info = data.info;
-	let condition: any;
-	switch (info.ct) {
-		case 0:
-			condition = {};
-			break;
-		case 1:
-			condition = { result: 0 };
-			break;
-		case 2:
-			condition = { result: 1 };
-			break;
-		default:
-			break;
-	}
-	DBModel.aggregate(
-		[
-			{
-				$match: condition
-			},
-			{
-				$project: {
-					__v: 0,
-					case_info: 0,
-					module: 0,
-					start_time: 0,
-					fail_info: 0,
-					end_time: 0,
-					tested_mode: 0
-				}
-			}
-		],
-		function(err: any, docs: any) {
-			if (!err) {
-				if (docs.length > 0) {
-					let endflag = 0;
-					for (let i = 0; i < docs.length; i++) {
-						(function(i) {
-							let query = { pid: info.pid, vid: info.vid, cid: docs[i].cid };
-							let ret = docs[i].result == 0 ? 'OK' : 'NG';
-							let MrModel = getMrModel('mrecods');
-							MrModel.findOneAndUpdate(query, { $set: { result: ret, test_type: 'auto_test' } }, function(
-								err: any,
-								msg: any
-							) {
-								if (msg) {
-									endflag++;
-									if (endflag == docs.length) {
-										data.info = true;
-										pis.write(data);
-									}
-								} else {
-									let model = new MrModel({
-										pid: info.pid,
-										vid: info.vid,
-										cid: docs[i].cid,
-										result: ret,
-										test_type: 'auto_test'
-									});
-									model.save(function(err: any) {
-										if (!err) {
-											endflag++;
-											if (endflag == docs.length) {
-												data.info = true;
-												pis.write(data);
-											}
-										}
-									});
-								}
-							});
-						})(i);
-					}
-				} else {
-					data.info = true;
-					pis.write(data);
-				}
-			}
-		}
-	);
-}
-
 function createObjectID(id: string) {
 	return mongodb.ObjectId.createFromHexString(id);
 }
 
 function disposeData(data: any, pis: any) {
-	let DBModel = getModel(data.info.prjname + '_results');
+	let DBModel = getModel('versions');
 	switch (data.job) {
 		case 'list':
 			getList(data, pis, DBModel);
@@ -293,12 +191,6 @@ function disposeData(data: any, pis: any) {
 			break;
 		case 'modify':
 			modify(data, pis, DBModel);
-			break;
-		case 'changeRet':
-			changeRet(data, pis, DBModel);
-			break;
-		case 'upload':
-			uploadResult(data, pis, DBModel);
 			break;
 		default:
 			break;

@@ -53,6 +53,9 @@
             当前选择项目 : {{ currentProject }}
           </font>
         </span>
+        <span style="margin:0px 0px 0px 10px">
+          <font size="2" color="#ffd04b">版本 : {{ currentVersion }}</font>
+        </span>
         <span style="margin:0px 0px 0px 30px">
           <font size="2" color="#ffd04b">
             <i class="el-icon-connection"></i> 连接状态 :
@@ -202,6 +205,12 @@ export default class Home extends Vue {
     if (this.$store.state.project_info.current_prj.length) {
       this.select_mode = "4";
       return this.$store.state.project_info.current_prj;
+    }
+    return "无";
+  }
+  get currentVersion() {
+    if (this.$store.state.project_info.current_ver.length) {
+      return this.$store.state.project_info.current_ver;
     }
     return "无";
   }

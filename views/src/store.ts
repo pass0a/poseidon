@@ -31,12 +31,17 @@ export default new Vuex.Store({
 			openflag: false,
 			newflag: false,
 			current_prj: '',
-			prjlist: []
+			current_pid: '',
+			current_ver: '',
+			current_vid: '',
+			prjlist: [],
+			verlist: [],
+			show_versions: false
 		},
 		login_info: {
-			name: '',
-			psw: '',
-			_id: '',
+			uid: '',
+			ip: '',
+			port: '',
 			showflag: false
 		},
 		test_info: {
@@ -63,7 +68,8 @@ export default new Vuex.Store({
 			data: '',
 			showflag: false,
 			case_data: {},
-			info: ''
+			info: '',
+			uploadCount: 0
 		},
 		editcase_info: {
 			refresh_data: false,
@@ -72,7 +78,7 @@ export default new Vuex.Store({
 			data: [],
 			module_total: 0,
 			firstModule: '',
-			limit: 20,
+			limit: 100,
 			current_page: 0,
 			casestatus_idx: -1
 		},
@@ -147,7 +153,7 @@ export default new Vuex.Store({
 			revdata: {},
 			log: ''
 		},
-		version: '3.2.8'
+		version: '3.2.9'
 	},
 	mutations: {}
 });

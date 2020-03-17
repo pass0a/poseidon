@@ -14,6 +14,7 @@ import adb from './adb/index';
 import results from './results/index';
 import pcan from './pcan/index';
 import dbc from './dbc/index';
+import versions from './versions/index';
 
 let pis = new pack.packStream();
 let pos = new pack.unpackStream();
@@ -21,7 +22,7 @@ let sv: any;
 let l_pis = new pack.packStream();
 let l_pos = new pack.unpackStream();
 let ints: any;
-let DB_URL = 'mongodb://127.0.0.1/poseidon_data';
+let DB_URL = 'mongodb://192.168.19.14/poseidon_data';
 let options = { useNewUrlParser: true, ssl: false, useUnifiedTopology: true };
 let db_status: number = 0;
 let db_ct = mongoose.connection;
@@ -196,8 +197,38 @@ async function mongooseConnect() {
 	});
 }
 
+function mongooseDisconnect(ip: string) {
+	// mongoose.connection.on('disconnected', function() {
+	// 	console.log('Mongoose connection disconnected');
+	// });
+	// mongoose.disconnect(() => {
+	// 	console.log('!!!!!');
+	// });
+	// mongoose.connection.close();
+	db_ct.on('close', () => {
+		console.log('222222');
+	});
+	db_ct.on('disconnected', () => {
+		console.log('33333');
+	});
+	mongoose.disconnect();
+	mongoose.connection.close();
+	// db_ct.close(() => {
+	// 	console.log('1233333');
+	// });
+	// let newip = 'mongodb:' + ip + '/poseidon_data';
+	// console.log(newip);
+	// console.log(db_ct);
+	// mongoose.connect(newip, options, (error: any) => {
+	// 	if (!error) {
+	// 		console.log('connected!!!!!');
+	// 	}
+	// });
+	// console.log(db_ct);
+}
+
 function handle(data: any) {
-	// console.log(data.route);
+	console.log(data.route);
 	switch (data.route) {
 		case 'connect':
 			data.info = db_status;
@@ -274,6 +305,13 @@ function handle(data: any) {
 			break;
 		case 'dbc':
 			dbc.disposeData(data, pis);
+			break;
+		case 'connect_server':
+			console.log(data.info);
+			mongooseDisconnect(data.info.ip);
+			break;
+		case 'versions':
+			versions.disposeData(data, pis);
 			break;
 		default:
 			break;

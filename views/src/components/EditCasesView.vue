@@ -40,6 +40,14 @@
           :prop="it"
           resizable
         ></el-table-column>
+        <el-table-column prop="c_status" width="120" label="是否自动化">
+          <template slot-scope="scope">
+            <font
+              size="2"
+              :color="scope.row.case_assert=='finished'?'#67C23A':'#909399'"
+            >{{scope.row.case_assert=='finished'?'是':'否'}}</font>
+          </template>
+        </el-table-column>
         <el-table-column prop="c_status" width="80" label="状态">
           <template slot-scope="scope">
             <el-button
@@ -211,7 +219,9 @@ export default class EditCasesView extends Vue {
     return;
   }
   private indexMethod(index: any) {
-    return index + 1 + (this.curPage - 1) * 20;
+    return (
+      index + 1 + (this.curPage - 1) * this.$store.state.editcase_info.limit
+    );
   }
   private handleCurrentChange(page: any) {
     this.curPage = page;
@@ -228,6 +238,7 @@ export default class EditCasesView extends Vue {
         limit: this.$store.state.editcase_info.limit
       }
     };
+    console.log(l_req);
     this.$store.state.app_info.pis.write(l_req);
   }
   private getResName(id: any) {
@@ -246,6 +257,19 @@ export default class EditCasesView extends Vue {
       job: "total",
       info: { prjname: c_pname, module: this.current_case_module }
     });
+
+    // this.$store.state.editcase_info.refresh_data = true;
+    // let l_req = {
+    //   type: "toDB",
+    //   route: "cases",
+    //   job: "list",
+    //   info: {
+    //     prjname: this.$store.state.project_info.current_prj,
+    //     module: this.current_case_module
+    //   }
+    // };
+    // console.log(l_req);
+    // this.$store.state.app_info.pis.write(l_req);
   }
   private addCase() {
     this.$store.state.case_info.type = 0;

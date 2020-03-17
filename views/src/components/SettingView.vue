@@ -209,15 +209,15 @@
           <div>
             <el-form :model="dbserverInfo" ref="serverform" label-width="100px">
               <el-form-item label="服务器配置:">
-                <el-radio-group v-model="db_server_info.type" size="small">
+                <el-radio-group v-model="server_type" size="small">
                   <el-radio :label="0" border>本地服务器</el-radio>
                   <el-radio :label="1" border disabled>远程服务器</el-radio>
                 </el-radio-group>
               </el-form-item>
-              <el-form-item label="IP地址:" v-if="db_server_info.type">
+              <el-form-item label="IP地址:" v-if="server_type">
                 <el-input size="small" style="width:220px" v-model="db_server_info.ip"></el-input>
               </el-form-item>
-              <el-form-item label="端口号:" v-if="db_server_info.type">
+              <el-form-item label="端口号:" v-if="server_type">
                 <el-input size="small" style="width:220px" v-model="db_server_info.port"></el-input>
               </el-form-item>
             </el-form>
@@ -227,7 +227,7 @@
               size="small"
               style="margin:0px 0px 0px 100px;width:126px;"
               @click="connectServer()"
-              v-if="db_server_info.type"
+              v-if="server_type"
             >连接服务器</el-button>
           </div>
         </el-tab-pane>
@@ -269,6 +269,7 @@ export default class SettingView extends Vue {
   private box_info: any = {};
   private log_info: any = {};
   private pcan_info: any = {};
+  private server_type: any = "";
   private test_status: any = false;
   private uarts: any = ["relay", "da_arm", "log"];
   private activeName: any = "1";
@@ -336,6 +337,7 @@ export default class SettingView extends Vue {
   get dbserverInfo() {
     if (this.$store.state.setting_info.info.db_server != undefined)
       this.db_server_info = this.$store.state.setting_info.info.db_server;
+    this.server_type = this.db_server_info.type;
     return this.db_server_info;
   }
   get daserverInfo() {
@@ -425,6 +427,8 @@ export default class SettingView extends Vue {
     this.$store.state.setting_info.info.db_server.type = this.select_server;
   }
   private connectServer() {
+    this.$store.state.login_info.ip = "http://" + this.db_server_info.ip;
+    this.$store.state.login_info.port = this.db_server_info.port;
     this.$store.state.login_info.showflag = true;
   }
   private save() {

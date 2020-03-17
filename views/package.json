@@ -13,6 +13,7 @@
 	"license": "ISC",
 	"dependencies": {
 		"app.vue": "^0.1.10",
+		"axios": "^0.19.2",
 		"element-ui": "^2.11.1",
 		"iview": "^3.4.2",
 		"tslib": "^1.10.0",

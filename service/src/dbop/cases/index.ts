@@ -96,6 +96,7 @@ function checkIDAndAdd(data: any, pis: any, CaseModel: any) {
 
 function modifyCase(data: any, pis: any, CaseModel: any) {
 	let info = data.info.casedata;
+	let case_assert = info.case_steps.length ? 'finished' : 'notassert';
 	CaseModel.updateOne(
 		{ _id: createObjectID(info._id) },
 		{
@@ -107,7 +108,7 @@ function modifyCase(data: any, pis: any, CaseModel: any) {
 				case_pre: info.case_pre,
 				case_op: info.case_op,
 				case_exp: info.case_exp,
-				case_assert: info.case_assert,
+				case_assert: case_assert,
 				case_note: info.case_note,
 				case_mode: info.case_mode,
 				case_steps: info.case_steps

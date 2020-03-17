@@ -30,24 +30,26 @@ function getList(data: any, pis: any, Projects: any) {
 		[
 			{
 				$project: {
-					_id: 0,
 					__v: 0
 				}
 			}
 		],
 		function(err: any, docs: any) {
 			if (!err) {
-				let list = [];
-				for (let i = 0; i < docs.length; i++) {
-					let obj: any = {};
-					obj['name'] = docs[i].name;
-					list.push(obj);
-				}
-				data.info = list;
+				data.info = JSON.stringify(docs);
 				pis.write(data);
 			}
 		}
 	);
+}
+
+function objectIDtoString(buffer: any) {
+	let str: string = '';
+	for (let buf of buffer) {
+		if (buf < 16) str += '0';
+		str += buf.toString(16);
+	}
+	return str;
 }
 
 function deleteProject(data: any, pis: any, Projects: any) {
