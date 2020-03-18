@@ -29,7 +29,7 @@
 ; Instfiles page
 !insertmacro MUI_PAGE_INSTFILES
 ; Finish page
-!define MUI_FINISHPAGE_RUN "$INSTDIR\passoa.exe"
+!define MUI_FINISHPAGE_RUN "$INSTDIR\loader.exe"
 !define MUI_FINISHPAGE_RUN_PARAMETERS "$\"$INSTDIR\run.js$\""
 !define MUI_FINISHPAGE_SHOWREADME "$INSTDIR\License.txt"
 
@@ -68,10 +68,10 @@ Section "主体程序" SEC01
   File /r ".\depends\browser"
   File /r ".\depends\db"
   File /r ".\depends\adb"
-  File /r ".\depends\passoa\msvc\"
+  File /r ".\depends\passoa\dist\"
   CreateDirectory "$SMPROGRAMS\Poseidon"
-  CreateShortCut "$SMPROGRAMS\Poseidon\Poseidon.lnk" "$INSTDIR\passoa.exe" "$\"$INSTDIR\run.js$\""
-  CreateShortCut "$DESKTOP\Poseidon.lnk" "$INSTDIR\passoa.exe" "$\"$INSTDIR\run.js$\""
+  CreateShortCut "$SMPROGRAMS\Poseidon\Poseidon.lnk" "$INSTDIR\loader.exe"
+  CreateShortCut "$DESKTOP\Poseidon.lnk" "$INSTDIR\loader.exe"
 SectionEnd
 
 Section "加入系统路径" SEC02

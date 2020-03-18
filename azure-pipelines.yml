@@ -8,7 +8,7 @@ steps:
     connection: 'GitHub connection 1'
     userRepository: 'losper/passoa'
     defaultVersionType: 'latest'
-    itemPattern: 'passoa-msvc*'
+    itemPattern: 'passoa-windows*'
     downloadPath: './'
 - task: DownloadGitHubRelease@0
   inputs:
@@ -49,15 +49,7 @@ steps:
     verbose: false
 
 - task: Npm@1
-  displayName: 'npm custom'
-  inputs:
-    command: custom
-    workingDir: service
-    verbose: false
-    customCommand: 'run pm'
-
-- task: Npm@1
-  displayName: 'npm custom'
+  displayName: 'npm build service'
   inputs:
     command: custom
     workingDir: service
@@ -65,7 +57,7 @@ steps:
     customCommand: 'run build'
 
 - task: Npm@1
-  displayName: 'npm custom'
+  displayName: 'npm build views'
   inputs:
     command: custom
     workingDir: views
@@ -73,7 +65,7 @@ steps:
     customCommand: 'run build'
 
 - script: |
-   cp service/node_modules/@passoa/ depends/passoa/msvc/node_modules/@passoa/ -rf
+   cp service/node_modules/@passoa/ depends/passoa/dist/node_modules/@passoa/ -rf
   displayName: 'install node_mudules/@passoa'
 
 - task: nsis@1
