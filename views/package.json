@@ -5,30 +5,31 @@
 	"main": "index.js",
 	"scripts": {
 		"dev": "parcel index.html",
-		"build": "parcel build index.html",
+		"build": "npm run clean && parcel build index.html -d dist/view",
+		"clean": "rimraf dist",
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
 		"app.vue": "^0.1.10",
-		"tslib": "^1.9.3",
+		"axios": "^0.19.2",
+		"element-ui": "^2.11.1",
+		"iview": "^3.4.2",
+		"tslib": "^1.10.0",
 		"vue": "^2.6.10",
 		"vue-hot-reload-api": "^2.3.3",
-		"vue-property-decorator": "^8.1.1",
-		"vue-router": "^3.0.6",
-		"vuex": "^3.1.1",
-		"element-ui": "latest",
-		"iview": "latest"
+		"vue-property-decorator": "^8.2.1",
+		"vue-router": "^3.1.2",
+		"vuex": "^3.1.1"
 	},
 	"devDependencies": {
-		"@types/node": "latest",
+		"@passoa/pack": "^1.0.8",
+		"@types/node": "^12.7.1",
 		"@vue/component-compiler-utils": "^3.0.0",
-		"babel-core": "^6.26.3",
-		"babel-preset-env": "^1.7.0",
 		"parcel-bundler": "^1.12.3",
-		"sass": "^1.20.1",
-		"typescript": "^3.4.5",
+		"sass": "^1.22.9",
+		"typescript": "^3.5.3",
 		"vue-template-compiler": "^2.6.10"
 	}
 }

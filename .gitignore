@@ -20,13 +20,11 @@
 *.man
 *.zip
 *.7z
-*.mp4
-*.ts
-*.h264
 *.pptx
 *.doc
 dist
 \#*
+tmp
 output/*
 stage/*
 *build*
@@ -36,6 +34,7 @@ binary/*
 !.gitignore
 !.travis.yml
 !*.sh
+!*.github
 !.babelrc
 !*.ts
 !*.vue
@@ -45,3 +44,4 @@ GPATH
 GRTAGS
 lib
 package-lock.json
+depends/
