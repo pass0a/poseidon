@@ -44,6 +44,7 @@
 		"@passoa/websocket": "latest",
 		"mongoose": "5.6.9",
 		"@passoa/pcan": "1.0.4",
-		"@passoa/cvip": "1.0.5"
+		"@passoa/cvip": "1.0.5",
+		"@passoa/sqlite": "1.0.7"
 	}
 }
