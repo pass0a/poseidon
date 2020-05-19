@@ -17,7 +17,12 @@
       <el-table-column prop="name" label="项目名"></el-table-column>
       <el-table-column label="操作" width="200">
         <template slot-scope="scope">
-          <el-button type="primary" size="mini" @click="openPrj(scope.row.name,scope.row._id)">打开</el-button>
+          <el-button
+            type="primary"
+            size="mini"
+            @click="openPrj(scope.row.name,scope.row._id,scope.$index)"
+            :loading="openStatus && openIdx==scope.$index"
+          >打开</el-button>
           <el-button type="danger" size="mini" @click="deletePrj(scope.row.name)">删除</el-button>
         </template>
       </el-table-column>
@@ -82,14 +87,22 @@ export default class OpenPrj extends Vue {
   private cancel() {
     this.$store.state.project_info.openflag = false;
   }
-  private openPrj(prjname: any, pid: any) {
+  private openPrj(prjname: any, pid: any, idx: any) {
     this.openName = prjname;
     this.$store.state.project_info.current_pid = pid;
+    // this.$store.state.app_info.pis.write({
+    //   type: "toDB",
+    //   route: "versions",
+    //   job: "list",
+    //   info: { pid: pid, prjname: this.openName }
+    // });
+    this.openStatus = true;
+    this.openIdx = idx;
     this.$store.state.app_info.pis.write({
       type: "toDB",
-      route: "versions",
-      job: "list",
-      info: { pid: pid }
+      route: "rule",
+      job: "check_version",
+      info: { prjname: this.openName }
     });
   }
   private openVer(version: any, vid: any, idx: any) {

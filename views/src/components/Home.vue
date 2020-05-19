@@ -59,9 +59,9 @@
             当前选择项目 : {{ currentProject }}
           </font>
         </span>
-        <span style="margin:0px 0px 0px 10px">
+        <!-- <span style="margin:0px 0px 0px 10px">
           <font size="2" color="#ffd04b">版本 : {{ currentVersion }}</font>
-        </span>
+        </span>-->
         <span style="margin:0px 0px 0px 30px">
           <font size="2" color="#ffd04b">
             <i class="el-icon-connection"></i> 连接状态 :
