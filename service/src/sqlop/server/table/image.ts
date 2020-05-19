@@ -2,9 +2,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 
 let sqlImg_path: string = path.dirname(path.dirname(process.execPath)) + '/data_store/SQL/image';
-if (!fs.existsSync(sqlImg_path)) {
-	fs.mkdirSync(sqlImg_path);
-}
+fs.ensureDirSync(sqlImg_path);
 
 function createTable(db: any) {
 	let sql_order =
@@ -14,9 +12,7 @@ function createTable(db: any) {
 
 function downloadImage(info: any) {
 	let prjDir = sqlImg_path + '/ku';
-	if (!fs.existsSync(prjDir)) {
-		fs.mkdirSync(prjDir);
-	}
+	fs.ensureDirSync(prjDir);
 	fs.writeFileSync(prjDir + '/' + info.imgId + '.png', info.buffer);
 }
 

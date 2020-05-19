@@ -18,11 +18,8 @@ createServer();
 function checkDir() {
 	let dataDir = path.dirname(path.dirname(process.execPath)) + '/data_store';
 	let sqlDir = path.dirname(path.dirname(process.execPath)) + '/data_store/SQL';
-	if (!fs.existsSync(dataDir)) {
-		fs.mkdirSync(dataDir);
-	} else if (!fs.existsSync(sqlDir)) {
-		fs.mkdirSync(sqlDir);
-	}
+	fs.ensureDirSync(dataDir);
+	fs.ensureDirSync(sqlDir);
 }
 
 function createServer() {

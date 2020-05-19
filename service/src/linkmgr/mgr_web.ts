@@ -26,9 +26,8 @@ export class Web_mgr {
 					if (data.job == 'list') {
 						fs.writeFileSync(this.prjPath + '/imgCfg.json', JSON.stringify(data.info.imgCfg));
 						if (data.info.downList.length) {
-							if (!fs.existsSync(this.prjPath + '/img')) {
-								fs.mkdirSync(this.prjPath + '/img');
-							}
+							fs.ensureDirSync(this.prjPath + '/img');
+
 							this.imgCount = data.info.downList.length;
 							this.pis.write({ route: 'image', job: 'downImg', info: data.info.downList });
 						} else {
@@ -74,7 +73,7 @@ export class Web_mgr {
 				let prjPath = path.dirname(path.dirname(passoaPath)) + '/data_store/projects/' + obj.info.prjname;
 				let screenPath = prjPath + '/screen/screen.png';
 				let imgPath = prjPath + '/img';
-				if (!fs.existsSync(imgPath)) fs.mkdirSync(imgPath);
+				fs.ensureDirSync(imgPath);
 				let icon_info = obj.info.cut_info;
 				let iconPath = imgPath + '/' + icon_info.id + '.png';
 				if (!this.Cvip) this.Cvip = require('@passoa/cvip');
@@ -227,7 +226,7 @@ export class Web_mgr {
 		console.log('begin test:', execpath);
 
 		let logDirPath = path.join(path.dirname(path.dirname(passoaPath)), '/data_store/projects/' + prjpath + '/log');
-		fs.ensureDir(logDirPath);
+		fs.ensureDirSync(logDirPath);
 		//if (!fs.existsSync(logDirPath)) fs.mkdirSync(logDirPath);
 		// let loger = new logger();
 		// let test_log = fs.createWriteStream(logDirPath + '/testlog.txt');

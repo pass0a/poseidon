@@ -1,6 +1,6 @@
 // import * as util from "util";
 import * as SerialPort from 'serialport';
-
+let paritys = [ 'none', 'even', 'mark', 'odd', 'space' ];
 export class Uart {
 	private uart: any;
 	private name: any;
@@ -16,6 +16,8 @@ export class Uart {
 			this.id = data.id;
 			this.name = data.port;
 			this.backCall = resolve;
+			let idx = data.info.parity;
+			if (typeof idx == 'number') data.info.parity = paritys[idx];
 			this.uart = new SerialPort(data.port, data.info);
 			this.uart.on('data', (data: any) => {
 				// console.info(new util.TextDecoder().decode(data));
@@ -98,7 +100,7 @@ export class Uart {
 	}
 	closeUart() {
 		return new Promise((resolve) => {
-			this.uart.end();
+			this.uart.close();
 			resolve({ ret: 1 });
 		});
 	}

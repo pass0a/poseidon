@@ -17,8 +17,7 @@ export class Device_mgr {
 		switch (data.job) {
 			case 'syncRemote':
 				let prjpath = this.prjDir + data.info.prjname;
-				let isExitst = fs.existsSync(prjpath + '/screen');
-				if (!isExitst) fs.mkdirSync(prjpath + '/screen');
+				fs.ensureDirSync(prjpath + '/screen');
 				let path = os.homedir() + '/data_store/config.json';
 				let cfg = JSON.parse(new util.TextDecoder().decode(fs.readFileSync(path)));
 				if (await this.startPassoa(data, cfg, true)) {

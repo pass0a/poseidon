@@ -619,7 +619,7 @@ async function readyForTest() {
 	progress_info.total = caseInfo.caselist.length;
 	if (progress_info.total) {
 		let tmppath = prjpath + '/tmp';
-		if (!fs.existsSync(tmppath)) fs.mkdirSync(tmppath);
+		fs.ensureDirSync(tmppath);
 		let uartsSet = new Set();
 		let runtime = 0;
 		LogOpen(uartsSet); // Log
@@ -727,7 +727,7 @@ function LogOpen(uartsSet: Set<any>) {
 	if (caseInfo.config.log_info) {
 		log_info.status = caseInfo.config.log_info.open;
 		if (log_info.status) {
-			if (!fs.existsSync(prjpath + '/log')) fs.mkdirSync(prjpath + '/log');
+			fs.ensureDirSync(prjpath + '/log');
 			if (!caseInfo.config.log_info.type) {
 				// 检测Log串口是否共用
 				let uartsInfo = caseInfo.config.uarts;

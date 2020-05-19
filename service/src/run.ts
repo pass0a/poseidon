@@ -4,7 +4,7 @@ import { join, dirname } from 'path';
 
 cp.exec('"adb/adb" devices');
 let db_path = join(dirname(__dirname), '/data_store/DB');
-fs.ensureDir(db_path);
+fs.ensureDirSync(db_path);
 let db_cmd = `"${join(__dirname, '/db/mongod')}" --dbpath "${db_path}" --storageEngine=mmapv1`;
 console.log(db_cmd);
 cp.exec(db_cmd);

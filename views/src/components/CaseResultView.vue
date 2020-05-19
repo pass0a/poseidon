@@ -64,11 +64,11 @@
           </span>
           <br />
           <img
-            :src="'http://127.0.0.1:6003/'+'?action=image&image='+info.image+'&id='+imgreq"
+            :src="'http://127.0.0.1:6003/getImage?image='+info.image+'&id='+imgreq"
             style="max-width:100%;max-height:100%;"
           />
           <img
-            :src="'http://127.0.0.1:6003/'+'?action=image&image='+info.screen+'&id='+scrreq"
+            :src="'http://127.0.0.1:6003/getImage?image='+info.screen+'&id='+scrreq"
             style="max-width:100%;max-height:100%;"
           />
         </div>

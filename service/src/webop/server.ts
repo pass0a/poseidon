@@ -201,9 +201,9 @@ export class Server {
 				break;
 			case 'savePhoto':
 				let screenPath = this.dirPath + data.info.prjname + '/screen';
-				if (!fs.existsSync(screenPath)) fs.mkdirSync(screenPath);
+				fs.ensureDirSync(screenPath);
 				let imgPath = this.dirPath + data.info.prjname + '/img';
-				if (!fs.existsSync(imgPath)) fs.mkdirSync(imgPath);
+				fs.ensureDirSync(imgPath);
 				fs.writeFileSync(screenPath + '/screen.png', data.info.img_data);
 				if (data.info.type) {
 					this.tolink.send(data);
@@ -216,7 +216,7 @@ export class Server {
 			case 'testPhoto':
 				if (data.info.ret) {
 					let testPhotoPath = this.dirPath + data.info.prjname + '/tmp';
-					if (!fs.existsSync(testPhotoPath)) fs.mkdirSync(testPhotoPath);
+					fs.ensureDirSync(testPhotoPath);
 					fs.writeFileSync(testPhotoPath + '/tmp.png', data.info.img_data);
 				}
 				data.info = data.info.ret;

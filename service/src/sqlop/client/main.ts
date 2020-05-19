@@ -20,9 +20,7 @@ pos.on('data', (data: any) => {
 			if (data.job == 'list') {
 				fs.writeFileSync(imgCfg, JSON.stringify(data.info.imgCfg));
 				if (data.info.downList.length) {
-					if (!fs.existsSync(img_path)) {
-						fs.mkdirSync(img_path);
-					}
+					fs.ensureDirSync(img_path);
 					pis.write({ route: 'image', job: 'downImg', info: data.info.downList });
 				}
 			} else if (data.job == 'downImg') {
