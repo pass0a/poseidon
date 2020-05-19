@@ -19,6 +19,21 @@
           placeholder="请选择"
           filterable
           size="small"
+          style="width:120px"
+          v-model="s_powertype"
+          v-show="s_action=='power'"
+        >
+          <el-option
+            v-for="val in power_type.keys()"
+            :label="power_type.get(val)"
+            :value="val"
+            :key="val"
+          ></el-option>
+        </el-select>
+        <el-select
+          placeholder="请选择"
+          filterable
+          size="small"
           style="width:75px"
           v-model="s_clicktype"
           v-show="showClickType(s_action)"
@@ -54,7 +69,7 @@
           size="small"
           style="width:140px"
           v-model="s_module"
-          v-show="s_action!=waitType"
+          v-show="s_action!=waitType&&s_action!='power'"
           @change="changeSel(1)"
         >
           <el-option
@@ -94,7 +109,7 @@
           size="small"
           style="width:155px"
           v-model="s_clid"
-          v-show="s_action!=waitType&&s_action!=boxType.act"
+          v-show="s_action!=waitType&&s_action!=boxType.act&&s_action!='power'"
           @change="changeSel(4)"
         >
           <el-option
@@ -164,7 +179,7 @@
             :min="0"
             size="small"
             style="margin:3px 0px 0px 0px"
-            v-show="s_action==waitType||s_action=='slide'"
+            v-show="s_action==waitType||s_action=='slide'||s_action=='power'"
           ></el-input-number>
           <span v-show="s_action==waitType&&s_waittype">
             <strong>
@@ -177,13 +192,13 @@
               type="success"
               size="small"
               @click="onSet"
-              v-if="s_action==waitType||s_module==boxType.freq||s_action=='slide'"
+              v-if="s_action==waitType||s_module==boxType.freq||s_action=='slide'||s_action=='power'"
             >设置</el-button>
             <el-button
               type="success"
               size="small"
               @click="changeSel(s_action=='dbc'?3:2)"
-              v-if="s_action!=waitType&&s_module!=boxType.freq&&s_action!='slide'"
+              v-if="s_action!=waitType&&s_module!=boxType.freq&&s_action!='slide'&&s_action!='power'"
             >确定</el-button>
             <el-button type="info" size="small" @click="initOp">取消</el-button>
           </el-button-group>
@@ -237,6 +252,21 @@
         placeholder="请选择"
         filterable
         size="small"
+        style="width:120px"
+        v-model="s_powertype"
+        v-show="s_action=='power'"
+      >
+        <el-option
+          v-for="val in power_type.keys()"
+          :label="power_type.get(val)"
+          :value="val"
+          :key="val"
+        ></el-option>
+      </el-select>
+      <el-select
+        placeholder="请选择"
+        filterable
+        size="small"
         style="width:75px"
         v-model="s_clicktype"
         v-show="showClickType(s_action)"
@@ -272,7 +302,7 @@
         size="small"
         style="width:140px"
         v-model="s_module"
-        v-show="s_action!=waitType"
+        v-show="s_action!=waitType&&s_action!='power'"
         @change="changeSel(1)"
       >
         <el-option
@@ -312,7 +342,7 @@
         size="small"
         style="width:155px"
         v-model="s_clid"
-        v-show="s_action!=waitType&&s_action!=boxType.act"
+        v-show="s_action!=waitType&&s_action!=boxType.act&&s_action!='power'"
         @change="changeSel(2)"
       >
         <el-option
@@ -378,8 +408,9 @@
         controls-position="right"
         :min="0"
         size="small"
-        v-show="s_action==waitType||s_action=='slide'"
+        v-show="s_action==waitType||s_action=='slide'||s_action=='power'"
       ></el-input-number>
+      <strong v-show="s_action=='power'">(单位: V)</strong>
       <span v-show="s_action==waitType&&s_waittype">
         <strong>
           <font size="2">---</font>
@@ -390,7 +421,7 @@
         type="success"
         size="small"
         @click="onSet"
-        v-show="s_action==waitType||s_module==boxType.freq||s_action=='slide'"
+        v-show="s_action==waitType||s_module==boxType.freq||s_action=='slide'||s_action=='power'"
       >设置</el-button>
     </div>
   </div>
@@ -404,11 +435,12 @@ export default class StepsView extends Vue {
   private s_module: string = "";
   private s_clicktype: string = "0";
   private s_freqtype: string = "0";
+  private s_powertype: string = "set_power1";
   private s_waittype: Number = 0;
   private s_clicktime: Number = 1500;
   private s_clid: string = "";
   private s_box: any = 2.529;
-  private s_wait: Number = 100;
+  private s_wait: number = 100;
   private s_wait_r: Number = 200;
   private s_loop: Number = 2;
   private s_skip: Boolean = false;
@@ -418,8 +450,19 @@ export default class StepsView extends Vue {
   private steplist: any = [];
   private waitType: string = "wait";
   private boxType: any = { act: "qg_box", freq: "freq" };
-  private clickType: any = new Map([["0", "短按"], ["1", "长按"]]);
-  private freqtype: any = new Map([["0", "大于"], ["1", "等于"]]);
+  private clickType: any = new Map([
+    ["0", "短按"],
+    ["1", "长按"]
+  ]);
+  private freqtype: any = new Map([
+    ["0", "大于"],
+    ["1", "等于"]
+  ]);
+  private power_type: any = new Map([
+    ["set_power1", "Output I"],
+    ["set_power2", "Output II"],
+    ["set_both", "Output ALL"]
+  ]);
   private wait_type: Array<string> = ["固定", "随机"];
   private assert_type: Array<string> = ["是", "不是"];
   private op_data: any = {
@@ -529,6 +572,7 @@ export default class StepsView extends Vue {
         this.s_waittype = 0;
         this.s_asserttype = 0;
         if (this.s_action == "slide") this.s_wait = 1000;
+        else if (this.s_action == "power") this.s_wait = 0;
         break;
       case 1:
         this.s_clid = "";
@@ -633,6 +677,13 @@ export default class StepsView extends Vue {
           type: this.s_waittype
         };
       }
+    } else if (this.s_action == "power") {
+      obj = {
+        action: this.s_action,
+        p_type: this.s_powertype,
+        value:
+          Math.floor((this.s_wait != undefined ? this.s_wait : 0) * 100) / 100
+      };
     } else if (this.s_module == this.boxType.freq) {
       if (this.s_box == undefined) this.s_box = 2.529;
       obj = {
@@ -720,6 +771,10 @@ export default class StepsView extends Vue {
           ts +
           " ms)";
         break;
+      case "power":
+        let p_value = it.value != undefined ? it.value : 0;
+        content = " [" + this.power_type.get(it.p_type) + "] " + p_value + " V";
+        break;
       default:
         content =
           " [" + this.getResName(it.module) + "] " + this.getResName(it.id);
@@ -802,6 +857,9 @@ export default class StepsView extends Vue {
               this.s_skip = item.click_skip ? true : false;
             else if (item.action == "slide") {
               this.s_wait = item.time != undefined ? item.time : 1000;
+            } else if (item.action == "power") {
+              this.s_powertype = item.p_type;
+              this.s_wait = item.value != undefined ? item.value : 0;
             }
           }
         }
