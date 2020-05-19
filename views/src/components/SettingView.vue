@@ -10,11 +10,14 @@
         v-model="tabName"
       >
         <el-tab-pane label="硬件配置" name="0">
-          <el-collapse v-model="activeName" accordion>
+          <el-collapse v-model="activeName" accordion @change="changeCollapse">
             <el-collapse-item title="工具板" name="1">
               <SetPort style="margin:0px 0px 0px 80px;" />
             </el-collapse-item>
-            <el-collapse-item title="QG BOX" name="2">
+            <el-collapse-item title="程控电源" name="2">
+              <SetPort style="margin:0px 0px 0px 80px;" />
+            </el-collapse-item>
+            <el-collapse-item title="QG BOX" name="3">
               <el-form :model="boxInfo" ref="boxform" label-width="150px">
                 <el-form-item label="IP地址:">
                   <el-input size="small" style="width:220px" v-model="box_info.ip"></el-input>
@@ -24,7 +27,7 @@
                 </el-form-item>
               </el-form>
             </el-collapse-item>
-            <el-collapse-item title="PCAN" name="3">
+            <el-collapse-item title="PCAN" name="4">
               <el-form :model="pcanInfo" ref="boxform" label-width="120px" :inline="true">
                 <el-form-item label="Baudrate:">
                   <el-select v-model="pcanInfo.baudrate" size="small" style="width:130px">
@@ -271,7 +274,7 @@ export default class SettingView extends Vue {
   private pcan_info: any = {};
   private server_type: any = "";
   private test_status: any = false;
-  private uarts: any = ["relay", "da_arm", "log"];
+  private uarts: any = ["relay", "da_arm", "log", "power"];
   private activeName: any = "1";
   private set_bt: any = {
     mac: "D4:4D:A4:5C:AA:2A",
@@ -402,10 +405,26 @@ export default class SettingView extends Vue {
   private selectStartMd(name: any) {
     if (name == 0) this.$store.state.setting_info.select_serial = this.uarts[1];
   }
+  private changeCollapse() {
+    switch (this.activeName) {
+      case "1":
+        this.$store.state.setting_info.select_serial = this.uarts[0];
+        break;
+      case "2":
+        this.$store.state.setting_info.select_serial = this.uarts[3];
+        break;
+      default:
+        break;
+    }
+  }
   private clickTab() {
     switch (this.tabName) {
       case "0":
-        this.$store.state.setting_info.select_serial = this.uarts[0];
+        if (this.activeName == "1") {
+          this.$store.state.setting_info.select_serial = this.uarts[0];
+        } else if (this.activeName == "2") {
+          this.$store.state.setting_info.select_serial = this.uarts[3];
+        }
         break;
       case "2":
         if (this.da_server_info.type == 0) {

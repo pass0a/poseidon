@@ -16,6 +16,7 @@ let latestVersion: any = {
 	pcan: 'PCAN',
 	dbc: 'DBC',
 	bt_op: '操作蓝牙',
+	power: '程控电源',
 	bt_module: '蓝牙模块',
 	freq: 'FREQ',
 	bt_connect: '连接蓝牙',

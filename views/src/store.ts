@@ -92,7 +92,8 @@ export default new Vuex.Store({
 		},
 		dbc_info: {
 			path: '',
-			data: {}
+			data: {},
+			loading: null
 		},
 		steps_info: {
 			reslist: {},
@@ -153,7 +154,7 @@ export default new Vuex.Store({
 			revdata: {},
 			log: ''
 		},
-		version: '3.2.9'
+		version: '3.2.10'
 	},
 	mutations: {}
 });
