@@ -50,11 +50,11 @@ export class Web_mgr {
 	private async handleCmd(obj: any) {
 		switch (obj.job) {
 			case 'startTest':
-				let jsPath_s = '"' + __dirname + '/test.js"';
+				let jsPath_s = `"${path.join(__dirname, '../testop/main.js')}"`;
 				this.startJS(obj, jsPath_s);
 				break;
 			case 'continueTest':
-				let jsPath_c = '"' + __dirname + '/test.js"';
+				let jsPath_c = `"${path.join(__dirname, '../testop/main.js')}"`;
 				this.startJS(obj, jsPath_c);
 				break;
 			case 'stopTest':
@@ -62,7 +62,7 @@ export class Web_mgr {
 				if (test_link) test_link.stopTest();
 				break;
 			case 'replayTest':
-				let jsPath_r = '"' + __dirname + '/test.js"';
+				let jsPath_r = `"${path.join(__dirname, '../testop/main.js')}"`;
 				this.startJS(obj, jsPath_r);
 				break;
 			case 'syncRemote':
@@ -220,7 +220,7 @@ export class Web_mgr {
 	}
 
 	startJS(obj: any, jsPath: any) {
-		let testcfg: any = require('./testcfg.json');
+		//let testcfg: any = require('./testcfg.json');
 		let passoaPath = process.execPath;
 		let prjpath = obj.info.prjname;
 		let execpath = '"' + passoaPath + '" ' + jsPath + ' "' + prjpath + '"';
@@ -231,7 +231,7 @@ export class Web_mgr {
 		// let loger = new logger();
 		// let test_log = fs.createWriteStream(logDirPath + '/testlog.txt');
 
-		let cmd: any = childprs.exec(execpath, { windowsHide: testcfg.windowsHide }, (err, stdout, stderr) => {
+		let cmd: any = childprs.exec(execpath, (err, stdout, stderr) => {
 			console.log('test has end!!!');
 		});
 		// console.log(logDirPath);

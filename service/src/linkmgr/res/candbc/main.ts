@@ -1,4 +1,4 @@
-import * as Pcan from '@passoa/pcan';
+// import * as Pcan from '@passoa/pcan';
 import dbc from '@passoa/dbcparser';
 import ConvertDBC from './convert';
 import * as util from 'util';
@@ -127,7 +127,7 @@ function disposedForMotorola(msg: any, info: any, data: any) {
 				jl[i + 7]
 		);
 	}
-	console.log(op);
+	console.log('candbc:', op);
 	return new Buffer(op);
 }
 

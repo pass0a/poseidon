@@ -830,7 +830,7 @@ async function createdLink() {
 			console.info('test_client connect!!!');
 		});
 		pos.on('data', (data: any) => {
-			console.log(data);
+			console.log('testop:', data);
 			switch (data.type) {
 				case 'init':
 					pis.write({ type: 'info', class: 'test', name: 'test' });
@@ -849,7 +849,7 @@ async function createdLink() {
 			c.write(data);
 		});
 		c.on('data', (data: any) => {
-			console.log(data);
+			console.log('testop2:', data);
 			pos.write(data);
 		});
 		c.on('close', () => {

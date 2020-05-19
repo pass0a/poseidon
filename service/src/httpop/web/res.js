@@ -26,7 +26,7 @@ function formatPath(dir, ext) {
 				pn = path.dirname(path.dirname(process.execPath)) + '/data_store/projects/' + params.icon;
 				break;
 			default:
-				pn = formatPath(__dirname + '/view', info.pathname);
+				pn = formatPath(process.cwd() + '/view', info.pathname);
 				break;
 		}
 		var f1 = fs.statSync(pn);
