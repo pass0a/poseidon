@@ -1,6 +1,6 @@
 import * as pack from '@passoa/pack';
 import * as net from 'net';
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as util from 'util';
 

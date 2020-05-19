@@ -15,7 +15,8 @@ let latestVersion = [
 	'adb_cmd',
 	'pcan',
 	'dbc',
-	'bt_op'
+	'bt_op',
+	'power'
 ];
 
 function getList(data: any, pis: any, RuleModel: any) {

@@ -1,5 +1,5 @@
 import * as net from 'net';
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import * as pack from '@passoa/pack';
 
 class Remote {

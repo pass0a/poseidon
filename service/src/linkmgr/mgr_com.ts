@@ -1,8 +1,9 @@
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import { Uart } from './res/uart/com';
 import { logger } from '@passoa/logger';
 import relay from './res/parse/relay';
 import da_arm from './res/parse/da_arm';
+import power from './res/parse/power';
 
 export class Com_mgr {
 	private mgr: any;
@@ -84,6 +85,10 @@ export class Com_mgr {
 						}
 					}
 					ret = info.cmd == 'others' ? 0 : await this.uartlist[info.name].sendData(sd, skl, da_arm, 10000);
+					break;
+				case 'power':
+					sd = power.disposeSendData(info.cmd);
+					ret = await this.uartlist[info.name].sendData(sd, notNeedReturn);
 					break;
 			}
 		}

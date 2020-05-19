@@ -1,10 +1,10 @@
 import * as pack from '@passoa/pack';
 import * as net from 'net';
 import * as path from 'path';
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 // import image from './table/image';
 
-import * as sqlite from "sqlite3"
+//import * as sqlite from "sqlite3"
 let pis = new pack.packStream();
 let pos = new pack.unpackStream();
 let sv: any;

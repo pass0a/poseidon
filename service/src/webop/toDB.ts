@@ -1,7 +1,7 @@
 import * as net from 'net';
 import * as pack from '@passoa/pack';
 import * as path from 'path';
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import * as childprs from 'child_process';
 import * as util from 'util';
 import * as os from 'os';

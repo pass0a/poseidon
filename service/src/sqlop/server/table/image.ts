@@ -1,4 +1,4 @@
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import * as path from 'path';
 
 let sqlImg_path: string = path.dirname(path.dirname(process.execPath)) + '/data_store/SQL/image';

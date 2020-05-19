@@ -1,6 +1,6 @@
 import * as childprs from 'child_process';
 import * as path from 'path';
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import * as net from 'net';
 import * as pack from '@passoa/pack';
 import ADB from './res/adb/adb';
@@ -226,8 +226,9 @@ export class Web_mgr {
 		let execpath = '"' + passoaPath + '" ' + jsPath + ' "' + prjpath + '"';
 		console.log('begin test:', execpath);
 
-		let logDirPath = path.dirname(path.dirname(passoaPath)) + '/data_store/projects/' + prjpath + '/log';
-		if (!fs.existsSync(logDirPath)) fs.mkdirSync(logDirPath);
+		let logDirPath = path.join(path.dirname(path.dirname(passoaPath)), '/data_store/projects/' + prjpath + '/log');
+		fs.ensureDir(logDirPath);
+		//if (!fs.existsSync(logDirPath)) fs.mkdirSync(logDirPath);
 		// let loger = new logger();
 		// let test_log = fs.createWriteStream(logDirPath + '/testlog.txt');
 

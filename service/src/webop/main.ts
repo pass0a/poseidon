@@ -1,5 +1,5 @@
 import { Server } from './server';
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import * as os from 'os';
 
 export class App {

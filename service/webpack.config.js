@@ -26,10 +26,11 @@ const nodeConfig = {
 	// Change to your "entry-point".
 	watch: opt_watch,
 	entry: {
-		app: './src/main.ts'
-		// run: './src/run.js',
-		// test: './src/testop/main.ts',
-		// sql: './src/sqlop/server/main.ts',
+		main: './src/main.ts',
+		run: './src/run.ts',
+		test: './src/testop/main.ts'
+		// pcan: './src/pcantest/test.ts'
+		// sql: './src/sqlop/server/main.ts'
 		// sqltest : './src/sqlop/client/main.ts'
 		// link: './src/linkmgr/main.ts',
 		// server : './src/server/main.ts',
@@ -49,11 +50,6 @@ const nodeConfig = {
 	},
 	module: {
 		rules: [
-			{
-				// Include ts, tsx, js, and jsx files.
-				test: /\.(js)x?$/,
-				loader: 'babel-loader'
-			},
 			{
 				test: /\.tsx?$/,
 				use: 'ts-loader'
@@ -87,15 +83,15 @@ const nodeConfig = {
 		__filename: false
 	},
 	externals: [
-		'@passoa/img',
 		'@passoa/cvip',
 		'@passoa/dbcc',
 		'@passoa/pcan',
 		'@passoa/libbt',
 		'@passoa/sqlite',
+		'serialport',
 		'./adb/index.js',
-		'./app.js',
-		'./db/index.js'
+		'./db/index.js',
+		'./main.js'
 	],
 
 	devtool: 'source-map',

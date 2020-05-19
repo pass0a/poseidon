@@ -266,6 +266,10 @@ export default class App extends Vue {
         } else {
           this.$store.state.dbc_info.data = {};
         }
+        if (this.$store.state.dbc_info.loading) {
+          this.$store.state.dbc_info.loading.close();
+          this.$store.state.dbc_info.loading = null;
+        }
         break;
     }
   }

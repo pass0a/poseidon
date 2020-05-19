@@ -86,21 +86,56 @@
       </el-row>
     </el-card>
     <el-card class="box-card" shadow="never" style="margin:10px 10px 10px 10px;">
-      <el-card class="box-card" shadow="never">
-        <span style="margin:0px 0px 0px 5px">
-          <font size="3">
-            <strong>测试输出</strong>
-          </font>
-        </span>
-        <el-input
-          id="imp"
-          type="textarea"
-          :readonly="true"
-          :autosize="{ minRows: 10, maxRows: 10}"
-          placeholder
-          v-model="logCmd"
-        ></el-input>
-      </el-card>
+      <el-tabs type="border-card">
+        <el-tab-pane>
+          <span slot="label">
+            <i class="el-icon-document"></i> 测试输出
+          </span>
+          <el-input
+            id="imp"
+            type="textarea"
+            :readonly="true"
+            :autosize="{ minRows: 10, maxRows: 10}"
+            placeholder
+            v-model="logCmd"
+          ></el-input>
+        </el-tab-pane>
+        <el-tab-pane>
+          <span slot="label">
+            <i class="el-icon-files"></i> PCAN输出
+          </span>
+          <el-table
+            :data="pcanlist"
+            height="211"
+            size="mini"
+            stripe
+            border
+            ref="pcantable"
+            id="ptable"
+          >
+            <!-- <el-table-column prop="time" label="TIME" width="100"></el-table-column> -->
+            <el-table-column prop="type" label="Type" width="100">
+              <template slot-scope="scope">
+                <font
+                  size="2"
+                  :color="scope.row.type==0?'#67C23A':'#f56c6c'"
+                >{{scope.row.type==0?'Rx':'Tx'}}</font>
+              </template>
+            </el-table-column>
+            <el-table-column prop="id" label="ID" width="100"></el-table-column>
+            <el-table-column prop="signal" label="Signal" width="200"></el-table-column>
+            <el-table-column prop="dlc" label="DLC" width="100"></el-table-column>
+            <el-table-column prop="data0" label="Data 0" width="100"></el-table-column>
+            <el-table-column prop="data1" label="Data 1" width="100"></el-table-column>
+            <el-table-column prop="data2" label="Data 2" width="100"></el-table-column>
+            <el-table-column prop="data3" label="Data 3" width="100"></el-table-column>
+            <el-table-column prop="data4" label="Data 4" width="100"></el-table-column>
+            <el-table-column prop="data5" label="Data 5" width="100"></el-table-column>
+            <el-table-column prop="data6" label="Data 6" width="100"></el-table-column>
+            <el-table-column prop="data7" label="Data 7" width="100"></el-table-column>
+          </el-table>
+        </el-tab-pane>
+      </el-tabs>
     </el-card>
   </div>
 </template>
@@ -133,8 +168,15 @@ export default class TestView extends Vue {
     ["0", "大于"],
     ["1", "等于"]
   ]);
+  private power_type: any = new Map([
+    ["set_power1", "Output I"],
+    ["set_power2", "Output II"],
+    ["set_both", "Output ALL"]
+  ]);
   private wait_type: Array<string> = ["固定", "随机"];
   private assert_type: Array<string> = ["是", "不是"];
+  private current_case_count: string = "";
+  private pcanlist: any = [];
   get getStopFlag() {
     this.btnMode = this.$store.state.test_info.stopflag ? 4 : 0;
     return;
@@ -155,6 +197,7 @@ export default class TestView extends Vue {
           this.statusColor.c_result_ng = "#C0C4CC";
           this.statusColor.c_progress = "#C0C4CC";
           this.updateLogCmd(1, "测试准备中...");
+          this.pcanlist = [];
           break;
         case 2:
           if (this.testInfo.mode != 1) break;
@@ -275,6 +318,8 @@ export default class TestView extends Vue {
         if (this.$store.state.test_info.first_module == "") {
           this.$store.state.test_info.first_module = this.testInfo.module;
         }
+        this.current_case_count =
+          this.testInfo.count + "/" + this.testInfo.total;
         this.updateLogCmd(
           1,
           "用例ID : " +
@@ -292,6 +337,10 @@ export default class TestView extends Vue {
         break;
       case 7:
         this.btnMode = 7;
+        break;
+      case 8:
+        if (this.btnMode == 3) break;
+        this.showPcanLog(this.testInfo.info);
         break;
     }
     return;
@@ -415,6 +464,11 @@ export default class TestView extends Vue {
           step.random_h +
           " )";
         break;
+      case "power":
+        let p_value = step.value != undefined ? step.value : 0;
+        content =
+          " [" + this.power_type.get(step.p_type) + "] " + p_value + " V";
+        break;
       default:
         content = " [" + reslist[step.module] + "] " + reslist[step.id];
         if (step.action.indexOf("assert") > -1) {
@@ -433,6 +487,8 @@ export default class TestView extends Vue {
       data.count +
       "/" +
       data.total +
+      "][当前用例执行次数 : " +
+      this.current_case_count +
       "]";
     this.updateLogCmd(1, step_log);
   }
@@ -486,6 +542,14 @@ export default class TestView extends Vue {
       "." +
       (ms < 10 ? "0" + ms : ms)
     );
+  }
+  private showPcanLog(data: any) {
+    if (this.pcanlist.length > 400) {
+      this.pcanlist = this.pcanlist.slice(100);
+    }
+    this.pcanlist.push(data);
+    let table: any = this.$refs.pcantable;
+    table.bodyWrapper.scrollTop = table.bodyWrapper.scrollHeight;
   }
 }
 </script>

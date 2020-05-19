@@ -1,6 +1,6 @@
 import * as WebSocket from 'ws';
 import * as pack from '@passoa/pack';
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import * as util from 'util';
 import * as path from 'path';
 import * as os from 'os';

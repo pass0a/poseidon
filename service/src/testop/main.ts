@@ -4,7 +4,7 @@ import * as childprs from 'child_process';
 import * as net from 'net';
 import * as path from 'path';
 import * as util from 'util';
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import * as os from 'os';
 
 let prjname: string = process.argv[2];
@@ -38,7 +38,8 @@ let actionList: any = {
 	assert_pto: assertPto,
 	pcan: pcan,
 	dbc: dbc,
-	bt_op: operateBT
+	bt_op: operateBT,
+	power: power
 };
 
 startTest();
@@ -525,6 +526,22 @@ async function dbc(cmd: any) {
 		};
 		let sgn = caseInfo.dbcInfo.Signals_Info[cmd.id];
 		let dbcCmd: any = await notifyToLinkMgr({ type: 'toDBC', info: { msg: msg, sgn: sgn, val: cmd.val } });
+		let data: any = {
+			type: 1,
+			id: '0x' + msg.id.toString(16).toUpperCase(),
+			signal: msg.name,
+			dlc: msg.dlc
+		};
+		for (let i = 0; i < dbcCmd.data.length; i++) {
+			let char_s = dbcCmd.data[i].toString(16);
+			if (char_s.length < 2) char_s = '0' + char_s;
+			data['data' + i] = char_s.toUpperCase();
+		}
+		await notifyToLinkMgr({
+			type: ToLink,
+			mode: 8,
+			info: data
+		});
 		await notifyToLinkMgr({ type: 'toPcan', job: 'send', data: dbcCmd });
 		ret = 0;
 	} else {
@@ -560,6 +577,13 @@ async function operateBT(cmd: any) {
 	ret = await notifyToLinkMgr({ type: 'toBT', job: cmd.id, info: cfg });
 	return new Promise((resolve) => {
 		resolve({ ret: ret });
+	});
+}
+
+async function power(cmd: any) {
+	await notifyToLinkMgr({ type: 'toCom', job: 'sendData', info: { name: 'power', cmd: cmd } });
+	return new Promise((resolve) => {
+		resolve({ ret: 0 });
 	});
 }
 
@@ -644,16 +668,12 @@ async function readyForTest() {
 			// 	ready_info.error_code = 2;
 			// }
 			// }
-			if (pcan_isExist) {
-				let pcan_status: any = await notifyToLinkMgr({
-					type: 'toPcan',
-					job: 'open',
-					info: caseInfo.config.pcan_info
+			if (uartsSet.has('power')) {
+				await notifyToLinkMgr({
+					type: 'toCom',
+					job: 'sendData',
+					info: { name: 'power', cmd: { p_type: 'init' } }
 				});
-				if (!pcan_status.ret) {
-					ready_info.ret = 0;
-					ready_info.error_code = 3;
-				}
 			}
 			if (dbc_isExist) {
 				let dbc_path = prjpath + '/dbc.json';
@@ -662,6 +682,20 @@ async function readyForTest() {
 					ready_info.error_code = 4;
 				} else {
 					caseInfo.dbcInfo = JSON.parse(new util.TextDecoder().decode(fs.readFileSync(dbc_path)));
+				}
+			}
+			if (pcan_isExist) {
+				let pcan_status: any = await notifyToLinkMgr({
+					type: 'toPcan',
+					job: 'open',
+					info: {
+						pcan_info: caseInfo.config.pcan_info,
+						dbc_path: prjpath + '/dbc.json'
+					}
+				});
+				if (!pcan_status.ret) {
+					ready_info.ret = 0;
+					ready_info.error_code = 3;
 				}
 			}
 			if (bt_isExist) {
@@ -732,6 +766,9 @@ async function checkNeedCom(cmd: any, uartsSet: Set<any>) {
 	switch (cmd.action) {
 		case 'operate_tool':
 			if (!uartsSet.has('relay')) uartsSet.add('relay');
+			break;
+		case 'power':
+			if (!uartsSet.has('power')) uartsSet.add('power');
 			break;
 		case 'click':
 			if (!uartsSet.has('da_arm') && caseInfo.config.da_server.type == 0) uartsSet.add('da_arm');

@@ -1,5 +1,5 @@
 import * as path from 'path';
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import * as util from 'util';
 import * as os from 'os';
 import { logger } from '@passoa/logger';
