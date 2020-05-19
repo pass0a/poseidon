@@ -2,6 +2,8 @@ import QGBox from './res/qgbox/index';
 import Pcan from './res/pcan/index';
 import DBC from './res/candbc/index';
 import BT from './res/bt/index';
+import * as fs from 'fs';
+import * as util from 'util';
 
 export class Test_mgr {
 	private currentStatus: boolean = true;
@@ -65,8 +67,35 @@ export class Test_mgr {
 		let ret: any;
 		switch (obj.job) {
 			case 'open':
-				ret = Pcan.open(info, (ev: any, data: any) => {
-					// console.log(ev,data);
+				let dbcInfo: any;
+				let web_mgr = this.mgr.getLink('web', 'web');
+				if (info.dbc_path && fs.existsSync(info.dbc_path)) {
+					dbcInfo = JSON.parse(new util.TextDecoder().decode(fs.readFileSync(info.dbc_path)));
+				}
+				ret = Pcan.open(info.pcan_info, (ev: string, id: number, type: number, data: Buffer) => {
+					if (dbcInfo) {
+						for (let prop in dbcInfo.Messages_Info) {
+							if (dbcInfo.Messages_Info[prop].id == id) {
+								let pcan_log: any = {
+									type: 'tolink',
+									mode: 8,
+									info: {
+										type: type,
+										id: '0x' + id.toString(16).toUpperCase(),
+										signal: prop,
+										dlc: 8
+									}
+								};
+								for (let i = 0; i < data.length; i++) {
+									let char_s = data[i].toString(16);
+									if (char_s.length < 2) char_s = '0' + char_s;
+									pcan_log.info['data' + i] = char_s.toUpperCase();
+								}
+								if (web_mgr) web_mgr.sendToWebServer(pcan_log);
+								break;
+							}
+						}
+					}
 				});
 				break;
 			case 'send':

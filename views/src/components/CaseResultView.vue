@@ -102,7 +102,15 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 export default class CaseResultView extends Vue {
   private caseData: any = [];
   private retData: any = [];
-  private freqtype: any = new Map([["0", "大于"], ["1", "等于"]]);
+  private freqtype: any = new Map([
+    ["0", "大于"],
+    ["1", "等于"]
+  ]);
+  private power_type: any = new Map([
+    ["set_power1", "Output I"],
+    ["set_power2", "Output II"],
+    ["set_both", "Output ALL"]
+  ]);
   private stepTitle: any = [
     "未执行",
     "执行成功",
@@ -346,6 +354,10 @@ export default class CaseResultView extends Vue {
           "] " +
           this.getResName(it.id) +
           g_content;
+        break;
+      case "power":
+        let p_value = it.value != undefined ? it.value : 0;
+        content = " [" + this.power_type.get(it.p_type) + "] " + p_value + " V";
         break;
       default:
         content =

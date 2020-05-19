@@ -30,17 +30,23 @@
           <i class="el-icon-document"></i>查看报告
         </el-menu-item>
         <el-submenu index="6">
-          <template slot="title">多项管理</template>
+          <template slot="title">
+            <i class="el-icon-s-operation"></i>多项管理
+          </template>
           <el-menu-item index="6_1">模块管理</el-menu-item>
           <el-menu-item index="6_2">步骤管理</el-menu-item>
-          <el-menu-item index="6_3">选项绑定</el-menu-item>
-          <el-menu-item index="6_4">摄像功能</el-menu-item>
         </el-submenu>
-        <el-menu-item index="7">
-          <i class="el-icon-setting"></i>系统配置
-        </el-menu-item>
+        <el-submenu index="7">
+          <template slot="title">
+            <i class="el-icon-truck"></i>辅助工具
+          </template>
+          <el-menu-item index="7_1">车机投屏</el-menu-item>
+          <el-menu-item index="7_2">摄像功能</el-menu-item>
+          <el-menu-item index="7_3">软件推送</el-menu-item>
+          <el-menu-item index="7_4">PCAN</el-menu-item>
+        </el-submenu>
         <el-menu-item index="8">
-          <i class="el-icon-s-unfold"></i>软件推送
+          <i class="el-icon-setting"></i>系统配置
         </el-menu-item>
         <el-menu-item index="9">
           <i class="el-icon-service"></i>关于我们
@@ -125,17 +131,17 @@
         <ul v-show="select_mode=='6_2'">
           <StepsMgrView />
         </ul>
-        <ul v-show="select_mode=='6_3'">
+        <ul v-show="select_mode=='7_1'">
           <ScreenView />
         </ul>
-        <ul v-show="select_mode=='6_4'">
+        <ul v-show="select_mode=='7_2'">
           <CameraView />
         </ul>
-        <ul v-show="select_mode=='7'">
-          <SettingView />
+        <ul v-show="select_mode=='7_3'">
+          <PushView />
         </ul>
         <ul v-show="select_mode=='8'">
-          <PushView />
+          <SettingView />
         </ul>
         <ul v-show="select_mode=='9'">
           <AboutView />
@@ -188,7 +194,7 @@ import CameraView from "./CameraView.vue";
 export default class Home extends Vue {
   private select_mode: any = "4";
   private test_status: any = false;
-  private needOpenPrj: any = ["3", "5", "6_1", "6_2", "6_3", "6_4"];
+  private needOpenPrj: any = ["3", "5", "6_1", "6_2", "7_1", "7_2"];
   private needStopTest: any = [
     "1",
     "2",
@@ -196,9 +202,9 @@ export default class Home extends Vue {
     "5",
     "6_1",
     "6_2",
-    "6_3",
-    "6_4",
-    "8"
+    "7_1",
+    "7_2",
+    "7_3"
   ];
   private connectStatus: any = { server: 0, db: 0, link: 0 };
   get currentProject() {
@@ -382,14 +388,14 @@ export default class Home extends Vue {
           });
           this.select_mode = key;
           break;
-        case "6_3":
+        case "7_1":
           this.$store.state.app_info.pis.write({
             type: "toSer",
             job: "readConfig"
           });
           this.select_mode = key;
           break;
-        case "7":
+        case "7_3":
           this.$store.state.app_info.pis.write({
             type: "toSer",
             job: "readConfig"
