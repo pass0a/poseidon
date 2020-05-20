@@ -44,9 +44,9 @@
 ; MUI end ------
 
 
-; °²×°VC»·¾³
+; ï¿½ï¿½×°VCï¿½ï¿½ï¿½ï¿½
 Function InstallVC
-   ExecWait "$INSTDIR\vcredist_x86.exe"   ;Èô²»´æÔÚ£¬Ö´ÐÐ¾²Ä¬°²×°
+   ExecWait "$INSTDIR\vcredist_x86.exe"   ;ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú£ï¿½Ö´ï¿½Ð¾ï¿½Ä¬ï¿½ï¿½×°
    Delete "$INSTDIR\vcredist_x86.exe"
 FunctionEnd
 
@@ -57,7 +57,7 @@ InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails show
 ShowUnInstDetails show
 
-Section "Ö÷Ìå³ÌÐò" SEC01
+Section "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" SEC01
   SetOutPath "$INSTDIR"
   SetOverwrite ifnewer
   File ".\License.txt"
@@ -68,13 +68,12 @@ Section "Ö÷Ìå³ÌÐò" SEC01
   File /r ".\depends\browser"
   File /r ".\depends\db"
   File /r ".\depends\adb"
-  File /r ".\depends\passoa\dist\"
   CreateDirectory "$SMPROGRAMS\Poseidon"
   CreateShortCut "$SMPROGRAMS\Poseidon\Poseidon.lnk" "$INSTDIR\loader.exe"
   CreateShortCut "$DESKTOP\Poseidon.lnk" "$INSTDIR\loader.exe"
 SectionEnd
 
-Section "¼ÓÈëÏµÍ³Â·¾¶" SEC02
+Section "ï¿½ï¿½ï¿½ï¿½ÏµÍ³Â·ï¿½ï¿½" SEC02
 ;;  File /r "..\output\node_modules\"
 ;;  Push "$INSTDIR"
 ;;  Call AddToPath
@@ -101,8 +100,8 @@ SectionEnd
 
 ; Section descriptions
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
-  !insertmacro MUI_DESCRIPTION_TEXT ${SEC01} "±¾ÏµÍ³µÄÖ÷Ìå³ÌÐò"
-  !insertmacro MUI_DESCRIPTION_TEXT ${SEC02} "¼ÓÈëµ½ÏµÍ³Â·¾¶ÖÐ"
+  !insertmacro MUI_DESCRIPTION_TEXT ${SEC01} "ï¿½ï¿½ÏµÍ³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½"
+  !insertmacro MUI_DESCRIPTION_TEXT ${SEC02} "ï¿½ï¿½ï¿½ëµ½ÏµÍ³Â·ï¿½ï¿½ï¿½ï¿½"
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 ;--------------------------------------------------------------------
@@ -285,11 +284,11 @@ FunctionEnd
 
 Function un.onUninstSuccess
   HideWindow
-  MessageBox MB_ICONINFORMATION|MB_OK "$(^Name) ÒÑ³É¹¦µØ´ÓÄãµÄ¼ÆËã»úÒÆ³ý¡£"
+  MessageBox MB_ICONINFORMATION|MB_OK "$(^Name) ï¿½Ñ³É¹ï¿½ï¿½Ø´ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½Æ³ï¿½ï¿½ï¿½"
 FunctionEnd
 
 Function un.onInit
-  MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "ÄãÈ·ÊµÒªÍêÈ«ÒÆ³ý $(^Name) £¬Æä¼°ËùÓÐµÄ×é¼þ£¿" IDYES +2
+  MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "ï¿½ï¿½È·ÊµÒªï¿½ï¿½È«ï¿½Æ³ï¿½ $(^Name) ï¿½ï¿½ï¿½ä¼°ï¿½ï¿½ï¿½Ðµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" IDYES +2
   Abort
 FunctionEnd
 
@@ -325,13 +324,13 @@ Function .onInit
                         ; '0' if everything closed normally, and '-1' if some error occurred.
 
         ;Delete $PLUGINSDIR\splash.bmp
-  ;½ûÖ¹¶à´Î°²×°ÊµÀý start
+  ;ï¿½ï¿½Ö¹ï¿½ï¿½Î°ï¿½×°Êµï¿½ï¿½ start
   ReadRegDWORD $0 HKLM '${PRODUCT_DIR_REGKEY}' "Installed"
   IntCmp $0 +1 +4
-   MessageBox MB_OK|MB_USERICON '$(^Name) ÒÑ°²×°ÔÚ¼ÆËã»úÖÐ¡£ÈçÐèÖØÐÂ°²×°£¬ÇëÐ¶ÔØÒÑÓÐµÄ°²×°¡£'
+   MessageBox MB_OK|MB_USERICON '$(^Name) ï¿½Ñ°ï¿½×°ï¿½Ú¼ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â°ï¿½×°ï¿½ï¿½ï¿½ï¿½Ð¶ï¿½ï¿½ï¿½ï¿½ï¿½ÐµÄ°ï¿½×°ï¿½ï¿½'
   Quit
   nop
- ;½ûÖ¹¶à´Î°²×°ÊµÀý end
+ ;ï¿½ï¿½Ö¹ï¿½ï¿½Î°ï¿½×°Êµï¿½ï¿½ end
 FunctionEnd
 
 

@@ -3,13 +3,7 @@ pool:
   demands: npm
 
 steps:
-- task: DownloadGitHubRelease@0
-  inputs:
-    connection: 'GitHub connection 1'
-    userRepository: 'losper/passoa'
-    defaultVersionType: 'latest'
-    itemPattern: 'passoa-windows*'
-    downloadPath: './'
+
 - task: DownloadGitHubRelease@0
   inputs:
     connection: 'GitHub connection 1'
@@ -20,7 +14,6 @@ steps:
 
 - script: |
    mkdir depends
-   7z x passoa*.zip -r -o./depends/passoa -y
    7z x browser.7z -r -o./depends/browser -y
    7z x db.7z -r -o./depends/db -y
    7z x adb.7z -r -o./depends/adb -y
@@ -31,22 +24,17 @@ steps:
    ls
   displayName: 'install all depends'
 
-- script: |
-   curl -L -o pcan-basic.zip http://www.peak-system.com/fileadmin/media/files/pcan-basic.zip
-   7z x pcan-basic.zip -r -o./ -y
-  displayName: 'install pcanbase'
-
-- powershell: |
-    npm install cross-env -g
-    cd service
-    npm run cxb
-  displayName: 'install windows_x86 plugin'
-
 - task: Npm@1
   displayName: 'npm install'
   inputs:
     workingDir: views
     verbose: false
+
+- task: Npm@1
+    displayName: 'npm install'
+    inputs:
+      workingDir: service
+      verbose: false
 
 - task: Npm@1
   displayName: 'npm build service'
@@ -65,8 +53,12 @@ steps:
     customCommand: 'run build'
 
 - script: |
-   cp service/node_modules/@passoa/ depends/passoa/dist/node_modules/@passoa/ -rf
-  displayName: 'install node_mudules/@passoa'
+    mkdir dist
+    
+    cp C:\hostedtoolcache\windows\node\12.16.1\x64\node.exe service/dist/node.exe
+    cp service/node_modules/ depends/passoa/dist/node_modules/@passoa/ -rf
+  displayName: 'Command Line Script'
+    
 
 - task: nsis@1
   inputs:
@@ -110,25 +102,3 @@ steps:
   enabled: false
   condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
 
-- task: cURLUploader@2
-  displayName: 'Upload cURL by tag'
-  inputs:
-    files: '$(Build.ArtifactStagingDirectory)/Poseidon-$(Build.SourceBranchName)-$(Build.BuildId).7z'
-    serviceEndpoint: 'csding.net'
-    remotePath: 'repertory/cxb/Poseidon.7z?version=$(Build.SourceBranchName)-windows-x86'
-  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
-
-- task: cURLUploader@2
-  displayName: 'Upload cURL by other'
-  inputs:
-    files: '$(Build.ArtifactStagingDirectory)/Poseidon-$(Build.SourceBranchName)-$(Build.BuildId).7z'
-    serviceEndpoint: 'csding.net'
-    remotePath: 'repertory/cxb/Poseidon.7z?version=dev-windows-x86'
-
-- task: cURLUploader@2
-  displayName: 'Upload cURL for Reveal'
-  inputs:
-    files: '$(Build.ArtifactStagingDirectory)/Reveal-$(Build.SourceBranchName)-$(Build.BuildId).7z'
-    serviceEndpoint: 'csding.net'
-    remotePath: 'repertory/cxb/Reveal.7z?version=$(Build.SourceBranchName)-windows-x86'
-  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
