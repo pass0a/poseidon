@@ -813,10 +813,10 @@ export default class StepsMgrView extends Vue {
     this.$store.state.app_info.pis.write(req);
   }
   private openDBC() {
-    // let usl: any = window;
-    // let filepath = usl.pathByUserSelect();
-    let filepath =
-      "C:/Users/huangzepeng/Desktop/dbc_analysis/20191029_KU_2020_Multi_19.10.02.dbc"; //test
+    let usl: any = window;
+    let filepath = usl.pathByUserSelect();
+    // let filepath =
+    //   "C:/Users/huangzepeng/Desktop/dbc_analysis/20191029_KU_2020_Multi_19.10.02.dbc"; //test
     if (filepath.length == 0 || filepath == undefined) return;
     else if (filepath.indexOf(".dbc") > -1) {
       let job = this.dbcPath == "空" ? "add" : "modify";

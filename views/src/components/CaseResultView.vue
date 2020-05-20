@@ -88,6 +88,11 @@
         <el-table :data="retData" style="width: 100%" height="200" size="mini" border>
           <el-table-column label="循环次数序号" prop="loop_id" resizable></el-table-column>
           <el-table-column label="失败步骤序号" prop="fail_id" resizable></el-table-column>
+          <el-table-column label="失败原因" prop="fail_status" resizable>
+            <template slot-scope="scope">
+              <span>{{showFailStatus(scope.row.fail_status)}}</span>
+            </template>
+          </el-table-column>
         </el-table>
       </div>
     </div>
@@ -145,9 +150,18 @@ export default class CaseResultView extends Vue {
       for (let i = 0; i < data.fail_info.length; i++) {
         this.retData.push({
           loop_id: data.fail_info[i].case_loop_idx + 1,
-          fail_id: data.fail_info[i].case_idx + 1
+          fail_id: data.fail_info[i].case_idx + 1,
+          fail_status: data.fail_info[i].case_loop_ret[0].step_loop_ret
         });
       }
+    }
+  }
+  private showFailStatus(status: number) {
+    switch (status) {
+      case 1:
+        return "图片匹配失败";
+      case 2:
+        return "图片获取失败";
     }
   }
   private showFailImg() {
