@@ -32,14 +32,14 @@ export class Web_mgr {
 							this.pis.write({ route: 'image', job: 'downImg', info: data.info.downList });
 						} else {
 							let test_link = this.mgr.getLink('test', 'test');
-							if (test_link) test_link.sendCmd({ type: 'toSQL', route: 'image', job: 'list' });
+							// if (test_link) test_link.sendCmd({ type: 'toSQL', route: 'image', job: 'list' });
 						}
 					} else if (data.job == 'downImg') {
 						fs.writeFileSync(this.prjPath + '/img/' + data.info.imgId + '.png', data.info.buffer);
 						this.imgCount--;
 						if (this.imgCount == 0) {
 							let test_link = this.mgr.getLink('test', 'test');
-							if (test_link) test_link.sendCmd({ type: 'toSQL', route: 'image', job: 'list' });
+							// if (test_link) test_link.sendCmd({ type: 'toSQL', route: 'image', job: 'list' });
 						}
 					}
 			}

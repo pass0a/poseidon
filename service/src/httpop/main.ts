@@ -16,11 +16,12 @@ app.get('/getImage', (req, res, next) => {
 app.get('/getIcon', (req, res, next) => {
 	let icon = req.query.icon;
 	if (typeof icon == 'string') {
-		res.sendFile(icon, (err) => {
+		let path = join(dirname(dirname(process.execPath)), '/data_store/projects/', icon);
+		console.log('getIcon', path);
+		res.sendFile(path, (err) => {
 			console.log(err);
 		});
 	}
-	next();
 });
 app.listen(6003, function() {
 	console.log('CORS-enabled web server listening on port 6003');

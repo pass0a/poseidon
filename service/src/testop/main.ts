@@ -711,9 +711,9 @@ async function readyForTest() {
 					}
 				}
 			}
-			if (need_down_img) {
-				await updateImageFromSql();
-			}
+			// if (need_down_img) {
+			// 	await updateImageFromSql();
+			// }
 		}
 	} else {
 		ready_info = { ret: 0, error_code: 1 };

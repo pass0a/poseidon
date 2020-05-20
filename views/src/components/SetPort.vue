@@ -23,7 +23,7 @@
       </el-form-item>
       <el-form-item label="Baud Rate" style="margin:0px 0px 0px 50px">
         <el-input-number
-          v-model="initInfo.baud_rate"
+          v-model="initInfo.baudRate"
           controls-position="right"
           :min="0"
           size="small"
@@ -33,13 +33,13 @@
         </p>
       </el-form-item>
       <el-form-item label="Data Bits" style="margin:0px 0px 0px 50px">
-        <el-select v-model="initInfo.data_bits" size="small" style="width:130px">
+        <el-select v-model="initInfo.dataBits" size="small" style="width:130px">
           <el-option v-for="val in dbits" :label="val" :value="val" :key="val"></el-option>
         </el-select>
       </el-form-item>
       <br />
       <el-form-item label="Stop Bits">
-        <el-select v-model="initInfo.stop_bits" size="small" style="width:130px">
+        <el-select v-model="initInfo.stopBits" size="small" style="width:130px">
           <el-option v-for="val in sbits" :label="val.name" :value="val.num" :key="val.num"></el-option>
         </el-select>
       </el-form-item>
@@ -62,24 +62,24 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 export default class SetPort extends Vue {
   private initInfo = {
     port: 1,
-    baud_rate: 115200,
-    data_bits: 8,
-    stop_bits: 0,
+    baudRate: 115200,
+    dataBits: 8,
+    stopBits: 0,
     parity: 0,
     flow_control: 0
   };
   private dbits = [5, 6, 7, 8];
   private sbits = [
-    { name: "1", num: 0 },
-    { name: "1.5", num: 1 },
+    { name: "1", num: 1 },
+    { name: "1.5", num: 1.5 },
     { name: "2", num: 2 }
   ];
   private parity = [
-    { name: "None", num: 0 },
-    { name: "Odd", num: 1 },
-    { name: "Even", num: 2 },
-    { name: "Mark", num: 3 },
-    { name: "Space", num: 4 }
+    { name: "None", num: "none" },
+    { name: "Odd", num: "odd" },
+    { name: "Even", num: "even" },
+    { name: "Mark", num: "mark" },
+    { name: "Space", num: "space" }
   ];
   private flow = [
     { name: "None", num: 0 },
@@ -97,9 +97,9 @@ export default class SetPort extends Vue {
           this.$store.state.setting_info.select_serial
         ] = {
           port: 1,
-          baud_rate: 115200,
-          data_bits: 8,
-          stop_bits: 0,
+          baudRate: 115200,
+          dataBits: 8,
+          stopBits: 0,
           parity: 0,
           flow_control: 0
         };
@@ -118,7 +118,7 @@ export default class SetPort extends Vue {
         }
         break;
       case 1:
-        if (this.initInfo.baud_rate % 1 != 0) {
+        if (this.initInfo.baudRate % 1 != 0) {
           return "请输入正确的波特率";
         }
         break;

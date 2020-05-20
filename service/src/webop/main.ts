@@ -3,10 +3,10 @@ import * as fs from 'fs-extra';
 import * as os from 'os';
 let defaultConfig = {
 	uarts: {
-		relay: { port: 3, baud_rate: 9600, data_bits: 8, stop_bits: 0, parity: 0, flow_control: 0 },
-		da_arm: { port: 1, baud_rate: 115200, data_bits: 8, stop_bits: 0, parity: 0, flow_control: 0 },
-		log: { port: 16, baud_rate: 115200, data_bits: 8, stop_bits: 0, parity: 0, flow_control: 0 },
-		power: { port: 1, baud_rate: 57600, data_bits: 8, stop_bits: 0, parity: 0, flow_control: 0 }
+		relay: { port: 3, baudRate: 9600, dataBits: 8, stopBits: 1, parity: 'none', flow_control: 0 },
+		da_arm: { port: 1, baudRate: 115200, dataBits: 8, stopBits: 1, parity: 'none', flow_control: 0 },
+		log: { port: 16, baudRate: 115200, dataBits: 8, stopBits: 1, parity: 'none', flow_control: 0 },
+		power: { port: 1, baudRate: 57600, dataBits: 8, stopBits: 1, parity: 'none', flow_control: 0 }
 	},
 	db_server: { type: 0, ip: '192.168.19.12', port: '6111' },
 	da_server: {
