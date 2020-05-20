@@ -4,7 +4,7 @@ import * as childprs from 'child_process';
 import * as net from 'net';
 import * as path from 'path';
 import * as util from 'util';
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import * as os from 'os';
 
 let prjname: string = process.argv[2];
@@ -619,7 +619,7 @@ async function readyForTest() {
 	progress_info.total = caseInfo.caselist.length;
 	if (progress_info.total) {
 		let tmppath = prjpath + '/tmp';
-		if (!fs.existsSync(tmppath)) fs.mkdirSync(tmppath);
+		fs.ensureDirSync(tmppath);
 		let uartsSet = new Set();
 		let runtime = 0;
 		LogOpen(uartsSet); // Log
@@ -727,7 +727,7 @@ function LogOpen(uartsSet: Set<any>) {
 	if (caseInfo.config.log_info) {
 		log_info.status = caseInfo.config.log_info.open;
 		if (log_info.status) {
-			if (!fs.existsSync(prjpath + '/log')) fs.mkdirSync(prjpath + '/log');
+			fs.ensureDirSync(prjpath + '/log');
 			if (!caseInfo.config.log_info.type) {
 				// 检测Log串口是否共用
 				let uartsInfo = caseInfo.config.uarts;
@@ -867,7 +867,7 @@ async function createdLink() {
 			console.info('test_client connect!!!');
 		});
 		pos.on('data', (data: any) => {
-			console.log(data);
+			console.log('testop:', data);
 			switch (data.type) {
 				case 'init':
 					pis.write({ type: 'info', class: 'test', name: 'test' });
@@ -886,7 +886,7 @@ async function createdLink() {
 			c.write(data);
 		});
 		c.on('data', (data: any) => {
-			console.log(data);
+			console.log('testop2:', data);
 			pos.write(data);
 		});
 		c.on('close', () => {

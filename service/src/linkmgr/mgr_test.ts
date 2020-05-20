@@ -2,7 +2,7 @@ import QGBox from './res/qgbox/index';
 import Pcan from './res/pcan/index';
 import DBC from './res/candbc/index';
 import BT from './res/bt/index';
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import * as util from 'util';
 
 export class Test_mgr {

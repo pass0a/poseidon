@@ -1,4 +1,4 @@
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import { Uart } from './res/uart/com';
 import { logger } from '@passoa/logger';
 import relay from './res/parse/relay';

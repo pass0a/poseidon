@@ -748,10 +748,7 @@ export default class StepsMgrView extends Vue {
         this.$store.state.project_info.current_prj + "/img/" + id + ".png";
       let img: any = document.getElementById("icon");
       img.src =
-        "http://127.0.0.1:6003/?action=icon&icon=" +
-        icon_path +
-        "&id=" +
-        this.idx++;
+        "http://127.0.0.1:6003/getIcon?icon=" + icon_path + "&id=" + this.idx++;
       this.checkflag = true;
     } else {
       this.$notify({

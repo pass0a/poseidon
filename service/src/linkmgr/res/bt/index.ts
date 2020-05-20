@@ -2,7 +2,7 @@ class BT {
 	private init_status: boolean = false;
 	private bt: any;
 	init(ping: string) {
-		if (!this.bt) this.bt = require('@passoa/libbt').default;
+		//if (!this.bt) this.bt = require('@passoa/libbt').default;
 		return new Promise((resolve) => {
 			if (!this.init_status) {
 				this.init_status = true;

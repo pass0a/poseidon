@@ -1,7 +1,7 @@
 import * as net from 'net';
 import * as pack from '@passoa/pack';
 import * as path from 'path';
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import * as childprs from 'child_process';
 import * as util from 'util';
 import * as os from 'os';
@@ -81,7 +81,7 @@ export class ToDB {
 					data = { type: 'toSer', job: 'dbStatus', info: data.info };
 					break;
 				case 'projects':
-					if (data.job == 'add' && data.info.state) fs.mkdirSync(this.prjdir + data.info.msg.name);
+					if (data.job == 'add' && data.info.state) fs.ensureDirSync(this.prjdir + data.info.msg.name);
 					break;
 				case 'removeAll': // 删除文件夹
 					let remove_dir = '"' + this.prjdir + data.info.prjname + '"';

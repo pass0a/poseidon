@@ -1,6 +1,6 @@
 import * as childprs from 'child_process';
 import * as path from 'path';
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import * as net from 'net';
 import * as pack from '@passoa/pack';
 import ADB from './res/adb/adb';
@@ -26,21 +26,20 @@ export class Web_mgr {
 					if (data.job == 'list') {
 						fs.writeFileSync(this.prjPath + '/imgCfg.json', JSON.stringify(data.info.imgCfg));
 						if (data.info.downList.length) {
-							if (!fs.existsSync(this.prjPath + '/img')) {
-								fs.mkdirSync(this.prjPath + '/img');
-							}
+							fs.ensureDirSync(this.prjPath + '/img');
+
 							this.imgCount = data.info.downList.length;
 							this.pis.write({ route: 'image', job: 'downImg', info: data.info.downList });
 						} else {
 							let test_link = this.mgr.getLink('test', 'test');
-							if (test_link) test_link.sendCmd({ type: 'toSQL', route: 'image', job: 'list' });
+							// if (test_link) test_link.sendCmd({ type: 'toSQL', route: 'image', job: 'list' });
 						}
 					} else if (data.job == 'downImg') {
 						fs.writeFileSync(this.prjPath + '/img/' + data.info.imgId + '.png', data.info.buffer);
 						this.imgCount--;
 						if (this.imgCount == 0) {
 							let test_link = this.mgr.getLink('test', 'test');
-							if (test_link) test_link.sendCmd({ type: 'toSQL', route: 'image', job: 'list' });
+							// if (test_link) test_link.sendCmd({ type: 'toSQL', route: 'image', job: 'list' });
 						}
 					}
 			}
@@ -50,11 +49,11 @@ export class Web_mgr {
 	private async handleCmd(obj: any) {
 		switch (obj.job) {
 			case 'startTest':
-				let jsPath_s = '"' + __dirname + '/test.js"';
+				let jsPath_s = `"${path.join(__dirname, '../testop/main.js')}"`;
 				this.startJS(obj, jsPath_s);
 				break;
 			case 'continueTest':
-				let jsPath_c = '"' + __dirname + '/test.js"';
+				let jsPath_c = `"${path.join(__dirname, '../testop/main.js')}"`;
 				this.startJS(obj, jsPath_c);
 				break;
 			case 'stopTest':
@@ -62,7 +61,7 @@ export class Web_mgr {
 				if (test_link) test_link.stopTest();
 				break;
 			case 'replayTest':
-				let jsPath_r = '"' + __dirname + '/test.js"';
+				let jsPath_r = `"${path.join(__dirname, '../testop/main.js')}"`;
 				this.startJS(obj, jsPath_r);
 				break;
 			case 'syncRemote':
@@ -74,7 +73,7 @@ export class Web_mgr {
 				let prjPath = path.dirname(path.dirname(passoaPath)) + '/data_store/projects/' + obj.info.prjname;
 				let screenPath = prjPath + '/screen/screen.png';
 				let imgPath = prjPath + '/img';
-				if (!fs.existsSync(imgPath)) fs.mkdirSync(imgPath);
+				fs.ensureDirSync(imgPath);
 				let icon_info = obj.info.cut_info;
 				let iconPath = imgPath + '/' + icon_info.id + '.png';
 				if (!this.Cvip) this.Cvip = require('@passoa/cvip');
@@ -220,18 +219,19 @@ export class Web_mgr {
 	}
 
 	startJS(obj: any, jsPath: any) {
-		let testcfg: any = require('./testcfg.json');
+		//let testcfg: any = require('./testcfg.json');
 		let passoaPath = process.execPath;
 		let prjpath = obj.info.prjname;
 		let execpath = '"' + passoaPath + '" ' + jsPath + ' "' + prjpath + '"';
 		console.log('begin test:', execpath);
 
-		let logDirPath = path.dirname(path.dirname(passoaPath)) + '/data_store/projects/' + prjpath + '/log';
-		if (!fs.existsSync(logDirPath)) fs.mkdirSync(logDirPath);
+		let logDirPath = path.join(path.dirname(path.dirname(passoaPath)), '/data_store/projects/' + prjpath + '/log');
+		fs.ensureDirSync(logDirPath);
+		//if (!fs.existsSync(logDirPath)) fs.mkdirSync(logDirPath);
 		// let loger = new logger();
 		// let test_log = fs.createWriteStream(logDirPath + '/testlog.txt');
 
-		let cmd: any = childprs.exec(execpath, { windowsHide: testcfg.windowsHide }, (err, stdout, stderr) => {
+		let cmd: any = childprs.exec(execpath, (err, stdout, stderr) => {
 			console.log('test has end!!!');
 		});
 		// console.log(logDirPath);

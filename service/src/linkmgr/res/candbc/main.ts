@@ -1,8 +1,8 @@
-import * as Pcan from '@passoa/pcan';
+// import * as Pcan from '@passoa/pcan';
 import dbc from '@passoa/dbcparser';
 import ConvertDBC from './convert';
 import * as util from 'util';
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 
 new dbc().parse('C:/Users/huangzepeng/Desktop/20180821_SU2_2019______18.08.01.dbc', (data: any) => {
 	// console.log(data);
@@ -127,7 +127,7 @@ function disposedForMotorola(msg: any, info: any, data: any) {
 				jl[i + 7]
 		);
 	}
-	console.log(op);
+	console.log('candbc:', op);
 	return new Buffer(op);
 }
 

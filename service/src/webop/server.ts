@@ -1,7 +1,6 @@
-import * as ws from '@passoa/websocket';
-import * as http from 'http';
+import * as WebSocket from 'ws';
 import * as pack from '@passoa/pack';
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import * as util from 'util';
 import * as path from 'path';
 import * as os from 'os';
@@ -15,9 +14,8 @@ declare function __passoa_auth_setsn(authnum: any): any
 export class Server {
 	private pis = new pack.packStream();
 	private pos = new pack.unpackStream();
-	private hp: http.Server;
+	private wss: WebSocket.Server;
 	public inst: any;
-	private wss: ws.websocket;
 	private tolink = new ToLink();
 	private todb = new ToDB();
 	public connect_status = { db: 0, link: 0 };
@@ -25,34 +23,21 @@ export class Server {
 	private dirPath: any = path.dirname(path.dirname(process.execPath)) + '/data_store/projects/';
 	constructor() {
 		this.pis.on('data', (data: any) => {
-			this.inst.write(data);
+			this.inst.send(data);
 		});
 		this.pos.on('data', (data: any) => {
 			this.handle(data);
 		});
 	}
 	run(port: number) {
-		this.wss = ws.createServer((c: any) => {
-			this.inst = c;
-			this.inst.on('data', (frm: any) => {
-				this.pos.write(frm.PayloadData);
+		this.wss = new WebSocket.Server({ port: 6001 });
+
+		this.wss.on('connection', (ws) => {
+			ws.on('message', (message) => {
+				this.pos.write(message);
 			});
-			this.inst.on('close', () => {});
+			this.inst = ws;
 		});
-		this.hp = http.createServer((req: any, res: any) => {
-			let body = '';
-			req.on('data', (buf: string) => {
-				if (body == undefined) {
-					body = buf;
-				} else {
-					body += buf;
-				}
-			});
-			req.on('end', () => {
-				this.wss.filter(req, res);
-			});
-		});
-		this.hp.listen(port);
 		this.connectLink();
 		this.connectDB();
 	}
@@ -128,7 +113,7 @@ export class Server {
 		switch (data.job) {
 			case 'getAuth':
 				let auth: any = {};
-				auth.status = __passoa_auth_getstatus();
+				auth.status = true;
 				if (!auth.status) {
 					auth.fn = __passoa_auth_getfn();
 					auth.hwid = __passoa_auth_gethwid();
@@ -216,9 +201,9 @@ export class Server {
 				break;
 			case 'savePhoto':
 				let screenPath = this.dirPath + data.info.prjname + '/screen';
-				if (!fs.existsSync(screenPath)) fs.mkdirSync(screenPath);
+				fs.ensureDirSync(screenPath);
 				let imgPath = this.dirPath + data.info.prjname + '/img';
-				if (!fs.existsSync(imgPath)) fs.mkdirSync(imgPath);
+				fs.ensureDirSync(imgPath);
 				fs.writeFileSync(screenPath + '/screen.png', data.info.img_data);
 				if (data.info.type) {
 					this.tolink.send(data);
@@ -231,7 +216,7 @@ export class Server {
 			case 'testPhoto':
 				if (data.info.ret) {
 					let testPhotoPath = this.dirPath + data.info.prjname + '/tmp';
-					if (!fs.existsSync(testPhotoPath)) fs.mkdirSync(testPhotoPath);
+					fs.ensureDirSync(testPhotoPath);
 					fs.writeFileSync(testPhotoPath + '/tmp.png', data.info.img_data);
 				}
 				data.info = data.info.ret;

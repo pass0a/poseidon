@@ -1,4 +1,4 @@
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import * as util from 'util';
 let pcan = require('@passoa/pcan');
 let dbcInfo = JSON.parse(new util.TextDecoder().decode(fs.readFileSync('D:/data_store/projects/KU/dbc.json')));

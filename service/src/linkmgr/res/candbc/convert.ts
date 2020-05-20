@@ -1,4 +1,4 @@
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import dbc from '@passoa/dbcparser';
 
 class ConvertDBC {
