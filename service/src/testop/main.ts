@@ -428,7 +428,7 @@ async function pcan(cmd: any) {
 		for (let j = 0; j < pcanCmd[i].data.length; j++) {
 			pcan_data.push(parseInt(pcanCmd[i].data[j], 16));
 		}
-		await notifyToLinkMgr({ type: 'toPcan', job: 'send', data: { data: new Buffer(pcan_data), id: pcan_id } });
+		await notifyToLinkMgr({ type: 'toPcan', job: 'send', data: { data: Buffer.from(pcan_data), id: pcan_id } });
 		await wait({ time: 100 });
 	}
 	return new Promise((resolve) => {

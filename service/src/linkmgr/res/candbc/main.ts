@@ -128,7 +128,7 @@ function disposedForMotorola(msg: any, info: any, data: any) {
 		);
 	}
 	console.log('candbc:', op);
-	return new Buffer(op);
+	return Buffer.from(op);
 }
 
 // // inter

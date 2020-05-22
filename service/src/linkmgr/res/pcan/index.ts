@@ -1,4 +1,6 @@
+import { Pcan } from '@passoa/pcan';
 class PCAN {
+	private inst: Pcan;
 	private baudrate: any = {
 		baud_1m: 0x0014,
 		baud_800k: 0x0016,
@@ -24,7 +26,6 @@ class PCAN {
 		DNG_SJA1000: 0x05,
 		DNG_SJA1000_EPP: 0x06
 	};
-	private Pcan: any;
 	open(info: any, fn: any) {
 		let config = {
 			baudrate: this.baudrate[info.baudrate],
@@ -32,14 +33,15 @@ class PCAN {
 			io_port: parseInt(info.io_port, 16),
 			interrupt: parseInt(info.interrupt, 10)
 		};
-		if (!this.Pcan) this.Pcan = require('@passoa/pcan');
-		return this.Pcan.initPcan(config, fn);
+		this.inst = new Pcan(config);
+		this.inst.on('data', fn);
+		return this.inst.isOpened();
 	}
 	send(data: Buffer, id: number) {
-		return this.Pcan.send(data, id);
+		return this.inst.write({ id: id, data: data });
 	}
 	close() {
-		if (this.Pcan) return this.Pcan.uninitPcan();
+		this.inst.destroy();
 	}
 }
 export default new PCAN();

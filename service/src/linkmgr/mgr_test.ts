@@ -63,7 +63,7 @@ export class Test_mgr {
 				break;
 		}
 	}
-	private disposedPcanCmd(obj: any, info: any) {
+	private async disposedPcanCmd(obj: any, info: any) {
 		let ret: any;
 		switch (obj.job) {
 			case 'open':
@@ -72,22 +72,23 @@ export class Test_mgr {
 				if (info.dbc_path && fs.existsSync(info.dbc_path)) {
 					dbcInfo = JSON.parse(new util.TextDecoder().decode(fs.readFileSync(info.dbc_path)));
 				}
-				ret = Pcan.open(info.pcan_info, (ev: string, id: number, type: number, data: Buffer) => {
+
+				ret = Pcan.open(info.pcan_info, (msg: any) => {
 					if (dbcInfo) {
 						for (let prop in dbcInfo.Messages_Info) {
-							if (dbcInfo.Messages_Info[prop].id == id) {
+							if (dbcInfo.Messages_Info[prop].id == msg.id) {
 								let pcan_log: any = {
 									type: 'tolink',
 									mode: 8,
 									info: {
-										type: type,
-										id: '0x' + id.toString(16).toUpperCase(),
+										type: msg.type,
+										id: '0x' + msg.id.toString(16).toUpperCase(),
 										signal: prop,
 										dlc: 8
 									}
 								};
-								for (let i = 0; i < data.length; i++) {
-									let char_s = data[i].toString(16);
+								for (let i = 0; i < msg.data.length; i++) {
+									let char_s = msg.data[i].toString(16);
 									if (char_s.length < 2) char_s = '0' + char_s;
 									pcan_log.info['data' + i] = char_s.toUpperCase();
 								}
@@ -97,12 +98,14 @@ export class Test_mgr {
 						}
 					}
 				});
+
 				break;
 			case 'send':
 				Pcan.send(obj.data.data, obj.data.id);
 				ret = 1;
 				break;
 			case 'close':
+				console.log('close pcan!!!');
 				Pcan.close();
 				ret = 1;
 				break;

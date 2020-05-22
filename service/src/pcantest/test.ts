@@ -1,6 +1,6 @@
 import * as fs from 'fs-extra';
 import * as util from 'util';
-let pcan = require('@passoa/pcan');
+import { Pcan } from '@passoa/pcan';
 let dbcInfo = JSON.parse(new util.TextDecoder().decode(fs.readFileSync('D:/data_store/projects/KU/dbc.json')));
 let msg_id = [ 52, 54, 56 ];
 let binding: any = {
@@ -11,32 +11,30 @@ let binding: any = {
 	HU_DATC_DrTempSetC: { message: 'DATC_PE_02', signal: 'DATC_DrTempDispC' } //温度
 };
 let messagesList: any = {};
-pcan.initPcan(
-	{
-		baudrate: 0x432f,
-		hardware_type: 0x01,
-		io_port: 0x0100,
-		interrupt: 3
-	},
-	function(ev: string, id: number, type: number, data: Buffer) {
-		for (let idx = 0; idx < msg_id.length; idx++) {
-			if (id == msg_id[idx]) {
-				console.log('Rx:', data);
-				for (let prop in dbcInfo.Messages_Info) {
-					if (dbcInfo.Messages_Info[prop].id == id) {
-						let signals = dbcInfo.Messages_Info[prop].signals;
-						for (let i = 0; i < signals.length; i++) {
-							let signal_info = dbcInfo.Signals_Info[signals[i]];
-							if (signal_info.endianess == 'motorola') revForMotorola(data, signal_info, signals[i]);
-							else revForIntel(data, signal_info, signals[i]);
-						}
+let inst = new Pcan({
+	baudrate: 0x432f,
+	hardware_type: 0x01,
+	io_port: 0x0100,
+	interrupt: 3
+});
+inst.on('data', (msg) => {
+	for (let idx = 0; idx < msg_id.length; idx++) {
+		if (msg.id == msg_id[idx]) {
+			console.log('Rx:', msg.data);
+			for (let prop in dbcInfo.Messages_Info) {
+				if (dbcInfo.Messages_Info[prop].id == msg.id) {
+					let signals = dbcInfo.Messages_Info[prop].signals;
+					for (let i = 0; i < signals.length; i++) {
+						let signal_info = dbcInfo.Signals_Info[signals[i]];
+						if (signal_info.endianess == 'motorola') revForMotorola(msg.data, signal_info, signals[i]);
+						else revForIntel(msg.data, signal_info, signals[i]);
 					}
 				}
-				break;
 			}
+			break;
 		}
 	}
-);
+});
 
 function revForMotorola(data: any, signal_info: any, signal_name: string) {
 	let revData: any = [];
@@ -107,7 +105,8 @@ function initSendData(info: any, value: any) {
 		messagesList[info.message].data = sendForIntel(messagesList[info.message].data, signal_info, value);
 	}
 	console.log('Tx', messagesList[info.message].data);
-	pcan.send(messagesList[info.message].data, messagesList[info.message].id);
+
+	inst.write({ id: messagesList[info.message].id, data: messagesList[info.message].data });
 }
 
 function sendForMotorola(data: any, sgn: any, value: any) {
@@ -138,7 +137,7 @@ function sendForMotorola(data: any, sgn: any, value: any) {
 				jl[i + 7]
 		);
 	}
-	return new Buffer(op);
+	return Buffer.from(op);
 }
 
 function sendForIntel(data: any, sgn: any, value: any) {
@@ -168,5 +167,5 @@ function sendForIntel(data: any, sgn: any, value: any) {
 				(jt[i + 7] << 7)
 		);
 	}
-	return new Buffer(tp);
+	return Buffer.from(tp);
 }

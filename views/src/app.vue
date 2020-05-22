@@ -93,6 +93,7 @@ export default class App extends Vue {
         break;
       case "tolink":
         console.log("revLink:", data);
+        if (data.mode == 8) break;
         this.$store.state.test_info.info = data;
         break;
       case "toDB":

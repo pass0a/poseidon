@@ -53,10 +53,9 @@ steps:
     customCommand: 'run build'
 
 - script: |
-    mkdir dist
-    
     cp C:\hostedtoolcache\windows\node\12.16.1\x64\node.exe service/dist/node.exe
-    cp service/node_modules/ depends/passoa/dist/node_modules/@passoa/ -rf
+    cd service
+    npm uninstall --save-dev
   displayName: 'Command Line Script'
     
 
