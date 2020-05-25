@@ -31,10 +31,10 @@ steps:
     verbose: false
 
 - task: Npm@1
-    displayName: 'npm install'
-    inputs:
-      workingDir: service
-      verbose: false
+  displayName: 'npm install'
+  inputs:
+    workingDir: service
+    verbose: false
 
 - task: Npm@1
   displayName: 'npm build service'
@@ -59,12 +59,12 @@ steps:
   displayName: 'Command Line Script'
     
 
-- task: nsis@1
-  inputs:
-    scriptFile: 'reveal.nsi'
-    justInclude: 'no'
-    includeMorePlugins: 'no'
-  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
+# - task: nsis@1
+#   inputs:
+#     scriptFile: 'reveal.nsi'
+#     justInclude: 'no'
+#     includeMorePlugins: 'no'
+#   condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
 
 - task: nsis@1
   inputs:
@@ -72,21 +72,21 @@ steps:
     justInclude: 'no'
     includeMorePlugins: 'no'
 
-- task: ArchiveFiles@2
-  inputs:
-    rootFolderOrFile: 'RevealSetup.exe'
-    includeRootFolder: false
-    archiveType: '7z'
-    archiveFile: '$(Build.ArtifactStagingDirectory)/Reveal-$(Build.SourceBranchName)-$(Build.BuildId).7z'
-    replaceExistingArchive: true
-  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
+# - task: ArchiveFiles@2
+#   inputs:
+#     rootFolderOrFile: 'RevealSetup.exe'
+#     includeRootFolder: false
+#     archiveType: '7z'
+#     archiveFile: '$(Build.ArtifactStagingDirectory)/Reveal-$(Build.SourceBranchName)-$(Build.BuildId).7z'
+#     replaceExistingArchive: true
+#   condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
 
 - task: ArchiveFiles@2
   inputs:
     rootFolderOrFile: 'PoseidonSetup.exe'
     includeRootFolder: false
     archiveType: '7z'
-    archiveFile: '$(Build.ArtifactStagingDirectory)/Poseidon-$(Build.SourceBranchName)-$(Build.BuildId).7z'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/Poseidon-$(Build.SourceBranchName).7z'
     replaceExistingArchive: true
 
 - task: GitHubRelease@0
