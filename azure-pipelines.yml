@@ -3,6 +3,10 @@ pool:
   demands: npm
 
 steps:
+- task: NodeTool@0
+  displayName: 'Use Node 12.16.1'
+  inputs:
+    versionSpec: 12.16.1
 
 - task: DownloadGitHubRelease@0
   inputs:
