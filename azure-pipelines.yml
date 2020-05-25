@@ -90,7 +90,7 @@ steps:
     rootFolderOrFile: 'PoseidonSetup.exe'
     includeRootFolder: false
     archiveType: '7z'
-    archiveFile: '$(Build.ArtifactStagingDirectory)/Poseidon-$(Build.SourceBranchName).7z'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/Poseidon.7z'
     replaceExistingArchive: true
 
 - task: GitHubRelease@0
