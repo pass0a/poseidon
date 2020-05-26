@@ -3,64 +3,64 @@ pool:
   demands: npm
 
 steps:
-- task: NodeTool@0
-  displayName: 'Use Node 12.16.1'
-  inputs:
-    versionSpec: 12.16.1
+# - task: NodeTool@0
+#   displayName: 'Use Node 12.16.1'
+#   inputs:
+#     versionSpec: 12.16.1
 
-- task: DownloadGitHubRelease@0
-  inputs:
-    connection: 'GitHub connection 1'
-    userRepository: 'pass0a/package'
-    defaultVersionType: 'latest'
-    itemPattern: '*.7z'
-    downloadPath: './'
+# - task: DownloadGitHubRelease@0
+#   inputs:
+#     connection: 'GitHub connection 1'
+#     userRepository: 'pass0a/package'
+#     defaultVersionType: 'latest'
+#     itemPattern: '*.7z'
+#     downloadPath: './'
 
-- script: |
-   mkdir depends
-   7z x browser.7z -r -o./depends/browser -y
-   7z x db.7z -r -o./depends/db -y
-   7z x adb.7z -r -o./depends/adb -y
-   cd depends
-   curl -L -o vcredist_x86.exe https://download.microsoft.com/download/9/3/F/93FCF1E7-E6A4-478B-96E7-D4B285925B00/vc_redist.x86.exe
-   curl -L -o latest_usb_driver_windows.zip https://dl-ssl.google.com/android/repository/latest_usb_driver_windows.zip?hl=zh-CN
-   curl -L -o zadig.exe https://github.com/pbatard/libwdi/releases/download/b721/zadig-2.4.exe
-   ls
-  displayName: 'install all depends'
+# - script: |
+#    mkdir depends
+#    7z x browser.7z -r -o./depends/browser -y
+#    7z x db.7z -r -o./depends/db -y
+#    7z x adb.7z -r -o./depends/adb -y
+#    cd depends
+#    curl -L -o vcredist_x86.exe https://download.microsoft.com/download/9/3/F/93FCF1E7-E6A4-478B-96E7-D4B285925B00/vc_redist.x86.exe
+#    curl -L -o latest_usb_driver_windows.zip https://dl-ssl.google.com/android/repository/latest_usb_driver_windows.zip?hl=zh-CN
+#    curl -L -o zadig.exe https://github.com/pbatard/libwdi/releases/download/b721/zadig-2.4.exe
+#    ls
+#   displayName: 'install all depends'
 
-- task: Npm@1
-  displayName: 'npm install'
-  inputs:
-    workingDir: views
-    verbose: false
+# - task: Npm@1
+#   displayName: 'npm install'
+#   inputs:
+#     workingDir: views
+#     verbose: false
 
-- task: Npm@1
-  displayName: 'npm install'
-  inputs:
-    workingDir: service
-    verbose: false
+# - task: Npm@1
+#   displayName: 'npm install'
+#   inputs:
+#     workingDir: service
+#     verbose: false
 
-- task: Npm@1
-  displayName: 'npm build service'
-  inputs:
-    command: custom
-    workingDir: service
-    verbose: false
-    customCommand: 'run build'
+# - task: Npm@1
+#   displayName: 'npm build service'
+#   inputs:
+#     command: custom
+#     workingDir: service
+#     verbose: false
+#     customCommand: 'run build'
 
-- task: Npm@1
-  displayName: 'npm build views'
-  inputs:
-    command: custom
-    workingDir: views
-    verbose: false
-    customCommand: 'run build'
+# - task: Npm@1
+#   displayName: 'npm build views'
+#   inputs:
+#     command: custom
+#     workingDir: views
+#     verbose: false
+#     customCommand: 'run build'
 
-- script: |
-    cp C:\hostedtoolcache\windows\node\12.16.1\x64\node.exe service/dist/node.exe
-    cd service
-    npm uninstall --save-dev
-  displayName: 'Command Line Script'
+# - script: |
+#     cp C:\hostedtoolcache\windows\node\12.16.1\x64\node.exe service/dist/node.exe
+#     cd service
+#     npm uninstall --save-dev
+#   displayName: 'Command Line Script'
     
 
 # - task: nsis@1
@@ -70,11 +70,11 @@ steps:
 #     includeMorePlugins: 'no'
 #   condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
 
-- task: nsis@1
-  inputs:
-    scriptFile: 'poseidon.nsi'
-    justInclude: 'no'
-    includeMorePlugins: 'no'
+# - task: nsis@1
+#   inputs:
+#     scriptFile: 'poseidon.nsi'
+#     justInclude: 'no'
+#     includeMorePlugins: 'no'
 
 # - task: ArchiveFiles@2
 #   inputs:
@@ -85,29 +85,27 @@ steps:
 #     replaceExistingArchive: true
 #   condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
 
-- task: ArchiveFiles@2
-  inputs:
-    rootFolderOrFile: 'PoseidonSetup.exe'
-    includeRootFolder: false
-    archiveType: '7z'
-    archiveFile: '$(Build.ArtifactStagingDirectory)/Poseidon.7z'
-    replaceExistingArchive: true
+# - task: ArchiveFiles@2
+#   inputs:
+#     rootFolderOrFile: 'service/dist/'
+#     includeRootFolder: false
+#     archiveType: '7z'
+#     archiveFile: '$(Build.ArtifactStagingDirectory)/Poseidon.7z'
+#     replaceExistingArchive: true
 
-- task: GitHubRelease@0
-  inputs:
-    gitHubConnection: 'GitHub connection 1'
-    repositoryName: '$(Build.Repository.Name)'
-    action: 'create'
-    target: '$(Build.SourceVersion)'
-    tagSource: 'auto'
-    releaseNotesFile: 'ChangeLog'
-    addChangeLog: false
-  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
-
+# - task: GitHubRelease@0
+#   inputs:
+#     gitHubConnection: 'GitHub connection 1'
+#     repositoryName: '$(Build.Repository.Name)'
+#     action: 'create'
+#     target: '$(Build.SourceVersion)'
+#     tagSource: 'auto'
+#     addChangeLog: false
+#   condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
 - script: |
     echo %CVIPUSER%
     curl -u %CVIPUSER%:%CVIPPASS% -H "Accept: application/json" -H "Content-type: application/json" -X POST -d "{'action': 'published'}" https://passoa.coding.net/api/cci/job/246128/trigger
-  displayName: 'Command Line Script'
+  displayName: 'notify coding.net'
   env:
     CVIPUSER: ptos650d93zh
     CVIPPASS: 09760a524a3a1acf77cd85a953202d2f15383ffd

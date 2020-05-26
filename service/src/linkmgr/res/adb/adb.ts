@@ -9,9 +9,9 @@ class ADB {
 			this.addOnEvent(callback);
 			this.adb_cmd.stdin.write(cmd + ' \r\n');
 		} else {
-			this.adb_cmd = childprs.spawn('"' + path.dirname(process.execPath) + '/adb/adb" ', [ cmd ], {
-				windowsHide: true,
-				detached: true
+			this.adb_cmd = childprs.exec(`${path.join(path.dirname(process.execPath), '/adb/adb')} ${cmd}`);
+			this.adb_cmd.on('error', (err: any) => {
+				console.log(err);
 			});
 			this.addOnEvent(callback);
 		}
@@ -36,10 +36,7 @@ class ADB {
 		});
 	}
 	openADBLog(cmd: any, loger: any, file: any, callback: any) {
-		this.log_cmd = childprs.spawn('"' + path.dirname(process.execPath) + '/adb/adb" ', [ cmd ], {
-			windowsHide: true,
-			detached: true
-		});
+		this.log_cmd = childprs.exec(`${path.join(path.dirname(process.execPath), '/adb/adb')} ${cmd}`);
 		this.log_cmd.stdout.pipe(loger).pipe(file);
 		// this.log_cmd.stdout.removeAllListeners("data");
 		// this.log_cmd.stderr.removeAllListeners("data");

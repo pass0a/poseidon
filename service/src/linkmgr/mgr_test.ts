@@ -74,7 +74,7 @@ export class Test_mgr {
 				}
 
 				ret = Pcan.open(info.pcan_info, (msg: any) => {
-					if (dbcInfo) {
+					if (/*dbcInfo*/ 0) {
 						for (let prop in dbcInfo.Messages_Info) {
 							if (dbcInfo.Messages_Info[prop].id == msg.id) {
 								let pcan_log: any = {

@@ -41,7 +41,7 @@ class PCAN {
 		return this.inst.write({ id: id, data: data });
 	}
 	close() {
-		this.inst.destroy();
+		if (this.inst) this.inst.destroy();
 	}
 }
 export default new PCAN();
