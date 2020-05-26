@@ -51,7 +51,7 @@ Function InstallVC
 FunctionEnd
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
-OutFile "revealSetup.exe"
+OutFile "RevealSetup.exe"
 InstallDir "$PROGRAMFILES\reveal"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails show
