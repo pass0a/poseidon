@@ -29,9 +29,9 @@ Unicode true
 ; Instfiles page
 !insertmacro MUI_PAGE_INSTFILES
 ; Finish page
-!define MUI_FINISHPAGE_RUN "$INSTDIR\loader.exe"
-!define MUI_FINISHPAGE_RUN_PARAMETERS "$\"$INSTDIR\run.js$\""
-!define MUI_FINISHPAGE_SHOWREADME "$INSTDIR\License.txt"
+; !define MUI_FINISHPAGE_RUN "$INSTDIR\loader.exe"
+; !define MUI_FINISHPAGE_RUN_PARAMETERS "$\"$INSTDIR\run.js$\""
+; !define MUI_FINISHPAGE_SHOWREADME "$INSTDIR\License.txt"
 
 !insertmacro MUI_PAGE_FINISH
 
@@ -46,8 +46,8 @@ Unicode true
 
 ; 安装VC环境
 Function InstallVC
-   ExecWait "$INSTDIR\vcredist_x86.exe"   ;若不存在，执行静默安装
-   Delete "$INSTDIR\vcredist_x86.exe"
+   ExecWait "$INSTDIR\vcredist_x64.exe"   ;若不存在，执行静默安装
+   Delete "$INSTDIR\vcredist_x64.exe"
 FunctionEnd
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
@@ -61,7 +61,7 @@ Section "主体程序" SEC01
   SetOutPath "$INSTDIR"
   SetOverwrite ifnewer
   File ".\License.txt"
-  File ".\depends\vcredist_x86.exe"
+  File ".\depends\vcredist_x64.exe"
   File ".\depends\zadig.exe"
   File /r "service\dist\"
   File /r "service\node_modules"
@@ -70,8 +70,8 @@ Section "主体程序" SEC01
   File /r ".\depends\db"
   File /r ".\depends\adb"
   CreateDirectory "$SMPROGRAMS\reveal"
-  CreateShortCut "$SMPROGRAMS\reveal\reveal.lnk" "$INSTDIR\loader.exe"
-  CreateShortCut "$DESKTOP\reveal.lnk" "$INSTDIR\loader.exe"
+  CreateShortCut "$SMPROGRAMS\reveal\reveal.lnk" "$INSTDIR\node.exe $INSTDIR\run.js"
+  CreateShortCut "$DESKTOP\reveal.lnk" "$INSTDIR\node.exe $INSTDIR\run.js"
 SectionEnd
 
 Section "加入系统路径" SEC02
