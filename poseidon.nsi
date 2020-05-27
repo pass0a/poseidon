@@ -29,8 +29,8 @@ Unicode true
 ; Instfiles page
 !insertmacro MUI_PAGE_INSTFILES
 ; Finish page
-；!define MUI_FINISHPAGE_RUN "$INSTDIR\node.exe"
-；!define MUI_FINISHPAGE_RUN_PARAMETERS "$\"$INSTDIR\run.js$\""
+; !define MUI_FINISHPAGE_RUN "$INSTDIR\node.exe"
+; !define MUI_FINISHPAGE_RUN_PARAMETERS "$\"$INSTDIR\run.js$\""
 ; !define MUI_FINISHPAGE_SHOWREADME "$INSTDIR\License.txt"
 
 !insertmacro MUI_PAGE_FINISH
