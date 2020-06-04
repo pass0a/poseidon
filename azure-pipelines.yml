@@ -104,9 +104,8 @@ steps:
 #   condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
 - script: |
     echo %CVIPUSER%
-    curl -u %CVIPUSER%:%CVIPPASS% -H "Accept: application/json" -H "Content-type: application/json" -X POST -d "{'action': 'published'}" https://passoa.coding.net/api/cci/job/246128/trigger
+    curl -u %CVIPUSER%:%CVIPPASS% -H "Accept: application/json" -H "Content-type: application/json" -X POST -d "{"envs": [{"name": "branch","value": "$(Build.SourceBranchName)"}}" https://passoa.coding.net/api/cci/job/246128/trigger
   displayName: 'notify coding.net'
   env:
     CVIPUSER: ptos650d93zh
     CVIPPASS: 09760a524a3a1acf77cd85a953202d2f15383ffd
-  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
